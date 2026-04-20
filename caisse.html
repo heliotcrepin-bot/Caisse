@@ -735,12 +735,16 @@ async function envoyerVersSheets(vente) {
   });
 
   try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 8000);
     await fetch(SHEET_URL, {
       method: 'POST',
       mode: 'no-cors',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'text/plain' },
       body: JSON.stringify({ rows }),
+      signal: controller.signal,
     });
+    clearTimeout(timeout);
     return true;
   } catch(e) {
     console.error('Erreur envoi Sheets:', e);
@@ -785,6 +789,10 @@ async function validerVente() {
   updateTotal();
   renderPanier();
   renderHisto();
+
+  // reset bouton
+  btn.disabled = false;
+  btn.innerHTML = 'Valider la vente — <span id="valider-total">0,00 €</span>';
 
   showToast(ok ? '✅ Vente enregistrée + envoyée !' : '⚠️ Sauvegardé (hors ligne)');
   showSection('histo');
