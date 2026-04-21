@@ -665,10 +665,12 @@ function changeQty(name, delta) {
 function updateTotal() {
   const total = getTotal();
   const fmt = formatPrice(total);
-  document.getElementById('total-display').textContent = fmt;
-  document.getElementById('valider-total').textContent = fmt;
+  const td = document.getElementById('total-display');
+  const vt = document.getElementById('valider-total');
   const btn = document.getElementById('valider-btn');
-  btn.disabled = total === 0;
+  if (td) td.textContent = fmt;
+  if (vt) vt.textContent = fmt;
+  if (btn) btn.disabled = total === 0;
 }
 
 function getTotal() {
@@ -720,8 +722,7 @@ function renderPanier() {
 }
 
 // ── GOOGLE FORMS ────────────────────────────────────────────────────
-// IDs des champs du formulaire Google
-const FORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSfQfNvKghcmlK_om7CufG9GmPkFanWN-HTBoPXqvDHjGgU2kA/formResponse';
+const FORM_BASE = 'https://docs.google.com/forms/d/e/1FAIpQLSfQfNvKghcmlK_om7CufG9GmPkFanWN-HTBoPXqvDHjGgU2kA/formResponse';
 const FORM_FIELDS = {
   date:    'entry.8961781',
   produit: 'entry.754796540',
@@ -731,32 +732,36 @@ const FORM_FIELDS = {
   lieu:    'entry.582405075',
 };
 
+function envoyerLigne(date, heure, name, qty, prix, mode, lieu) {
+  return new Promise((resolve) => {
+    const params = new URLSearchParams();
+    params.append(FORM_FIELDS.date,    `${date} ${heure}`);
+    params.append(FORM_FIELDS.produit, name);
+    params.append(FORM_FIELDS.prix,    prix);
+    params.append(FORM_FIELDS.qty,     qty);
+    params.append(FORM_FIELDS.mode,    mode);
+    params.append(FORM_FIELDS.lieu,    lieu);
+
+    const img = document.createElement('img');
+    img.style.display = 'none';
+    img.onload  = () => { try { document.body.removeChild(img); } catch(e){} resolve(true); };
+    img.onerror = () => { try { document.body.removeChild(img); } catch(e){} resolve(true); };
+    img.src = `${FORM_BASE}?${params.toString()}`;
+    document.body.appendChild(img);
+    setTimeout(() => resolve(true), 5000);
+  });
+}
+
 async function envoyerVersSheets(vente) {
   const now = new Date(vente.date);
   const date = now.toLocaleDateString('fr-FR');
   const heure = now.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
-
   try {
-    // Envoie une ligne par produit dans le panier
     const envois = Object.entries(vente.items).map(([name, qty]) => {
       const p = PRODUCTS.find(x => x.name === name);
       const prix = p ? p.price : 0;
-
-      const body = new FormData();
-      body.append(FORM_FIELDS.date,    `${date} ${heure}`);
-      body.append(FORM_FIELDS.produit, name);
-      body.append(FORM_FIELDS.prix,    prix);
-      body.append(FORM_FIELDS.qty,     qty);
-      body.append(FORM_FIELDS.mode,    vente.mode);
-      body.append(FORM_FIELDS.lieu,    vente.lieu);
-
-      return fetch(FORM_URL, {
-        method: 'POST',
-        mode: 'no-cors',
-        body: body,
-      });
+      return envoyerLigne(date, heure, name, qty, prix, vente.mode, vente.lieu);
     });
-
     await Promise.all(envois);
     return true;
   } catch(e) {
