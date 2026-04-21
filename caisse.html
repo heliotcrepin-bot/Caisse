@@ -750,12 +750,15 @@ async function envoyerVersSheets(vente) {
   const date = now.toLocaleDateString('fr-FR');
   const heure = now.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
   try {
-    const envois = Object.entries(vente.items).map(([name, qty]) => {
+    // Envoie les produits un par un avec délai pour éviter les conflits de lignes
+    const items = Object.entries(vente.items);
+    for (let i = 0; i < items.length; i++) {
+      const [name, qty] = items[i];
       const p = PRODUCTS.find(x => x.name === name);
       const prix = p ? p.price : 0;
-      return envoyerLigne(date, heure, name, qty, prix, vente.mode, vente.lieu);
-    });
-    await Promise.all(envois);
+      await envoyerLigne(date, heure, name, qty, prix, vente.mode, vente.lieu);
+      if (i < items.length - 1) await new Promise(r => setTimeout(r, 800));
+    }
     return true;
   } catch(e) {
     console.error('Erreur envoi:', e);
