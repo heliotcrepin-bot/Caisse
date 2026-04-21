@@ -719,35 +719,48 @@ function renderPanier() {
   container.appendChild(spacer);
 }
 
-// ── GOOGLE SHEETS ────────────────────────────────────────────────────
-const SHEET_URL = 'https://script.google.com/macros/s/AKfycbwrNzT2wmo9Ai3DFv9tw1XvEWwVO459cbZe1wyVp5rSN6duzNDu4THqwC8GiaQNBeF8/exec';
+// ── GOOGLE FORMS ────────────────────────────────────────────────────
+// IDs des champs du formulaire Google
+const FORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSfQfNvKghcmlK_om7CufG9GmPkFanWN-HTBoPXqvDHjGgU2kA/formResponse';
+const FORM_FIELDS = {
+  date:    'entry.8961781',
+  produit: 'entry.754796540',
+  prix:    'entry.161362609',
+  qty:     'entry.1681600352',
+  mode:    'entry.932875287',
+  lieu:    'entry.582405075',
+};
 
 async function envoyerVersSheets(vente) {
   const now = new Date(vente.date);
   const date = now.toLocaleDateString('fr-FR');
   const heure = now.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
 
-  const rows = [];
-  Object.entries(vente.items).forEach(([name, qty]) => {
-    const p = PRODUCTS.find(x => x.name === name);
-    const prix = p ? p.price : 0;
-    rows.push([date, heure, name, qty, prix, parseFloat((prix * qty).toFixed(2)), vente.mode, vente.lieu]);
-  });
-
   try {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 8000);
-    await fetch(SHEET_URL, {
-      method: 'POST',
-      mode: 'no-cors',
-      headers: { 'Content-Type': 'text/plain' },
-      body: JSON.stringify({ rows }),
-      signal: controller.signal,
+    // Envoie une ligne par produit dans le panier
+    const envois = Object.entries(vente.items).map(([name, qty]) => {
+      const p = PRODUCTS.find(x => x.name === name);
+      const prix = p ? p.price : 0;
+
+      const body = new FormData();
+      body.append(FORM_FIELDS.date,    `${date} ${heure}`);
+      body.append(FORM_FIELDS.produit, name);
+      body.append(FORM_FIELDS.prix,    prix);
+      body.append(FORM_FIELDS.qty,     qty);
+      body.append(FORM_FIELDS.mode,    vente.mode);
+      body.append(FORM_FIELDS.lieu,    vente.lieu);
+
+      return fetch(FORM_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        body: body,
+      });
     });
-    clearTimeout(timeout);
+
+    await Promise.all(envois);
     return true;
   } catch(e) {
-    console.error('Erreur envoi Sheets:', e);
+    console.error('Erreur envoi Forms:', e);
     return false;
   }
 }
