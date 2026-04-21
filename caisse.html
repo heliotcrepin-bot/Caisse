@@ -744,15 +744,27 @@ async function envoyerVersSheets(vente) {
   const date = now.toLocaleDateString('fr-FR');
   const heure = now.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
   try {
-    // Envoie les produits un par un avec délai pour éviter les conflits de lignes
     const items = Object.entries(vente.items);
-    for (let i = 0; i < items.length; i++) {
-      const [name, qty] = items[i];
+    const produits = items.map(([name]) => name).join('|');
+    const prix_list = items.map(([name]) => {
       const p = PRODUCTS.find(x => x.name === name);
-      const prix = p ? p.price : 0;
-      await envoyerLigne(date, heure, name, qty, prix, vente.mode, vente.lieu);
-      if (i < items.length - 1) await new Promise(r => setTimeout(r, 800));
-    }
+      return p ? p.price : 0;
+    }).join('|');
+    const qty_list = items.map(([, qty]) => qty).join('|');
+
+    const params = new URLSearchParams({
+      date:    `${date} ${heure}`,
+      produit: produits,
+      prix:    prix_list,
+      qty:     qty_list,
+      mode:    vente.mode,
+      lieu:    vente.lieu,
+    });
+
+    await fetch(`${SCRIPT_URL}?${params.toString()}`, {
+      method: 'GET',
+      mode: 'no-cors',
+    });
     return true;
   } catch(e) {
     console.error('Erreur envoi:', e);
