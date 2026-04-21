@@ -725,24 +725,18 @@ function renderPanier() {
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwrNzT2wmo9Ai3DFv9tw1XvEWwVO459cbZe1wyVp5rSN6duzNDu4THqwC8GiaQNBeF8/exec';
 
 function envoyerLigne(date, heure, name, qty, prix, mode, lieu) {
-  return new Promise((resolve) => {
-    const params = new URLSearchParams({
-      date:    `${date} ${heure}`,
-      produit: name,
-      prix:    prix,
-      qty:     qty,
-      mode:    mode,
-      lieu:    lieu,
-    });
-
-    const img = document.createElement('img');
-    img.style.display = 'none';
-    img.onload  = () => { try { document.body.removeChild(img); } catch(e){} resolve(true); };
-    img.onerror = () => { try { document.body.removeChild(img); } catch(e){} resolve(true); };
-    img.src = `${SCRIPT_URL}?${params.toString()}`;
-    document.body.appendChild(img);
-    setTimeout(() => resolve(true), 5000);
+  const params = new URLSearchParams({
+    date:    `${date} ${heure}`,
+    produit: name,
+    prix:    prix,
+    qty:     qty,
+    mode:    mode,
+    lieu:    lieu,
   });
+  return fetch(`${SCRIPT_URL}?${params.toString()}`, {
+    method: 'GET',
+    mode: 'no-cors',
+  }).then(() => true).catch(() => true);
 }
 
 async function envoyerVersSheets(vente) {
