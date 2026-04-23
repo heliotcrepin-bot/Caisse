@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>BS Salada — Stock</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@600;700;800&display=swap');
+:root {
+  --bg:#0e1a12; --surface:#162019; --card:#1d2b21; --border:#2a3d2e;
+  --green:#4ade80; --gdim:#1a4028; --orange:#fb923c; --odim:#3d2010;
+  --red:#f87171; --rdim:#3d1010; --blue:#60a5fa; --bdim:#1e2d4a;
+  --text:#e8f5e9; --muted:#6b8f72; --accent:#86efac;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:var(--bg);color:var(--text);font-family:'DM Mono',monospace;min-height:100vh;padding-bottom:110px}
+
+.header{background:var(--surface);border-bottom:1px solid var(--border);padding:14px 16px 10px;position:sticky;top:0;z-index:100}
+.header-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.logo{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--accent)}
+.logo span{color:var(--muted);font-weight:600}
+.sync-btn{background:var(--gdim);border:1px solid var(--green);color:var(--green);font-family:'DM Mono',monospace;font-size:11px;padding:6px 12px;border-radius:20px;cursor:pointer}
+.sync-btn:active{background:var(--green);color:var(--bg)}
+
+.tabs{display:flex;gap:5px}
+.tab{flex:1;background:transparent;border:1px solid var(--border);color:var(--muted);font-family:'DM Mono',monospace;font-size:10px;padding:7px 4px;border-radius:8px;cursor:pointer;text-align:center}
+.tab.active{background:var(--gdim);border-color:var(--green);color:var(--green)}
+
+.banner{margin:10px 14px;background:var(--rdim);border:1px solid var(--red);border-radius:10px;padding:9px 12px;display:flex;align-items:center;gap:8px;font-size:12px;color:var(--red);cursor:pointer}
+.banner.hidden{display:none}
+.badge{background:var(--red);color:var(--bg);font-weight:700;padding:2px 7px;border-radius:10px;font-size:11px}
+
+.section{padding:0 14px;margin-top:14px}
+.sec-title{font-family:'Syne',sans-serif;font-size:10px;font-weight:700;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:7px;padding-left:2px}
+
+/* CARDS */
+.ing-list{display:flex;flex-direction:column;gap:5px}
+.ing-card{background:var(--card);border:1px solid var(--border);border-radius:11px;padding:11px 12px;cursor:pointer;transition:all .15s;position:relative;overflow:hidden}
+.ing-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:2px 0 0 2px}
+.ing-card.ok::before{background:var(--green)}
+.ing-card.alerte::before{background:var(--orange)}
+.ing-card.critique::before,.ing-card.rupture::before{background:var(--red)}
+.ing-card:active{transform:scale(0.98)}
+
+.card-row{display:flex;align-items:center;gap:10px}
+.card-info{flex:1;min-width:0}
+.card-name{font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card-detail{font-size:10px;color:var(--muted);margin-top:2px;display:flex;gap:8px;flex-wrap:wrap}
+.card-right{display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0}
+.status-pill{font-size:10px;font-weight:500;padding:3px 8px;border-radius:20px;white-space:nowrap}
+.s-ok{background:var(--gdim);color:var(--green)}
+.s-alerte{background:var(--odim);color:var(--orange)}
+.s-critique,.s-rupture{background:var(--rdim);color:var(--red)}
+.card-days{font-size:10px;color:var(--muted)}
+
+.ing-bar{position:absolute;bottom:0;left:0;right:0;height:2px;background:var(--border)}
+.ing-bar-fill{height:100%;border-radius:2px;transition:width .4s}
+.ok .ing-bar-fill{background:var(--green)}
+.alerte .ing-bar-fill{background:var(--orange)}
+.critique .ing-bar-fill,.rupture .ing-bar-fill{background:var(--red)}
+
+/* MODAL */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:200;display:flex;align-items:flex-end;opacity:0;pointer-events:none;transition:opacity .25s}
+.overlay.open{opacity:1;pointer-events:all}
+.modal{background:var(--card);border:1px solid var(--border);border-radius:22px 22px 0 0;width:100%;padding:20px 18px 44px;transform:translateY(100%);transition:transform .3s cubic-bezier(.34,1.56,.64,1);max-height:90vh;overflow-y:auto}
+.overlay.open .modal{transform:translateY(0)}
+.m-handle{width:32px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 18px}
+.m-title{font-family:'Syne',sans-serif;font-size:19px;font-weight:800;color:var(--accent);margin-bottom:2px}
+.m-sub{font-size:11px;color:var(--muted);margin-bottom:16px}
+
+/* Stats block */
+.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px}
+.stat-box{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 12px}
+.stat-label{font-size:10px;color:var(--muted);margin-bottom:3px}
+.stat-val{font-size:15px;font-weight:500;color:var(--text)}
+.stat-val.green{color:var(--green)}
+.stat-val.orange{color:var(--orange)}
+.stat-val.red{color:var(--red)}
+
+/* Durée vie tag */
+.duree-tag{display:inline-flex;align-items:center;gap:4px;background:var(--bdim);border:1px solid var(--blue);color:var(--blue);font-size:10px;padding:4px 10px;border-radius:20px;margin-bottom:14px}
+
+/* Prix input */
+.prix-block{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:14px}
+.prix-block-title{font-size:11px;color:var(--muted);margin-bottom:8px}
+.prix-row{display:flex;align-items:center;gap:8px}
+.prix-input{flex:1;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'DM Mono',monospace;font-size:15px;padding:9px 10px;outline:none;text-align:center}
+.prix-input:focus{border-color:var(--green)}
+.prix-unit{font-size:12px;color:var(--muted);white-space:nowrap}
+.cout-calc{font-size:11px;color:var(--accent);margin-top:6px;text-align:right}
+
+/* Qty */
+.qty-label{font-size:11px;color:var(--muted);margin-bottom:6px}
+.qty-row{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.qty-btn{width:44px;height:44px;background:var(--surface);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.qty-btn:active{background:var(--gdim);border-color:var(--green)}
+.qty-input{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'DM Mono',monospace;font-size:22px;text-align:center;padding:9px;outline:none}
+.qty-input:focus{border-color:var(--green)}
+
+.quick-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.quick{background:var(--surface);border:1px solid var(--border);color:var(--muted);font-family:'DM Mono',monospace;font-size:11px;padding:5px 11px;border-radius:20px;cursor:pointer}
+.quick:active{background:var(--gdim);border-color:var(--green);color:var(--green)}
+
+.fourn-input{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'DM Mono',monospace;font-size:13px;padding:10px 12px;outline:none;margin-bottom:14px}
+.fourn-input:focus{border-color:var(--green)}
+.fourn-input::placeholder{color:var(--muted)}
+
+.btn-green{width:100%;background:var(--green);border:none;border-radius:13px;color:var(--bg);font-family:'Syne',sans-serif;font-size:15px;font-weight:700;padding:15px;cursor:pointer;transition:all .2s}
+.btn-green:active{transform:scale(.97)}
+.btn-cancel{width:100%;background:transparent;border:1px solid var(--border);border-radius:13px;color:var(--muted);font-family:'DM Mono',monospace;font-size:13px;padding:12px;cursor:pointer;margin-top:8px}
+
+/* Panier FAB */
+.fab{position:fixed;bottom:22px;right:16px;background:var(--green);border:none;border-radius:18px;color:var(--bg);font-family:'Syne',sans-serif;font-size:14px;font-weight:700;padding:13px 18px;cursor:pointer;display:flex;align-items:center;gap:7px;box-shadow:0 4px 20px rgba(74,222,128,.3);z-index:150;transform:translateY(100px);transition:transform .3s cubic-bezier(.34,1.56,.64,1)}
+.fab.visible{transform:translateY(0)}
+.fab:active{transform:scale(.96) !important}
+.fab-badge{background:var(--bg);color:var(--green);border-radius:9px;padding:2px 7px;font-size:12px}
+
+/* Panier items */
+.panier-item{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border)}
+.p-del{background:var(--rdim);border:none;color:var(--red);border-radius:7px;width:28px;height:28px;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center}
+
+/* Toast */
+.toast{position:fixed;top:18px;left:50%;transform:translateX(-50%) translateY(-80px);background:var(--green);color:var(--bg);font-family:'Syne',sans-serif;font-weight:700;font-size:13px;padding:11px 18px;border-radius:18px;z-index:999;transition:transform .3s cubic-bezier(.34,1.56,.64,1);white-space:nowrap}
+.toast.err{background:var(--red)}
+.toast.show{transform:translateX(-50%) translateY(0)}
+
+.empty{text-align:center;padding:36px 16px;color:var(--muted);font-size:13px}
+.tab-content{display:none}
+.tab-content.active{display:block}
+
+/* Tarifs tab */
+.tarif-card{background:var(--card);border:1px solid var(--border);border-radius:11px;padding:11px 12px;margin-bottom:5px;display:flex;align-items:center;gap:10px}
+.tarif-info{flex:1}
+.tarif-name{font-size:13px;font-weight:500}
+.tarif-conso{font-size:10px;color:var(--muted);margin-top:2px}
+.tarif-prix-wrap{display:flex;align-items:center;gap:6px}
+.tarif-prix-in{width:70px;background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'DM Mono',monospace;font-size:14px;padding:7px 8px;outline:none;text-align:center}
+.tarif-prix-in:focus{border-color:var(--green)}
+.tarif-pu{font-size:11px;color:var(--muted)}
+.tarif-cout{font-size:11px;color:var(--accent);text-align:right;min-width:50px}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <div class="logo">🥗 BS <span>Stock</span></div>
+    <button class="sync-btn" onclick="refreshStock()" id="syncBtn">↻ Sync</button>
+  </div>
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('stock')">📊 Stock</button>
+    <button class="tab" onclick="switchTab('courses')">🛒 Courses</button>
+    <button class="tab" onclick="switchTab('tarifs')">💶 Tarifs</button>
+    <button class="tab" onclick="switchTab('histo')">📋 Histo</button>
+  </div>
+</div>
+
+<div class="banner hidden" id="banner" onclick="switchTab('courses')">
+  <span>⚠️ À racheter</span>
+  <span class="badge" id="bannerCount">0</span>
+  <span style="margin-left:auto;color:var(--muted)">→</span>
+</div>
+
+<div class="tab-content active" id="tab-stock"></div>
+<div class="tab-content" id="tab-courses"></div>
+<div class="tab-content" id="tab-tarifs"></div>
+<div class="tab-content" id="tab-histo">
+  <div class="section">
+    <div class="sec-title">Achats envoyés</div>
+    <div id="histoContent"><div class="empty">Aucun achat enregistré</div></div>
+  </div>
+</div>
+
+<!-- Modal achat -->
+<div class="overlay" id="modalOverlay" onclick="closeModal(event)">
+  <div class="modal">
+    <div class="m-handle"></div>
+    <div class="m-title" id="mTitle">—</div>
+    <div class="m-sub" id="mSub">—</div>
+
+    <div class="stats-grid" id="mStats"></div>
+
+    <div class="duree-tag" id="mDuree">⏱ Durée de vie : —</div>
+
+    <!-- Prix achat -->
+    <div class="prix-block">
+      <div class="prix-block-title">💶 Prix d'achat (modifiable)</div>
+      <div class="prix-row">
+        <input type="number" class="prix-input" id="prixInput" step="0.01" min="0" placeholder="0.00"
+               oninput="updateCoutCalc()">
+        <span class="prix-unit">€ / kg</span>
+      </div>
+      <div class="cout-calc" id="coutCalc"></div>
+    </div>
+
+    <div class="qty-label">Quantité achetée</div>
+    <div class="qty-row">
+      <button class="qty-btn" onclick="adjQty(-1)">−</button>
+      <input type="number" class="qty-input" id="qtyInput" value="500" min="1" oninput="updateCoutCalc()">
+      <span style="font-size:13px;color:var(--muted);flex-shrink:0" id="mUnit">g</span>
+      <button class="qty-btn" onclick="adjQty(1)">+</button>
+    </div>
+
+    <div class="quick-row" id="quickRow"></div>
+
+    <input type="text" class="fourn-input" id="fournInput" placeholder="Fournisseur (Marché, Grossiste...)" autocomplete="off">
+
+    <button class="btn-green" onclick="addToCart()">+ Ajouter au panier</button>
+    <button class="btn-cancel" onclick="closeModal()">Annuler</button>
+  </div>
+</div>
+
+<!-- Modal panier -->
+<div class="overlay" id="panierOverlay" onclick="closePanier(event)">
+  <div class="modal">
+    <div class="m-handle"></div>
+    <div class="m-title">🛒 Mon Panier</div>
+    <div class="m-sub" id="panierSub">0 article(s)</div>
+    <div id="panierItems"></div>
+    <button class="btn-green" id="envoyerBtn" onclick="envoyerAchats()">✅ Envoyer vers Excel</button>
+    <button class="btn-cancel" onclick="closePanier()">Fermer</button>
+  </div>
+</div>
+
+<button class="fab" id="fab" onclick="openPanier()">
+  🛒 Panier <span class="fab-badge" id="fabCount">0</span>
+</button>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const SHEET_URL = 'https://script.google.com/macros/s/AKfycbwrNzT2wmo9Ai3DFv9tw1XvEWwVO459cbZe1wyVp5rSN6duzNDu4THqwC8GiaQNBeF8/exec';
+const SHEET_ID  = '1rIGCP29i3eBzyb1kpqqcQ58zd-kDXCbD8kloTon7XTo';
+
+// ── DONNÉES INGRÉDIENTS ───────────────────────────────────────────────────
+// conso_j = consommation journalière calculée depuis ventes réelles (g/j)
+// stock3j = stock recommandé 3 jours (limité durée de vie)
+// duree   = durée de vie en jours
+// categorie_fraicheur: 'fragile'=1-3j, 'moyen'=4-5j, 'robuste'=7j+
+const INGS = [
+  // Fruits
+  {nom:"Orange",         cat:"Fruits",             unite:"g",  conso_j:252, stock3j:755,  duree:7,  prix_kg:1.50, fragile:false},
+  {nom:"Banane",         cat:"Fruits",             unite:"g",  conso_j:89,  stock3j:267,  duree:4,  prix_kg:1.20, fragile:false},
+  {nom:"Mangue",         cat:"Fruits",             unite:"g",  conso_j:67,  stock3j:200,  duree:4,  prix_kg:3.50, fragile:false},
+  {nom:"Pastèque",       cat:"Fruits",             unite:"g",  conso_j:133, stock3j:400,  duree:4,  prix_kg:0.80, fragile:false},
+  {nom:"Ananas",         cat:"Fruits",             unite:"g",  conso_j:56,  stock3j:167,  duree:5,  prix_kg:2.00, fragile:false},
+  {nom:"Pitaya",         cat:"Fruits",             unite:"g",  conso_j:44,  stock3j:133,  duree:3,  prix_kg:8.00, fragile:true},
+  {nom:"Fraise",         cat:"Fruits",             unite:"g",  conso_j:7,   stock3j:20,   duree:3,  prix_kg:5.00, fragile:true},
+  {nom:"Myrtilles",      cat:"Fruits",             unite:"g",  conso_j:16,  stock3j:47,   duree:3,  prix_kg:8.00, fragile:true},
+  {nom:"Dattes",         cat:"Fruits",             unite:"g",  conso_j:11,  stock3j:33,   duree:14, prix_kg:6.00, fragile:false},
+  {nom:"Pulpe Passion",  cat:"Fruits",             unite:"g",  conso_j:28,  stock3j:56,   duree:2,  prix_kg:4.00, fragile:true},
+  {nom:"Pomme",          cat:"Fruits",             unite:"g",  conso_j:171, stock3j:512,  duree:7,  prix_kg:2.00, fragile:false},
+  {nom:"Fruits saison",  cat:"Fruits",             unite:"g",  conso_j:197, stock3j:590,  duree:3,  prix_kg:2.00, fragile:true},
+  // Légumes
+  {nom:"Roquette",       cat:"Légumes",            unite:"g",  conso_j:220, stock3j:660,  duree:3,  prix_kg:6.00, fragile:true},
+  {nom:"Tomate",         cat:"Légumes",            unite:"g",  conso_j:160, stock3j:480,  duree:5,  prix_kg:2.00, fragile:false},
+  {nom:"Concombre",      cat:"Légumes",            unite:"g",  conso_j:193, stock3j:580,  duree:5,  prix_kg:1.20, fragile:false},
+  {nom:"Poivron",        cat:"Légumes",            unite:"g",  conso_j:107, stock3j:320,  duree:5,  prix_kg:2.50, fragile:false},
+  {nom:"Oignon Rouge",   cat:"Légumes",            unite:"g",  conso_j:62,  stock3j:187,  duree:14, prix_kg:1.50, fragile:false},
+  {nom:"Feta",           cat:"Légumes",            unite:"g",  conso_j:40,  stock3j:120,  duree:14, prix_kg:8.00, fragile:false},
+  {nom:"Carotte",        cat:"Légumes",            unite:"g",  conso_j:141, stock3j:423,  duree:7,  prix_kg:1.00, fragile:false},
+  {nom:"Épinard",        cat:"Légumes",            unite:"g",  conso_j:54,  stock3j:163,  duree:3,  prix_kg:3.50, fragile:true},
+  {nom:"Betterave",      cat:"Légumes",            unite:"g",  conso_j:151, stock3j:453,  duree:7,  prix_kg:1.20, fragile:false},
+  // Agrumes & Arômates
+  {nom:"Citron",         cat:"Agrumes & Arômates", unite:"g",  conso_j:79,  stock3j:238,  duree:7,  prix_kg:2.00, fragile:false},
+  {nom:"Gingembre",      cat:"Agrumes & Arômates", unite:"g",  conso_j:71,  stock3j:213,  duree:14, prix_kg:8.00, fragile:false},
+  {nom:"Cannelle",       cat:"Agrumes & Arômates", unite:"g",  conso_j:0.3, stock3j:1,    duree:365,prix_kg:15.0, fragile:false},
+  {nom:"Lin",            cat:"Agrumes & Arômates", unite:"g",  conso_j:0.9, stock3j:3,    duree:365,prix_kg:5.00, fragile:false},
+  // Protéines
+  {nom:"Poulet",         cat:"Protéines",          unite:"g",  conso_j:44,  stock3j:133,  duree:3,  prix_kg:7.00, fragile:true},
+  {nom:"Sardine",        cat:"Protéines",          unite:"g",  conso_j:62,  stock3j:187,  duree:30, prix_kg:4.00, fragile:false},
+  {nom:"Thon",           cat:"Protéines",          unite:"g",  conso_j:36,  stock3j:107,  duree:30, prix_kg:5.00, fragile:false},
+  // Fromages
+  {nom:"Philadelphia",   cat:"Fromages",           unite:"g",  conso_j:30,  stock3j:90,   duree:7,  prix_kg:10.0, fragile:false},
+  {nom:"Mozzarella",     cat:"Fromages",           unite:"g",  conso_j:39,  stock3j:117,  duree:5,  prix_kg:8.00, fragile:false},
+  // Boulangerie
+  {nom:"Pain",           cat:"Boulangerie",        unite:"u",  conso_j:3.6, stock3j:11,   duree:3,  prix_kg:0.30, fragile:true},
+  {nom:"Baguette",       cat:"Boulangerie",        unite:"u",  conso_j:1.0, stock3j:3,    duree:1,  prix_kg:0.41, fragile:true},
+  // Produits frais
+  {nom:"Yaourt",         cat:"Produits frais",     unite:"g",  conso_j:127, stock3j:380,  duree:7,  prix_kg:2.00, fragile:false},
+  {nom:"Lait amandes",   cat:"Produits frais",     unite:"ml", conso_j:311, stock3j:933,  duree:3,  prix_kg:12.0, fragile:true,  note:"80g amandes → 200ml maison"},
+  {nom:"Lait végétal",   cat:"Produits frais",     unite:"ml", conso_j:67,  stock3j:200,  duree:5,  prix_kg:2.50, fragile:false},
+  // Compléments
+  {nom:"Whey",           cat:"Compléments",        unite:"g",  conso_j:30,  stock3j:90,   duree:365,prix_kg:30.0, fragile:false},
+  {nom:"Protéine pois",  cat:"Compléments",        unite:"g",  conso_j:11,  stock3j:33,   duree:365,prix_kg:20.0, fragile:false},
+  {nom:"Beurre cacahuète",cat:"Compléments",       unite:"g",  conso_j:4.4, stock3j:13,   duree:90, prix_kg:8.00, fragile:false},
+  {nom:"Granola",        cat:"Compléments",        unite:"g",  conso_j:47,  stock3j:140,  duree:30, prix_kg:6.00, fragile:false},
+  {nom:"Avoine",         cat:"Compléments",        unite:"g",  conso_j:40,  stock3j:120,  duree:90, prix_kg:2.00, fragile:false},
+  {nom:"Amandes",        cat:"Compléments",        unite:"g",  conso_j:8.3, stock3j:25,   duree:90, prix_kg:12.0, fragile:false},
+  {nom:"Coco râpé",      cat:"Compléments",        unite:"g",  conso_j:7.8, stock3j:23,   duree:30, prix_kg:8.00, fragile:false},
+  {nom:"Huile coco",     cat:"Compléments",        unite:"ml", conso_j:5.6, stock3j:17,   duree:180,prix_kg:8.00, fragile:false},
+  {nom:"Maca poudre",    cat:"Compléments",        unite:"g",  conso_j:2.8, stock3j:8,    duree:365,prix_kg:25.0, fragile:false},
+  {nom:"Chia",           cat:"Compléments",        unite:"g",  conso_j:12,  stock3j:37,   duree:365,prix_kg:8.00, fragile:false},
+  {nom:"Cacao poudre",   cat:"Compléments",        unite:"g",  conso_j:3.3, stock3j:10,   duree:365,prix_kg:10.0, fragile:false},
+  {nom:"Cacao nibs",     cat:"Compléments",        unite:"g",  conso_j:2.2, stock3j:7,    duree:365,prix_kg:15.0, fragile:false},
+  // Condiments
+  {nom:"Moutarde",       cat:"Condiments",         unite:"g",  conso_j:2.8, stock3j:8,    duree:180,prix_kg:3.00, fragile:false},
+  {nom:"Raisins secs",   cat:"Condiments",         unite:"g",  conso_j:8.3, stock3j:25,   duree:90, prix_kg:5.00, fragile:false},
+  {nom:"Maïs",           cat:"Condiments",         unite:"g",  conso_j:11,  stock3j:33,   duree:30, prix_kg:1.50, fragile:false},
+  {nom:"Pâtes/Quinoa",   cat:"Féculents",          unite:"g",  conso_j:133, stock3j:400,  duree:90, prix_kg:3.00, fragile:false},
+];
+
+const QUICK_QTYS = {g:[100,250,500,1000,1500], ml:[100,250,500,1000], u:[1,2,4,6,10]};
+
+let stockData  = JSON.parse(localStorage.getItem('bs_stock')  || '{}');
+let prixData   = JSON.parse(localStorage.getItem('bs_prix')   || '{}');
+let panier     = [];
+let historique = JSON.parse(localStorage.getItem('bs_histo')  || '[]');
+let curIng     = null;
+
+// Appliquer prix par défaut si pas encore sauvegardé
+INGS.forEach(ing => {
+  if (prixData[ing.nom] === undefined) prixData[ing.nom] = ing.prix_kg;
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+  renderStock(); renderCourses(); renderTarifs(); renderHisto();
+  refreshStock();
+});
+
+// ── REFRESH ───────────────────────────────────────────────────────────────
+async function refreshStock() {
+  const btn = document.getElementById('syncBtn');
+  btn.textContent='⟳...'; 
+  try {
+    const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=Stock_App&t=${Date.now()}`;
+    const res = await fetch(url);
+    const text = await res.text();
+    const json = JSON.parse(text.substring(47).slice(0,-2));
+    if (json.table && json.table.rows) {
+      json.table.rows.forEach(row => {
+        if (row.c[0]?.v) stockData[row.c[0].v] = row.c[1]?.v || 0;
+      });
+      localStorage.setItem('bs_stock', JSON.stringify(stockData));
+      renderStock(); renderCourses();
+      showToast('✅ Synchronisé');
+    }
+  } catch(e) { showToast('📶 Hors ligne', true); }
+  btn.textContent='↻ Sync';
+}
+
+// ── STATUS ────────────────────────────────────────────────────────────────
+function getStatus(qty, ing) {
+  const s3 = ing.stock3j;
+  if (qty <= 0)       return 'rupture';
+  if (qty < s3*0.25)  return 'critique';
+  if (qty < s3*0.60)  return 'alerte';
+  return 'ok';
+}
+
+function statusLabel(s) {
+  return {ok:'✅ OK', alerte:'⚠ Alerte', critique:'🔴 Critique', rupture:'🔴 Rupture'}[s];
+}
+
+function daysRemaining(qty, conso_j) {
+  if (!conso_j || conso_j <= 0) return '∞';
+  const d = Math.floor(qty / conso_j);
+  return d >= 99 ? '99+' : d;
+}
+
+// ── RENDER STOCK ─────────────────────────────────────────────────────────
+function renderStock() {
+  const cats = [...new Set(INGS.map(i=>i.cat))];
+  let alertes = 0;
+  let html = '';
+
+  cats.forEach(cat => {
+    const ings = INGS.filter(i=>i.cat===cat);
+    html += `<div class="section"><div class="sec-title">${cat}</div><div class="ing-list">`;
+    ings.forEach(ing => {
+      const qty = stockData[ing.nom] || 0;
+      const st  = getStatus(qty, ing);
+      if (st !== 'ok') alertes++;
+      const pct = ing.stock3j > 0 ? Math.min(100, qty/ing.stock3j*100) : 0;
+      const days = daysRemaining(qty, ing.conso_j);
+      const fragTag = ing.fragile ? '🍃' : '';
+      const kgLabel = ing.unite === 'u' ? `${qty}u` : qty >= 1000 ? `${(qty/1000).toFixed(2)}kg` : `${qty}${ing.unite}`;
+      html += `
+        <div class="ing-card ${st}" onclick="openModal('${ing.nom}')">
+          <div class="card-row">
+            <div class="card-info">
+              <div class="card-name">${fragTag} ${ing.nom}</div>
+              <div class="card-detail">
+                <span>Stock: <b>${kgLabel}</b></span>
+                <span>Reco 3j: ${ing.unite==='u'?ing.stock3j+'u':ing.stock3j+'g'}</span>
+                <span>~${days}j restants</span>
+              </div>
+            </div>
+            <div class="card-right">
+              <div class="status-pill s-${st}">${statusLabel(st)}</div>
+              <div class="card-days">⏱ ${ing.duree}j max</div>
+            </div>
+          </div>
+          <div class="ing-bar"><div class="ing-bar-fill" style="width:${pct}%"></div></div>
+        </div>`;
+    });
+    html += `</div></div>`;
+  });
+
+  document.getElementById('tab-stock').innerHTML = html;
+  const b = document.getElementById('banner');
+  document.getElementById('bannerCount').textContent = alertes;
+  b.classList.toggle('hidden', alertes===0);
+}
+
+// ── RENDER COURSES ────────────────────────────────────────────────────────
+function renderCourses() {
+  const manquants = INGS.filter(ing => getStatus(stockData[ing.nom]||0, ing) !== 'ok');
+  let html = '';
+
+  if (manquants.length === 0) {
+    html = '<div class="section"><div class="empty">🎉 Tout est en stock !<br><br>Rien à acheter.</div></div>';
+  } else {
+    // Grouper par urgence
+    const ruptures  = manquants.filter(i => getStatus(stockData[i.nom]||0,i)==='rupture');
+    const critiques = manquants.filter(i => getStatus(stockData[i.nom]||0,i)==='critique');
+    const alertes   = manquants.filter(i => getStatus(stockData[i.nom]||0,i)==='alerte');
+
+    const renderGroup = (title, list) => {
+      if (!list.length) return '';
+      let h = `<div class="section"><div class="sec-title">${title} (${list.length})</div><div class="ing-list">`;
+      list.forEach(ing => {
+        const qty = stockData[ing.nom] || 0;
+        const st  = getStatus(qty, ing);
+        const manque = Math.max(0, ing.stock3j - qty);
+        const prix = prixData[ing.nom] || ing.prix_kg;
+        const coutAchat = ing.unite === 'u' ? (manque * prix).toFixed(2) : (manque/1000*prix).toFixed(2);
+        const kgLabel = ing.unite==='u' ? `${manque}u` : manque>=1000 ? `${(manque/1000).toFixed(2)}kg` : `${manque}g`;
+        h += `
+          <div class="ing-card ${st}" onclick="openModal('${ing.nom}')">
+            <div class="card-row">
+              <div class="card-info">
+                <div class="card-name">${ing.fragile?'🍃':''} ${ing.nom}</div>
+                <div class="card-detail">
+                  <span>Manque: <b>${kgLabel}</b></span>
+                  <span>≈${coutAchat}€</span>
+                  <span>⏱${ing.duree}j</span>
+                </div>
+              </div>
+              <div class="card-right">
+                <div class="status-pill s-${st}">${statusLabel(st)}</div>
+              </div>
+            </div>
+            <div class="ing-bar"><div class="ing-bar-fill" style="width:${Math.min(100,qty/ing.stock3j*100)}%"></div></div>
+          </div>`;
+      });
+      return h + `</div></div>`;
+    };
+
+    html += renderGroup('🔴 RUPTURE', ruptures);
+    html += renderGroup('🔴 CRITIQUE', critiques);
+    html += renderGroup('⚠ ALERTE', alertes);
+  }
+
+  // Ajouter section "Tout" pour ajout manuel
+  html += `<div class="section" style="margin-top:4px">
+    <div class="sec-title" style="color:var(--border)">Ajouter manuellement</div>
+    <div class="ing-list">`;
+  INGS.filter(ing => getStatus(stockData[ing.nom]||0,ing)==='ok').forEach(ing => {
+    const qty = stockData[ing.nom] || 0;
+    const kgLabel = ing.unite==='u' ? `${qty}u` : qty>=1000 ? `${(qty/1000).toFixed(2)}kg` : `${qty}${ing.unite}`;
+    html += `
+      <div class="ing-card ok" onclick="openModal('${ing.nom}')" style="opacity:.5">
+        <div class="card-row">
+          <div class="card-info"><div class="card-name">${ing.nom}</div>
+          <div class="card-detail"><span>${kgLabel}</span></div></div>
+          <div class="status-pill s-ok">OK</div>
+        </div>
+        <div class="ing-bar"><div class="ing-bar-fill" style="width:100%"></div></div>
+      </div>`;
+  });
+  html += `</div></div>`;
+  document.getElementById('tab-courses').innerHTML = html;
+}
+
+// ── RENDER TARIFS ─────────────────────────────────────────────────────────
+function renderTarifs() {
+  const cats = [...new Set(INGS.map(i=>i.cat))];
+  let html = '';
+  cats.forEach(cat => {
+    const ings = INGS.filter(i=>i.cat===cat);
+    html += `<div class="section"><div class="sec-title">${cat}</div>`;
+    ings.forEach(ing => {
+      const prix = prixData[ing.nom] || ing.prix_kg;
+      const conso = ing.conso_j;
+      const coutJ = ing.unite==='u' ? (conso*prix).toFixed(3) : (conso/1000*prix).toFixed(3);
+      html += `
+        <div class="tarif-card">
+          <div class="tarif-info">
+            <div class="tarif-name">${ing.nom}</div>
+            <div class="tarif-conso">${conso.toFixed(1)} ${ing.unite}/j · coût/j: ${coutJ}€</div>
+          </div>
+          <div class="tarif-prix-wrap">
+            <input type="number" class="tarif-prix-in" value="${prix}" step="0.01" min="0"
+              onchange="savePrix('${ing.nom}', this.value)" placeholder="0.00">
+            <span class="tarif-pu">€/${ing.unite==='u'?'u':'kg'}</span>
+          </div>
+        </div>`;
+    });
+    html += `</div>`;
+  });
+  html += `<div class="section" style="margin-top:16px;margin-bottom:16px">
+    <button class="btn-green" onclick="syncTarifs()">💾 Sauvegarder et mettre à jour les recettes</button>
+  </div>`;
+  document.getElementById('tab-tarifs').innerHTML = html;
+}
+
+function savePrix(nom, val) {
+  prixData[nom] = parseFloat(val) || 0;
+  localStorage.setItem('bs_prix', JSON.stringify(prixData));
+}
+
+function syncTarifs() {
+  localStorage.setItem('bs_prix', JSON.stringify(prixData));
+  showToast('✅ Tarifs sauvegardés');
+  // Envoyer les tarifs vers Google Sheets pour mise à jour Excel
+  const rows = Object.entries(prixData).map(([nom,prix]) => [nom, prix]);
+  fetch(SHEET_URL, {
+    method:'POST', mode:'no-cors',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({type:'tarifs', rows})
+  });
+}
+
+// ── MODAL ─────────────────────────────────────────────────────────────────
+function openModal(nom) {
+  const ing = INGS.find(i=>i.nom===nom);
+  if (!ing) return;
+  curIng = ing;
+  const qty   = stockData[nom] || 0;
+  const prix  = prixData[nom] || ing.prix_kg;
+  const manque = Math.max(0, ing.stock3j - qty);
+  const days  = daysRemaining(qty, ing.conso_j);
+
+  document.getElementById('mTitle').textContent = nom;
+  document.getElementById('mSub').textContent =
+    `Conso: ${ing.conso_j.toFixed(1)}${ing.unite}/j · Stock reco 3j: ${ing.stock3j}${ing.unite}`;
+  document.getElementById('mUnit').textContent = ing.unite;
+
+  // Stats
+  const st = getStatus(qty, ing);
+  const colSt = st==='ok'?'green':st==='alerte'?'orange':'red';
+  document.getElementById('mStats').innerHTML = `
+    <div class="stat-box">
+      <div class="stat-label">Stock actuel</div>
+      <div class="stat-val">${qty >= 1000 && ing.unite!=='u' ? (qty/1000).toFixed(2)+'kg' : qty+ing.unite}</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-label">Jours restants</div>
+      <div class="stat-val ${colSt}">${days}j</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-label">Recommandé 3j</div>
+      <div class="stat-val">${ing.stock3j}${ing.unite}</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-label">Manque</div>
+      <div class="stat-val ${colSt}">${manque > 0 ? manque+ing.unite : '—'}</div>
+    </div>`;
+
+  document.getElementById('mDuree').textContent =
+    `⏱ Durée de vie : ${ing.duree >= 30 ? ing.duree+'j' : ing.duree+'j max'} ${ing.fragile ? '· 🍃 Fragile' : ''}`;
+
+  document.getElementById('prixInput').value = prix;
+  updateCoutCalc();
+
+  // Qty par défaut
+  const defQty = ing.unite==='u' ? Math.max(1, Math.ceil(manque)) :
+                 ing.unite==='ml' ? Math.max(250, Math.ceil(manque/100)*100) :
+                 Math.max(500, Math.ceil(manque/100)*100);
+  document.getElementById('qtyInput').value = defQty;
+
+  const qqs = QUICK_QTYS[ing.unite] || QUICK_QTYS.g;
+  document.getElementById('quickRow').innerHTML = qqs.map(q=>
+    `<button class="quick" onclick="setQty(${q})">${q}${ing.unite}</button>`).join('');
+
+  document.getElementById('fournInput').value = '';
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+function updateCoutCalc() {
+  if (!curIng) return;
+  const prix = parseFloat(document.getElementById('prixInput').value) || 0;
+  const qty  = parseFloat(document.getElementById('qtyInput').value) || 0;
+  const cout = curIng.unite==='u' ? (qty*prix).toFixed(2) : (qty/1000*prix).toFixed(2);
+  document.getElementById('coutCalc').textContent =
+    prix > 0 ? `→ Coût de cet achat : ${cout}€` : '';
+}
+
+function closeModal(e) {
+  if (e && e.target!==document.getElementById('modalOverlay')) return;
+  document.getElementById('modalOverlay').classList.remove('open');
+  curIng = null;
+}
+function setQty(v)   { document.getElementById('qtyInput').value=v; updateCoutCalc(); }
+function adjQty(d)   {
+  const inp=document.getElementById('qtyInput');
+  const s = curIng?.unite==='u'?1:50;
+  inp.value=Math.max(1,parseInt(inp.value||0)+d*s);
+  updateCoutCalc();
+}
+
+function addToCart() {
+  const qty  = parseInt(document.getElementById('qtyInput').value);
+  const prix = parseFloat(document.getElementById('prixInput').value) || 0;
+  const fourn = document.getElementById('fournInput').value || 'Marché';
+  if (!curIng || !qty || qty<=0) return;
+
+  // Sauvegarder le prix
+  prixData[curIng.nom] = prix;
+  localStorage.setItem('bs_prix', JSON.stringify(prixData));
+
+  const existing = panier.find(p=>p.nom===curIng.nom);
+  if (existing) { existing.qty+=qty; existing.prix=prix; }
+  else panier.push({nom:curIng.nom, qty, unite:curIng.unite, prix, fourn});
+
+  updateFab();
+  document.getElementById('modalOverlay').classList.remove('open');
+  curIng = null;
+  showToast(`✅ Ajouté au panier`);
+}
+
+// ── PANIER ────────────────────────────────────────────────────────────────
+function updateFab() {
+  document.getElementById('fabCount').textContent = panier.length;
+  document.getElementById('fab').classList.toggle('visible', panier.length>0);
+}
+
+function openPanier() {
+  document.getElementById('panierSub').textContent = `${panier.length} article(s)`;
+  const el = document.getElementById('panierItems');
+  if (!panier.length) {
+    el.innerHTML='<div class="empty">Panier vide</div>';
+  } else {
+    const total = panier.reduce((s,item) => {
+      return s + (item.unite==='u' ? item.qty*item.prix : item.qty/1000*item.prix);
+    }, 0);
+    el.innerHTML = panier.map((item,i) => {
+      const cout = item.unite==='u' ? (item.qty*item.prix).toFixed(2) : (item.qty/1000*item.prix).toFixed(2);
+      const kgLabel = item.unite==='u' ? `${item.qty}u` : item.qty>=1000 ? `${(item.qty/1000).toFixed(2)}kg` : `${item.qty}${item.unite}`;
+      return `<div class="panier-item">
+        <div>
+          <div style="font-size:14px">${item.nom}</div>
+          <div style="font-size:10px;color:var(--muted)">${item.fourn} · ${cout}€</div>
+        </div>
+        <div style="color:var(--green);font-size:13px">${kgLabel}</div>
+        <button class="p-del" onclick="removeFromCart(${i})">×</button>
+      </div>`;
+    }).join('') + `<div style="text-align:right;padding:10px 0;color:var(--accent);font-size:13px">Total estimé : <b>${total.toFixed(2)}€</b></div>`;
+  }
+  document.getElementById('envoyerBtn').disabled = panier.length===0;
+  document.getElementById('panierOverlay').classList.add('open');
+}
+
+function closePanier(e) {
+  if (e && e.target!==document.getElementById('panierOverlay')) return;
+  document.getElementById('panierOverlay').classList.remove('open');
+}
+
+function removeFromCart(i) { panier.splice(i,1); updateFab(); openPanier(); }
+
+async function envoyerAchats() {
+  if (!panier.length) return;
+  const btn = document.getElementById('envoyerBtn');
+  btn.textContent='⏳ Envoi...'; btn.disabled=true;
+
+  const now = new Date();
+  const dateStr = `${String(now.getDate()).padStart(2,'0')}/${String(now.getMonth()+1).padStart(2,'0')}/${now.getFullYear()}`;
+
+  // Mettre à jour stock local
+  panier.forEach(item => { stockData[item.nom] = (stockData[item.nom]||0) + item.qty; });
+  localStorage.setItem('bs_stock', JSON.stringify(stockData));
+
+  // Historique
+  historique.unshift({date:dateStr, items:[...panier]});
+  if (historique.length>50) historique.pop();
+  localStorage.setItem('bs_histo', JSON.stringify(historique));
+
+  const rows = panier.map(item => [dateStr, item.nom, item.qty, item.unite, item.fourn, item.prix]);
+
+  try {
+    await fetch(SHEET_URL, {
+      method:'POST', mode:'no-cors',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({type:'achats', rows})
+    });
+  } catch(e) {}
+
+  panier=[];
+  updateFab();
+  renderStock(); renderCourses(); renderHisto();
+  closePanier();
+  btn.textContent='✅ Envoyer vers Excel'; btn.disabled=false;
+  showToast('✅ Achats enregistrés !');
+}
+
+// ── HISTORIQUE ────────────────────────────────────────────────────────────
+function renderHisto() {
+  const el = document.getElementById('histoContent');
+  if (!historique.length) { el.innerHTML='<div class="empty">Aucun achat enregistré</div>'; return; }
+  el.innerHTML = historique.slice(0,20).map(e=>`
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:11px;padding:11px 12px;margin-bottom:6px">
+      <div style="font-size:11px;color:var(--muted);margin-bottom:6px">📅 ${e.date}</div>
+      ${e.items.map(i=>`<div style="display:flex;justify-content:space-between;font-size:13px;padding:2px 0">
+        <span>${i.nom}</span>
+        <span style="color:var(--green)">${i.qty}${i.unite}</span>
+      </div>`).join('')}
+    </div>`).join('');
+}
+
+// ── UTILS ─────────────────────────────────────────────────────────────────
+function switchTab(tab) {
+  ['stock','courses','tarifs','histo'].forEach((t,i)=>{
+    document.querySelectorAll('.tab')[i].classList.toggle('active',t===tab);
+    document.getElementById('tab-'+t).classList.toggle('active',t===tab);
+  });
+  if (tab==='tarifs') renderTarifs();
+}
+function showToast(msg, err=false) {
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.className='toast'+(err?' err':'')+' show';
+  setTimeout(()=>t.classList.remove('show'),2500);
+}
+</script>
+</body>
+</html>
