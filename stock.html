@@ -243,6 +243,7 @@ const INGS=[
 
 let stockData=JSON.parse(localStorage.getItem('bs_stock')||'{}');
 let prixData=JSON.parse(localStorage.getItem('bs_prix')||'{}');
+let seuilData=JSON.parse(localStorage.getItem('bs_seuils')||'{}');
 let panier=[];
 let historique=JSON.parse(localStorage.getItem('bs_histo')||'[]');
 let curIng=null;
@@ -260,8 +261,20 @@ async function refreshStock(){
     if(json.table&&json.table.rows){
       // Remplacer TOUT le stock (pas merger) pour éviter les vieilles valeurs
       const newStock={};
-      json.table.rows.forEach(row=>{if(row.c[0]?.v && row.c[0].v!=='Ingredient')newStock[row.c[0].v]=row.c[1]?.v||0;});
+      const newSeuils={};
+      json.table.rows.forEach(row=>{
+        if(row.c[0]?.v && row.c[0].v!=='Ingredient'){
+          const nom=row.c[0].v;
+          newStock[nom]=row.c[1]?.v||0;
+          if(row.c[3]?.v!=null||row.c[4]?.v!=null)
+            newSeuils[nom]={al:row.c[3]?.v||0, cr:row.c[4]?.v||0};
+        }
+      });
       stockData=newStock;
+      if(Object.keys(newSeuils).length>0){
+        seuilData=newSeuils;
+        localStorage.setItem('bs_seuils',JSON.stringify(seuilData));
+      }
       localStorage.setItem('bs_stock',JSON.stringify(stockData));
       renderStock();renderCourses();showToast('✅ Synchronisé');
     }
@@ -271,8 +284,11 @@ async function refreshStock(){
 
 function getStatus(qty,ing){
   if(qty<=0)return'rupture';
-  if(qty<ing.stock3j*0.25)return'critique';
-  if(qty<ing.stock3j*0.6)return'alerte';
+  const s=seuilData[ing.nom];
+  const al=s?s.al:ing.seuil_al;
+  const cr=s?s.cr:ing.seuil_cr;
+  if(qty<=cr)return'critique';
+  if(qty<=al)return'alerte';
   return'ok';
 }
 function statusLabel(s){return{ok:'✅ OK',alerte:'⚠ Alerte',critique:'🔴 Critique',rupture:'🔴 Rupture'}[s];}
