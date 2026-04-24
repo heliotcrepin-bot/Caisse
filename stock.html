@@ -97,6 +97,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Mono',monospace;min-
   <div class="header-top">
     <div class="logo">🥗 BS <span>Stock</span></div>
     <button class="sync-btn" onclick="refreshStock()" id="syncBtn">↻ Sync</button>
+    <button class="sync-btn" onclick="resetCache()" style="background:#e74c3c;margin-left:8px">🗑 Reset</button>
   </div>
   <div class="tabs">
     <button class="tab active" onclick="switchTab('stock')">📊 Stock</button>
@@ -252,6 +253,14 @@ INGS.forEach(i=>{if(prixData[i.nom]===undefined)prixData[i.nom]=i.prix_kg;});
 
 document.addEventListener('DOMContentLoaded',()=>{renderStock();renderCourses();renderHisto();refreshStock();});
 
+function resetCache(){
+  if(!confirm("Vider le cache et resynchroniser ?")) return;
+  localStorage.removeItem("bs_stock");
+  localStorage.removeItem("bs_seuils");
+  localStorage.removeItem("bs_prix");
+  stockData={}; seuilData={}; prixData={};
+  refreshStock();
+}
 async function refreshStock(){
   const btn=document.getElementById('syncBtn');btn.textContent='⟳...';
   try{
@@ -283,10 +292,10 @@ async function refreshStock(){
 }
 
 function getStatus(qty,ing){
+  if(qty<=0)return'rupture';
   const s=seuilData[ing.nom];
   const al=s?s.al:ing.seuil_al;
   const cr=s?s.cr:ing.seuil_cr;
-  if(qty<=0)return'rupture';
   if(qty<=cr)return'critique';
   if(qty<=al)return'alerte';
   return'ok';
