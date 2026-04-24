@@ -257,7 +257,10 @@ async function refreshStock(){
     const res=await fetch(url);const text=await res.text();
     const json=JSON.parse(text.substring(47).slice(0,-2));
     if(json.table&&json.table.rows){
-      json.table.rows.forEach(row=>{if(row.c[0]?.v)stockData[row.c[0].v]=row.c[1]?.v||0;});
+      // Remplacer TOUT le stock (pas merger) pour éviter les vieilles valeurs
+      const newStock={};
+      json.table.rows.forEach(row=>{if(row.c[0]?.v)newStock[row.c[0].v]=row.c[1]?.v||0;});
+      stockData=newStock;
       localStorage.setItem('bs_stock',JSON.stringify(stockData));
       renderStock();renderCourses();showToast('✅ Synchronisé');
     }
