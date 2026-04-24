@@ -283,10 +283,10 @@ async function refreshStock(){
 }
 
 function getStatus(qty,ing){
-  if(qty<=0)return'rupture';
   const s=seuilData[ing.nom];
   const al=s?s.al:ing.seuil_al;
   const cr=s?s.cr:ing.seuil_cr;
+  if(qty<=0)return'rupture';
   if(qty<=cr)return'critique';
   if(qty<=al)return'alerte';
   return'ok';
