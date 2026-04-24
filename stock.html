@@ -198,7 +198,8 @@ const INGS=[
   {nom:"Pâtes", cat:"Féculents", unite:"g", seuil_al:400, seuil_cr:200, conso_j:0, stock3j:400, duree:90, fragile:false, prix_kg:2.0},
   {nom:"Quinoa", cat:"Féculents", unite:"g", seuil_al:400, seuil_cr:200, conso_j:133, stock3j:400, duree:90, fragile:false, prix_kg:2.0},
   {nom:"Croutons", cat:"Féculents", unite:"g", seuil_al:100, seuil_cr:50, conso_j:0, stock3j:100, duree:14, fragile:false, prix_kg:2.0},
-  {nom:"Citron", cat:"Agrumes & Arômates", unite:"g", seuil_al:200, seuil_cr:100, conso_j:79, stock3j:238, duree:7, fragile:false, prix_kg:2.0},
+  {nom:"Citron jaune", cat:"Agrumes & Arômates", unite:"g", seuil_al:150, seuil_cr:80, conso_j:60, stock3j:180, duree:7, fragile:false, prix_kg:2.0},
+  {nom:"Citron vert", cat:"Agrumes & Arômates", unite:"g", seuil_al:100, seuil_cr:50, conso_j:20, stock3j:60, duree:7, fragile:false, prix_kg:3.00},
   {nom:"Gingembre", cat:"Agrumes & Arômates", unite:"g", seuil_al:150, seuil_cr:80, conso_j:71, stock3j:213, duree:14, fragile:false, prix_kg:2.0},
   {nom:"Cannelle", cat:"Agrumes & Arômates", unite:"g", seuil_al:30, seuil_cr:15, conso_j:0, stock3j:1, duree:365, fragile:false, prix_kg:2.0},
   {nom:"Lin", cat:"Agrumes & Arômates", unite:"g", seuil_al:50, seuil_cr:25, conso_j:0, stock3j:3, duree:365, fragile:false, prix_kg:2.0},
@@ -259,7 +260,7 @@ async function refreshStock(){
     if(json.table&&json.table.rows){
       // Remplacer TOUT le stock (pas merger) pour éviter les vieilles valeurs
       const newStock={};
-      json.table.rows.forEach(row=>{if(row.c[0]?.v)newStock[row.c[0].v]=row.c[1]?.v||0;});
+      json.table.rows.forEach(row=>{if(row.c[0]?.v && row.c[0].v!=='Ingredient')newStock[row.c[0].v]=row.c[1]?.v||0;});
       stockData=newStock;
       localStorage.setItem('bs_stock',JSON.stringify(stockData));
       renderStock();renderCourses();showToast('✅ Synchronisé');
