@@ -144,7 +144,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Mono',monospace;min-
       <div style="font-size:11px;color:var(--muted);margin-top:4px">Auchan, Lidl, Continente...</div>
     </div>
     <img id="sc-preview" style="display:none;width:100%;border-radius:10px;margin-top:10px;max-height:160px;object-fit:cover">
-    <button class="btn-green" id="sc-btn" onclick="scScan()" disabled style="margin-top:10px;opacity:0.4">📷 Lire le ticket</button>
+    <button class="btn-green" id="sc-btn" onclick="scScan()" disabled style="margin-top:10px;opacity:0.4">🔍 Analyser avec l'IA</button>
   </div>
   <div id="sc-loading" style="display:none;text-align:center;padding:2rem">
     <div class="sc-spinner"></div>
@@ -166,17 +166,6 @@ body{background:var(--bg);color:var(--text);font-family:'DM Mono',monospace;min-
       </div>
     </div>
     <div class="section" style="padding-bottom:20px">
-      <div style="margin-bottom:10px">
-        <div class="sec-title" style="margin-bottom:8px">+ Ajouter un article</div>
-        <select id="sc-manual-select" style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'DM Mono',monospace;font-size:12px;padding:8px;margin-bottom:6px;outline:none">
-          <option value="">-- Choisir un ingrédient --</option>
-        </select>
-        <div style="display:flex;gap:6px;margin-bottom:8px">
-          <input id="sc-manual-qty" type="number" placeholder="Quantité (g)" min="0" step="50" style="flex:1;background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'DM Mono',monospace;font-size:12px;padding:8px;outline:none">
-          <input id="sc-manual-price" type="number" placeholder="Prix €" min="0" step="0.01" style="width:80px;background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'DM Mono',monospace;font-size:12px;padding:8px;outline:none">
-          <button onclick="scAddManual()" style="background:var(--gdim);border:1px solid var(--green);color:var(--green);border-radius:8px;padding:8px 12px;cursor:pointer;font-size:13px">+</button>
-        </div>
-      </div>
       <button class="btn-green" onclick="scEnvoyer()">✅ Ajouter au stock + Sheets</button>
       <button class="btn-cancel" onclick="scReset()">↩ Nouveau ticket</button>
     </div>
@@ -233,7 +222,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Mono',monospace;min-
 </button>
 <div class="toast" id="toast"></div>
 <script>
-const SHEET_URL='https://script.google.com/macros/s/AKfycbwrNzT2wmo9Ai3DFv9tw1XvEWwVO459cbZe1wyVp5rSN6duzNDu4THqwC8GiaQNBeF8/exec';
+const SHEET_URL='https://script.google.com/macros/s/AKfycbxaE25WUS5lNSvvH1MbcyC6g1EOzGdB6ozHNd0UB7jrFHrUU7Ilo9iS46Vjul5TiUFQ/exec';
 const SHEET_ID='1rIGCP29i3eBzyb1kpqqcQ58zd-kDXCbD8kloTon7XTo';
 const QUICK_QTYS={g:[100,250,500,1000,1500],ml:[100,250,500,1000],u:[1,2,4,6,10]};
 
@@ -599,29 +588,16 @@ function switchTab(tab){
   if(tab==='tarifs')renderTarifs();
 }
 
-// ── SCANNER OCR GRATUIT ──────────────────────────────────────────────
-const SCANNER_SHEET_URL='https://script.google.com/macros/s/AKfycbw0N86ze1LukKhs30RExT_po4H8wBtPGWXSPwJIdpGReQWUcIM4VGnIBYcpfhV-L7X5GA/exec';
-let scImg=null, scItems=[], scShop='', scDate='', scRawLines=[];
-
-// Mots-clés à ignorer (non-alimentaires)
-const SC_IGNORE = ['total','troco','iva','tva','numerario','multibanco','mb way','visa','mastercard','tel:','fax:','contribuinte','sirer','nif','obrigado','merci','ticket','recibo','fatura','subtotal','desconto','poupanca','acumulad','cartao','data emissao','hora','operador','caixa','loja','sede','capital','atcud','qr','www','http','@'];
-const SC_FOOD_HINTS = ['orange','banana','banane','mangue','mango','citron','limao','lima','tomate','tomat','concombre','pepino','cenoura','carrot','fraise','morango','myrtille','mirtilo','ananas','abacaxi','pitaya','gengibre','gingembre','pomme','maca','kiwi','avocat','abacate','epinard','espinafre','roquette','rucula','laitue','alface','poulet','frango','chicken','sardine','sardinha','thon','atum','mozzarella','philadelphia','cream cheese','yaourt','iogurte','lait','leite','oeuf','ovo','quinoa','pates','massa','pain','pao','baguette','feta','beurre','manteiga','granola','avoine','aveia','amande','amendoa','noix','noz','chia','coco','cacao','cacau','whey','proteina'];
+// ── SCANNER ─────────────────────────────────────────────────────────
+const SCANNER_SHEET_URL='https://script.google.com/macros/s/AKfycbxaE25WUS5lNSvvH1MbcyC6g1EOzGdB6ozHNd0UB7jrFHrUU7Ilo9iS46Vjul5TiUFQ/exec';
+let scImg=null, scItems=[], scShop='', scDate='';
 
 document.addEventListener('DOMContentLoaded',()=>{
-  // Populate manual select with ingredients
-  const sel = document.getElementById('sc-manual-select');
-  if(sel) {
-    INGS.forEach(ing=>{
-      const opt = document.createElement('option');
-      opt.value = ing.nom; opt.textContent = ing.nom + ' (' + ing.unite + ')';
-      sel.appendChild(opt);
-    });
-  }
   document.getElementById('sc-file').addEventListener('change',function(e){
     const file=e.target.files[0];if(!file)return;
     const reader=new FileReader();
     reader.onload=function(ev){
-      scImg=ev.target.result;
+      scImg=ev.target.result.split(',')[1];
       const prev=document.getElementById('sc-preview');
       prev.src=ev.target.result;prev.style.display='block';
       const btn=document.getElementById('sc-btn');
@@ -637,140 +613,35 @@ async function scScan(){
   document.getElementById('sc-preview').style.display='none';
   document.getElementById('sc-btn').style.display='none';
   document.getElementById('sc-loading').style.display='block';
-  document.getElementById('sc-loading-text').textContent='Lecture du ticket...';
-
-  // OCR via API Vision gratuite (Google Vision via Apps Script)
-  try {
-    // Encode image
-    const base64 = scImg.split(',')[1];
-    const mimeType = scImg.split(';')[0].split(':')[1];
-    
-    // Envoyer vers Apps Script pour OCR
-    const res = await fetch(SCANNER_SHEET_URL, {
-      method: 'POST',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({type:'ocr', image: base64, mimeType: mimeType})
+  const msgs=['Lecture du ticket...','Reconnaissance des produits...','Extraction des prix...'];
+  let mi=0;
+  const iv=setInterval(()=>{mi=(mi+1)%msgs.length;document.getElementById('sc-loading-text').textContent=msgs[mi];},1400);
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',max_tokens:1000,
+        messages:[{role:'user',content:[
+          {type:'image',source:{type:'base64',media_type:'image/jpeg',data:scImg}},
+          {type:'text',text:'Analyse ce ticket de caisse. Extrait: 1. Nom du magasin 2. Date (DD/MM/YYYY) 3. UNIQUEMENT fruits, légumes, herbes, viandes, poissons, produits frais alimentaires. Pour chaque article: nom français, quantité en grammes (convertis si besoin), prix EUR, emoji, confiance (high/medium). Réponds UNIQUEMENT en JSON sans markdown: {"shop":"Auchan","date":"25/04/2026","items":[{"name":"Orange","quantity_g":1500,"price_eur":2.50,"emoji":"🍊","confidence":"high","details":"1,5kg"}]}'}
+        ]}]
+      })
     });
-    
-    const data = await res.json();
-    if(data.text) {
-      scParseTicket(data.text, data.shop||'', data.date||'');
-    } else {
-      throw new Error('no text');
-    }
-  } catch(err) {
-    // Fallback: saisie manuelle
+    clearInterval(iv);
+    const data=await res.json();
+    const text=data.content.map(c=>c.text||'').join('');
+    const clean=text.replace(/```json|```/g,'').trim();
+    const parsed=JSON.parse(clean);
+    scItems=parsed.items||[];scShop=parsed.shop||'Magasin';scDate=parsed.date||new Date().toLocaleDateString('fr-FR');
+    scShowResults();
+  }catch(err){
+    clearInterval(iv);
     document.getElementById('sc-loading').style.display='none';
-    scShowManual();
+    document.getElementById('sc-upload').style.display='block';
+    document.getElementById('sc-preview').style.display=scImg?'block':'none';
+    document.getElementById('sc-btn').style.display='block';
+    showToast('Erreur analyse. Réessaie.',true);
   }
-}
-
-function scParseTicket(rawText, shop, date) {
-  const lines = rawText.split('\n').map(l=>l.trim()).filter(l=>l.length>2);
-  scShop = shop || scDetectShop(lines);
-  scDate = date || scDetectDate(lines) || new Date().toLocaleDateString('fr-FR');
-  scRawLines = lines;
-  
-  // Parser les lignes alimentaires
-  const parsed = [];
-  lines.forEach(line => {
-    const lower = line.toLowerCase();
-    const isIgnored = SC_IGNORE.some(kw => lower.includes(kw));
-    if(isIgnored) return;
-    
-    const isFoodHint = SC_FOOD_HINTS.some(kw => lower.includes(kw));
-    const priceMatch = line.match(/(\d+[.,]\d{2})\s*€?$/);
-    const qtyMatch = line.match(/(\d+[.,]\d+)\s*kg/i) || line.match(/(\d+)\s*g/i) || line.match(/(\d+)\s*x\s*/i);
-    
-    if((isFoodHint || priceMatch) && !isIgnored) {
-      const price = priceMatch ? parseFloat(priceMatch[1].replace(',','.')) : 0;
-      let qty_g = 0;
-      if(qtyMatch) {
-        const val = parseFloat(qtyMatch[1].replace(',','.'));
-        if(line.toLowerCase().includes('kg')) qty_g = Math.round(val*1000);
-        else if(line.toLowerCase().includes('g')) qty_g = Math.round(val);
-        else qty_g = 500;
-      } else { qty_g = 500; }
-      
-      const name = line.replace(/\d+[.,]\d{2}\s*€?$/,'').replace(/\d+[.,]\d+\s*kg/gi,'').replace(/\d+\s*g/gi,'').replace(/\d+\s*x\s*/gi,'').trim();
-      if(name.length > 2) {
-        parsed.push({name: scCapitalize(name), quantity_g: qty_g||500, price_eur: price, emoji: scGuessEmoji(name), confidence: isFoodHint?'high':'medium', details: line});
-      }
-    }
-  });
-  
-  scItems = parsed;
-  scShowResults();
-}
-
-function scShowManual() {
-  // Mode saisie manuelle si OCR échoue
-  scShop = 'Marché';
-  scDate = new Date().toLocaleDateString('fr-FR');
-  scItems = [];
-  document.getElementById('sc-loading').style.display='none';
-  scShowResults();
-  showToast('OCR indisponible — saisie manuelle',true);
-}
-
-function scDetectShop(lines) {
-  const shops = ['auchan','lidl','continente','pingo doce','intermarche','minipreco','mercadona','jumbo','el corte','bio','natural'];
-  for(const l of lines.slice(0,5)) {
-    const low = l.toLowerCase();
-    for(const s of shops) { if(low.includes(s)) return scCapitalize(s); }
-  }
-  return 'Magasin';
-}
-
-function scDetectDate(lines) {
-  for(const l of lines) {
-    const m = l.match(/(\d{2})[\/\-\.](\d{2})[\/\-\.](\d{2,4})/);
-    if(m) return `${m[1]}/${m[2]}/${m[3].length===2?'20'+m[3]:m[3]}`;
-  }
-  return null;
-}
-
-function scGuessEmoji(name) {
-  const n = name.toLowerCase();
-  if(n.includes('orange')) return '🍊';
-  if(n.includes('banane')||n.includes('banana')) return '🍌';
-  if(n.includes('mangue')||n.includes('mango')) return '🥭';
-  if(n.includes('citron')||n.includes('limao')||n.includes('lima')) return '🍋';
-  if(n.includes('fraise')||n.includes('morango')) return '🍓';
-  if(n.includes('tomate')) return '🍅';
-  if(n.includes('pomme')||n.includes('maca')) return '🍎';
-  if(n.includes('ananas')) return '🍍';
-  if(n.includes('kiwi')) return '🥝';
-  if(n.includes('avocat')) return '🥑';
-  if(n.includes('poulet')||n.includes('frango')) return '🍗';
-  if(n.includes('poisson')||n.includes('sardine')||n.includes('thon')||n.includes('atum')) return '🐟';
-  if(n.includes('oeuf')||n.includes('ovo')) return '🥚';
-  if(n.includes('lait')||n.includes('leite')) return '🥛';
-  if(n.includes('pain')||n.includes('pao')) return '🍞';
-  if(n.includes('gingembre')||n.includes('gengibre')) return '🫚';
-  if(n.includes('salade')||n.includes('alface')||n.includes('roquette')) return '🥗';
-  if(n.includes('carotte')||n.includes('cenoura')) return '🥕';
-  if(n.includes('concombre')||n.includes('pepino')) return '🥒';
-  return '🛒';
-}
-
-function scCapitalize(str) {
-  return str.toLowerCase().split(' ').map(w=>w.charAt(0).toUpperCase()+w.slice(1)).join(' ');
-}
-
-// Ajouter un article manuellement
-function scAddManual() {
-  const ing = INGS.find(i=>i.nom === document.getElementById('sc-manual-select').value);
-  if(!ing) return;
-  const qty = parseInt(document.getElementById('sc-manual-qty').value)||0;
-  const price = parseFloat(document.getElementById('sc-manual-price').value)||0;
-  if(!qty) return;
-  scItems.push({name:ing.nom, quantity_g:qty, price_eur:price, emoji:scGuessEmoji(ing.nom), confidence:'high', details:'Saisie manuelle'});
-  document.getElementById('sc-count-badge').textContent=scItems.length+' article'+(scItems.length>1?'s':'');
-  scRenderItems();
-  document.getElementById('sc-manual-qty').value='';
-  document.getElementById('sc-manual-price').value='';
-  showToast('✅ Ajouté');
 }
 
 function scShowResults(){
