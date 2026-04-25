@@ -617,18 +617,23 @@ async function scScan(){
   document.getElementById('sc-loading').style.display='block';
   document.getElementById('sc-loading-text').textContent='Lecture du ticket...';
   try{
-    const res=await fetch(SCANNER_SHEET_URL,{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({type:'ocr',image:scImg.split(',')[1],mimeType:scImg.split(';')[0].split(':')[1]||'image/jpeg'})
+    // Utiliser no-cors + form data pour contourner CORS sur iPhone
+    const formData = new FormData();
+    formData.append('type', 'ocr');
+    formData.append('image', scImg.split(',')[1]);
+    formData.append('mimeType', scImg.split(';')[0].split(':')[1]||'image/jpeg');
+    
+    const res = await fetch(SCANNER_SHEET_URL, {
+      method: 'POST',
+      body: JSON.stringify({type:'ocr', image:scImg.split(',')[1], mimeType:scImg.split(';')[0].split(':')[1]||'image/jpeg'})
     });
-    const data=await res.json();
-    if(data.text&&data.text.length>10){
+    const data = await res.json();
+    if(data.text && data.text.length > 10){
       scParseTicket(data.text);
-    }else{
+    } else {
       scShowManual();
     }
-  }catch(err){
+  } catch(err){
     scShowManual();
   }
 }
