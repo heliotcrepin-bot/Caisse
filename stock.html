@@ -144,7 +144,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Mono',monospace;min-
       <div style="font-size:11px;color:var(--muted);margin-top:4px">Auchan, Lidl, Continente...</div>
     </div>
     <img id="sc-preview" style="display:none;width:100%;border-radius:10px;margin-top:10px;max-height:160px;object-fit:cover">
-    <button class="btn-green" id="sc-btn" onclick="scScan()" disabled style="margin-top:10px;opacity:0.4">📷 Lire le ticket</button>
+    <button class="btn-green" id="sc-btn" onclick="scScan()" disabled style="margin-top:10px;opacity:0.4">📷 Analyser le ticket</button>
   </div>
   <div id="sc-loading" style="display:none;text-align:center;padding:2rem">
     <div class="sc-spinner"></div>
@@ -222,7 +222,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Mono',monospace;min-
 </button>
 <div class="toast" id="toast"></div>
 <script>
-const SHEET_URL='https://script.google.com/macros/s/AKfycbxgUHWRwjGOnTh8ib7FgbdPUg6ENdcZjXXGILKJrj3bdKdy9czBQykKugF4AW2Owj7o/exec';
+const SHEET_URL='https://script.google.com/macros/s/AKfycbz_coRFMBHWT_SyrCm48gHFqMF8Sy2w7cqf2vgx37lHkp57tKGGYXIwsaJ1cE_JwpA/exec';
 const SHEET_ID='1rIGCP29i3eBzyb1kpqqcQ58zd-kDXCbD8kloTon7XTo';
 const QUICK_QTYS={g:[100,250,500,1000,1500],ml:[100,250,500,1000],u:[1,2,4,6,10]};
 
@@ -591,7 +591,7 @@ function switchTab(tab){
 }
 
 // ── SCANNER ─────────────────────────────────────────────────────────
-const SCANNER_SHEET_URL='https://script.google.com/macros/s/AKfycbxgUHWRwjGOnTh8ib7FgbdPUg6ENdcZjXXGILKJrj3bdKdy9czBQykKugF4AW2Owj7o/exec';
+const SCANNER_SHEET_URL='https://script.google.com/macros/s/AKfycbz_coRFMBHWT_SyrCm48gHFqMF8Sy2w7cqf2vgx37lHkp57tKGGYXIwsaJ1cE_JwpA/exec';
 let scImg=null, scItems=[], scShop='', scDate='';
 
 document.addEventListener('DOMContentLoaded',()=>{
@@ -615,27 +615,36 @@ async function scScan(){
   document.getElementById('sc-preview').style.display='none';
   document.getElementById('sc-btn').style.display='none';
   document.getElementById('sc-loading').style.display='block';
-  document.getElementById('sc-loading-text').textContent='Lecture du ticket...';
+  document.getElementById('sc-loading-text').textContent='Analyse du ticket...';
   try{
-    // Utiliser no-cors + form data pour contourner CORS sur iPhone
-    const formData = new FormData();
-    formData.append('type', 'ocr');
-    formData.append('image', scImg.split(',')[1]);
-    formData.append('mimeType', scImg.split(';')[0].split(':')[1]||'image/jpeg');
-    
-    const res = await fetch(SCANNER_SHEET_URL, {
-      method: 'POST',
-      body: JSON.stringify({type:'ocr', image:scImg.split(',')[1], mimeType:scImg.split(';')[0].split(':')[1]||'image/jpeg'})
+    const base64=scImg.split(',')[1];
+    const mimeType=scImg.split(';')[0].split(':')[1]||'image/jpeg';
+    const res=await fetch(SCANNER_SHEET_URL,{
+      method:'POST',
+      headers:{'Content-Type':'text/plain'},
+      body:JSON.stringify({type:'ocr',image:base64,mimeType:mimeType})
     });
-    const data = await res.json();
-    if(data.text && data.text.length > 10){
-      scParseTicket(data.text);
-    } else {
+    const parsed=await res.json();
+    if(parsed.items&&parsed.items.length>0){
+      scItems=parsed.items;
+      scShop=parsed.shop||'Magasin';
+      scDate=parsed.date||new Date().toLocaleDateString('fr-FR');
+      scShowResults();
+    }else{
       scShowManual();
     }
-  } catch(err){
+  }catch(err){
+    console.log('Erreur scan:',err);
     scShowManual();
   }
+}
+
+function scShowResults(){
+  document.getElementById('sc-loading').style.display='none';
+  document.getElementById('sc-shop-badge').textContent=scShop;
+  document.getElementById('sc-count-badge').textContent=scItems.length+' article'+(scItems.length>1?'s':'');
+  scRenderItems();
+  document.getElementById('sc-results').style.display='block';
 }
 
 function scParseTicket(rawText){
@@ -667,7 +676,6 @@ function scShowManual(){
   scShop='Marché';scDate=new Date().toLocaleDateString('fr-FR');scItems=[];
   document.getElementById('sc-loading').style.display='none';
   scShowResults();
-  showToast('Saisie manuelle',true);
 }
 
 function scDetectShop(lines){
