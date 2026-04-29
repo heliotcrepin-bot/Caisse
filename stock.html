@@ -398,20 +398,21 @@ function resetCache(){
 async function refreshStock(){
   const btn=document.getElementById('syncBtn');btn.textContent='⟳...';
   try{
-    const url=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=Stock_App&t=${Date.now()}`;
-    const res=await fetch(url);const text=await res.text();
-    const json=JSON.parse(text.substring(47).slice(0,-2));
-    if(json.table&&json.table.rows){
-      // Remplacer TOUT le stock (pas merger) pour éviter les vieilles valeurs
+    const url=`${SHEET_URL}?t=${Date.now()}`;
+    const res=await fetch(url);
+    const json=await res.json();
+    if(json.ok&&json.rows&&json.rows.length>1){
       const newStock={};
       const newSeuils={};
-      json.table.rows.forEach(row=>{
-        if(row.c[0]?.v && row.c[0].v!=='Ingredient'){
-          const nom=row.c[0].v;
-          newStock[nom]=row.c[1]?.v||0;
-          if(row.c[3]?.v!=null||row.c[4]?.v!=null)
-            newSeuils[nom]={al:row.c[3]?.v||0, cr:row.c[4]?.v||0};
-        }
+      json.rows.forEach((row,i)=>{
+        if(i===0)return; // skip header
+        const nom=row[0];
+        if(!nom||nom==='Ingredient')return;
+        // Ignorer la zone "LISTE DE COURSES" en bas
+        if(typeof nom==='string'&&nom.includes('LISTE DE COURSES'))return;
+        newStock[nom]=parseFloat(row[1])||0;
+        if(row[3]!=null||row[4]!=null)
+          newSeuils[nom]={al:parseFloat(row[3])||0, cr:parseFloat(row[4])||0};
       });
       stockData=newStock;
       if(Object.keys(newSeuils).length>0){
