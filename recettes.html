@@ -1107,22 +1107,44 @@ async function doBatch(id) {
 
 function renderStockTab() {
   const el = document.getElementById('stockLive');
-  const ingrUsed = new Set(RECIPES.flatMap(r => r.ings.map(i => i.nom)));
-  const items = [...ingrUsed].sort();
   let ok = 0, alert = 0;
 
-  el.innerHTML = items.map(nom => {
-    const stock = stockData[nom] || 0;
-    const ref = INGS_REF[nom];
-    if (!ref) return '';
-    const st = stock <= 0 ? 'rupture' : stock < ref.seuil_cr ? 'critique' : stock < ref.seuil_al ? 'alerte' : 'ok';
+  // Utiliser directement stockData (vient de V10 via Stock_App)
+  const items = Object.entries(stockData).sort((a,b) => a[0].localeCompare(b[0]));
+
+  if (!items.length) {
+    el.innerHTML = '<div class="empty">Appuie sur Sync pour charger le stock</div>';
+    document.getElementById('statOk').textContent = '—';
+    document.getElementById('statAlert').textContent = '—';
+    return;
+  }
+
+  el.innerHTML = items.map(([nom, stock]) => {
+    // Chercher les seuils dans INGS_REF (correspondance exacte ou partielle)
+    let ref = INGS_REF[nom];
+    if (!ref) {
+      for (const k of Object.keys(INGS_REF)) {
+        if (nom.toLowerCase().includes(k.toLowerCase()) || k.toLowerCase().includes(nom.toLowerCase())) {
+          ref = INGS_REF[k]; break;
+        }
+      }
+    }
+    // Si pas de ref, utiliser des seuils génériques
+    const seuil_al = ref?.seuil_al || 200;
+    const seuil_cr = ref?.seuil_cr || 100;
+    const unite    = ref?.unite || 'g';
+
+    const st = stock <= 0 ? 'rupture' : stock < seuil_cr ? 'critique' : stock < seuil_al ? 'alerte' : 'ok';
     if (st === 'ok') ok++; else alert++;
-    const pct = ref.seuil_al > 0 ? Math.min(100, stock / ref.seuil_al * 100) : 0;
+
+    const pct = seuil_al > 0 ? Math.min(100, stock / seuil_al * 100) : 0;
     const barColor = st === 'ok' ? 'var(--green)' : st === 'alerte' ? 'var(--orange)' : 'var(--red)';
+    const qtyLabel = unite === 'g' && stock >= 1000 ? `${(stock/1000).toFixed(1)}kg` : `${stock}${unite}`;
+
     return `<div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:5px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
         <span style="font-size:13px">${nom}</span>
-        <span style="font-size:12px;color:${barColor};font-weight:500">${stockLabel(nom)}</span>
+        <span style="font-size:12px;color:${barColor};font-weight:500">${qtyLabel}</span>
       </div>
       <div style="height:3px;background:var(--border);border-radius:2px">
         <div style="height:100%;width:${pct}%;background:${barColor};border-radius:2px;transition:width .4s"></div>
