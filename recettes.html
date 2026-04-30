@@ -140,7 +140,9 @@ body{background:var(--bg);color:var(--text);font-family:'DM Mono',monospace;min-
 .filter-pill{background:transparent;border:1px solid var(--border);color:var(--muted);font-family:'DM Mono',monospace;font-size:11px;padding:5px 12px;border-radius:20px;cursor:pointer;transition:all .15s}
 .filter-pill.f-jus.active{background:var(--bdim);border-color:var(--blue);color:var(--blue)}
 .filter-pill.f-smoothie.active{background:var(--pdim);border-color:var(--purple);color:var(--purple)}
-.filter-pill.f-sandwich.active{background:var(--odim);border-color:var(--orange);color:var(--orange)}
+.filter-pill.f-soupe.active{background:var(--tdim);border-color:var(--teal);color:var(--teal)}
+.pill-soupe{background:var(--tdim);color:var(--teal);border:1px solid var(--teal)}
+.rc-soupe::before{background:var(--teal)}
 .filter-pill.f-all.active{background:var(--gdim);border-color:var(--green);color:var(--green)}
 
 /* ── CAISSE LINK BAR ── */
@@ -160,7 +162,8 @@ body{background:var(--bg);color:var(--text);font-family:'DM Mono',monospace;min-
   <div class="tabs">
     <button class="tab active" onclick="switchTab('recettes',this)">📖 Recettes</button>
     <button class="tab" onclick="switchTab('batch',this)">⚡ Production</button>
-    <button class="tab" onclick="switchTab('stock',this)">📦 Stock live</button>
+    <button class="tab" onclick="switchTab('creer',this)">➕ Créer</button>
+    <button class="tab" onclick="switchTab('stock',this)">📦 Stock</button>
   </div>
 </div>
 
@@ -177,19 +180,125 @@ body{background:var(--bg);color:var(--text);font-family:'DM Mono',monospace;min-
       <button class="filter-pill f-jus" onclick="setFilter('jus',this)">🍊 Jus</button>
       <button class="filter-pill f-smoothie" onclick="setFilter('smoothie',this)">🥤 Smoothies</button>
       <button class="filter-pill f-sandwich" onclick="setFilter('sandwich',this)">🥪 Sandwichs</button>
+      <button class="filter-pill f-soupe" onclick="setFilter('soupe',this)">🍲 Soupes</button>
     </div>
     <div class="recipe-grid" id="recipeGrid"></div>
   </div>
 </div>
 
-<!-- TAB BATCH -->
+<!-- TAB BATCH / PRODUCTION -->
 <div class="tab-content" id="tab-batch">
   <div class="section">
-    <div class="sec-title">Mode production — batch matin</div>
+    <div class="sec-title">Production du matin</div>
     <div style="font-size:12px;color:var(--muted);margin-bottom:14px;line-height:1.6">
-      Préparer un grand volume d'un coup. L'app calcule les ingrédients nécessaires et déduit du stock en une seule opération.
+      Prépare tes jus en bouteille. Le stock ingrédients est déduit immédiatement. Les ventes au verre (340ml) seront décomptées du stock bouteille.
     </div>
+
+    <!-- Stock bouteilles en cours -->
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:14px">
+      <div class="sec-title" style="margin-bottom:8px">🧴 Stock bouteilles disponibles</div>
+      <div id="stockBouteillesDisplay">
+        <div class="empty" style="padding:12px">Aucune bouteille en production</div>
+      </div>
+    </div>
+
+    <!-- Lancer une production -->
+    <div class="sec-title">Lancer une production</div>
     <div id="batchGrid"></div>
+  </div>
+</div>
+
+<!-- TAB CRÉER -->
+<div class="tab-content" id="tab-creer">
+  <div class="section">
+    <div class="sec-title">Nouvelle recette</div>
+
+    <!-- Type de recette -->
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:12px">
+      <div style="font-size:11px;color:var(--muted);margin-bottom:10px">TYPE DE RECETTE</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap" id="typeSelector">
+        <button class="vol-btn active" onclick="selectType('jus',this)">🍊 Jus</button>
+        <button class="vol-btn" onclick="selectType('smoothie',this)">🥤 Smoothie</button>
+        <button class="vol-btn" onclick="selectType('soupe',this)">🍲 Soupe</button>
+        <button class="vol-btn" onclick="selectType('sandwich',this)">🥪 Sandwich</button>
+      </div>
+    </div>
+
+    <!-- Infos de base -->
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:12px">
+      <div style="font-size:11px;color:var(--muted);margin-bottom:8px">INFORMATIONS</div>
+      <input type="text" id="newRecetteName" placeholder="Nom de la recette (ex: Soupe Carotte-Gingembre)"
+        style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'DM Mono',monospace;font-size:13px;padding:10px 12px;outline:none;margin-bottom:8px">
+      <input type="text" id="newRecetteSub" placeholder="Description (ex: Chaud · Réconfortant · Hiver)"
+        style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'DM Mono',monospace;font-size:13px;padding:10px 12px;outline:none;margin-bottom:8px">
+      <div style="display:flex;gap:8px">
+        <div style="flex:1">
+          <div style="font-size:10px;color:var(--muted);margin-bottom:4px">Volume de base (ml) ou portions</div>
+          <input type="number" id="newRecetteVol" placeholder="ex: 950" value="950"
+            style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'DM Mono',monospace;font-size:15px;padding:9px 10px;outline:none;text-align:center">
+        </div>
+        <div style="flex:1">
+          <div style="font-size:10px;color:var(--muted);margin-bottom:4px">Temps préparation</div>
+          <input type="text" id="newRecetteTime" placeholder="ex: 10 min"
+            style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'DM Mono',monospace;font-size:13px;padding:10px 10px;outline:none">
+        </div>
+      </div>
+    </div>
+
+    <!-- Ingrédients -->
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:12px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <div style="font-size:11px;color:var(--muted)">INGRÉDIENTS</div>
+        <button onclick="addIngredientRow()" style="background:var(--gdim);border:1px solid var(--green);color:var(--green);font-family:'DM Mono',monospace;font-size:11px;padding:4px 10px;border-radius:20px;cursor:pointer">+ Ajouter</button>
+      </div>
+      <div id="newIngsList">
+        <div class="ing-new-row" data-idx="0">
+          <div style="display:flex;gap:6px;margin-bottom:6px;align-items:center">
+            <select class="ing-select" style="flex:2;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'DM Mono',monospace;font-size:12px;padding:8px 6px;outline:none">
+              <option value="">-- Choisir ingrédient --</option>
+            </select>
+            <input type="number" class="ing-qty" placeholder="Qté" min="0" step="1"
+              style="width:70px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'DM Mono',monospace;font-size:13px;padding:8px 6px;outline:none;text-align:center">
+            <select class="ing-unite" style="width:60px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'DM Mono',monospace;font-size:12px;padding:8px 4px;outline:none">
+              <option value="g">g</option>
+              <option value="ml">ml</option>
+              <option value="u">u</option>
+            </select>
+            <button onclick="removeIngRow(this)" style="background:var(--rdim);border:none;color:var(--red);border-radius:6px;width:28px;height:28px;cursor:pointer;font-size:14px;flex-shrink:0">×</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Étapes -->
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:12px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <div style="font-size:11px;color:var(--muted)">ÉTAPES DE PRÉPARATION</div>
+        <button onclick="addEtapeRow()" style="background:var(--gdim);border:1px solid var(--green);color:var(--green);font-family:'DM Mono',monospace;font-size:11px;padding:4px 10px;border-radius:20px;cursor:pointer">+ Étape</button>
+      </div>
+      <div id="newEtapesList">
+        <div class="etape-row" style="display:flex;gap:8px;margin-bottom:8px">
+          <div style="width:24px;height:24px;min-width:24px;background:var(--gdim);border:1px solid var(--green);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:var(--green);margin-top:8px">1</div>
+          <div style="flex:1">
+            <input type="text" class="etape-action" placeholder="Action (ex: Éplucher et couper les carottes)"
+              style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'DM Mono',monospace;font-size:12px;padding:8px 10px;outline:none;margin-bottom:4px">
+            <input type="text" class="etape-detail" placeholder="Détail (ex: Tronçons de 3cm)"
+              style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--muted);font-family:'DM Mono',monospace;font-size:11px;padding:6px 10px;outline:none">
+          </div>
+          <button onclick="removeEtapeRow(this)" style="background:var(--rdim);border:none;color:var(--red);border-radius:6px;width:28px;height:28px;cursor:pointer;font-size:14px;flex-shrink:0;margin-top:4px">×</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Conseil -->
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:14px">
+      <div style="font-size:11px;color:var(--muted);margin-bottom:6px">CONSEIL / ASTUCE</div>
+      <textarea id="newRecetteTip" placeholder="Conseil pratique pour cette recette..." rows="2"
+        style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'DM Mono',monospace;font-size:12px;padding:10px 12px;outline:none;resize:none;line-height:1.5"></textarea>
+    </div>
+
+    <button class="btn-deduct" onclick="sauvegarderRecette()">💾 Sauvegarder la recette</button>
+    <button class="btn-cancel" onclick="resetNouvelleRecette()">↩ Effacer</button>
   </div>
 </div>
 
@@ -726,9 +835,9 @@ function renderRecipes() {
   const list = currentFilter === 'all' ? RECIPES : RECIPES.filter(r => r.type === currentFilter);
   if (!list.length) { grid.innerHTML = '<div class="empty">Aucune recette</div>'; return; }
 
-  const pillClass = {jus:'pill-jus', smoothie:'pill-smoothie', sandwich:'pill-sandwich'};
-  const pillLabel = {jus:'🍊 Jus', smoothie:'🥤 Smoothie', sandwich:'🥪 Sandwich'};
-  const cardBorder = {jus:'rc-jus', smoothie:'rc-smoothie', sandwich:'rc-sandwich'};
+  const pillClass = {jus:'pill-jus', smoothie:'pill-smoothie', sandwich:'pill-sandwich', soupe:'pill-soupe'};
+  const pillLabel = {jus:'🍊 Jus', smoothie:'🥤 Smoothie', sandwich:'🥪 Sandwich', soupe:'🍲 Soupe'};
+  const cardBorder = {jus:'rc-jus', smoothie:'rc-smoothie', sandwich:'rc-sandwich', soupe:'rc-soupe'};
 
   grid.innerHTML = list.map(r => {
     const hasVol = r.baseVol !== undefined;
@@ -784,7 +893,7 @@ function updateBatch(id) {
   const resEl = document.getElementById('batch-result-' + id);
   if (!ingsEl) return;
 
-  resEl.textContent = `→ ${Math.round(vol / 350)} portions estimées de ~350ml`;
+  resEl.textContent = `→ ${Math.floor(vol / 340)} verre${Math.floor(vol/340)>1?'s':''} de 340ml · reste ~${vol % 340}ml`;
   ingsEl.innerHTML = r.ings.map(ing => {
     const qty = Math.round(ing.qty_per_base * ratio);
     const status = getStockStatus(ing.nom, qty);
@@ -825,7 +934,12 @@ async function doBatch(id) {
     });
   } catch(e) {}
 
-  showToast(`⚡ Stock déduit : ${r.title} ${vol}ml`);
+  // Mettre à jour stock bouteilles
+  stockBouteilles[r.title] = (stockBouteilles[r.title] || 0) + vol;
+  saveStockBouteilles();
+  renderStockBouteilles();
+
+  showToast(`⚡ ${r.title} ${vol}ml produit · Stock bouteille: ${stockBouteilles[r.title]}ml`);
 }
 
 function renderStockTab() {
@@ -1035,7 +1149,8 @@ function switchTab(tab, btn) {
   document.getElementById('tab-' + tab).classList.add('active');
   btn.classList.add('active');
   if (tab === 'stock') renderStockTab();
-  if (tab === 'batch') renderBatch();
+  if (tab === 'batch') { renderBatch(); renderStockBouteilles(); }
+  if (tab === 'creer') { populateIngSelects(); }
 }
 
 function showToast(msg, err=false, warn=false) {
@@ -1049,8 +1164,14 @@ function showToast(msg, err=false, warn=false) {
    INIT
 ════════════════════════════════════════════════ */
 document.addEventListener('DOMContentLoaded', () => {
+  // Charger recettes personnalisées sauvegardées
+  customRecettes.forEach(r => {
+    if (!RECIPES.find(x => x.id === r.id)) RECIPES.push(r);
+  });
   renderRecipes();
   syncStock();
+  renderStockBouteilles();
+  populateIngSelects();
   // Auto-sync toutes les 5 minutes
   setInterval(syncStock, 5 * 60 * 1000);
 });
