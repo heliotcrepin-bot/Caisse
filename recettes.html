@@ -378,6 +378,8 @@ const INGS_REF = {
   'Cacao poudre': {unite:'g', seuil_al:60,  seuil_cr:30},
   'Huile coco':   {unite:'ml',seuil_al:80,  seuil_cr:40},
   'Lait amandes': {unite:'ml',seuil_al:400, seuil_cr:200},
+  'Lait végétal': {unite:'u', seuil_al:4,   seuil_cr:2},
+  'Lait':         {unite:'u', seuil_al:4,   seuil_cr:2},
   'Yaourt grec':  {unite:'u', seuil_al:2,   seuil_cr:1},
   'Granola':      {unite:'g', seuil_al:250, seuil_cr:120},
   'Betterave':    {unite:'g', seuil_al:400, seuil_cr:200},
@@ -749,6 +751,8 @@ let currentVol = null;
 let stockBouteilles = JSON.parse(localStorage.getItem('bs_stock_bouteilles') || '{}');
 let customRecettes = JSON.parse(localStorage.getItem('bs_custom_recettes') || '[]');
 let newRecetteType = 'jus';
+let unitesData = JSON.parse(localStorage.getItem('bs_unites') || '{}');
+let seuilsData = JSON.parse(localStorage.getItem('bs_seuils2') || '{}');
 
 /* ════════════════════════════════════════════════
    STOCK
@@ -761,14 +765,22 @@ async function syncStock() {
     const json = JSON.parse(text.substring(47).slice(0,-2));
     if (json.table && json.table.rows) {
       const newStock = {};
+      const newUnites = {};
+      const newSeuils = {};
       json.table.rows.forEach(row => {
         if (!row.c[0]?.v || row.c[0].v === 'Ingredient') return;
         const nom = row.c[0].v;
         if (typeof nom === 'string' && nom.includes('LISTE DE COURSES')) return;
-        newStock[nom] = row.c[1]?.v || 0;
+        newStock[nom]  = row.c[1]?.v || 0;
+        newUnites[nom] = row.c[2]?.v || 'g';
+        newSeuils[nom] = { al: row.c[3]?.v || 0, cr: row.c[4]?.v || 0 };
       });
-      stockData = newStock;
-      localStorage.setItem('bs_stock', JSON.stringify(stockData));
+      stockData  = newStock;
+      unitesData = newUnites;
+      seuilsData = newSeuils;
+      localStorage.setItem('bs_stock',   JSON.stringify(stockData));
+      localStorage.setItem('bs_unites',  JSON.stringify(unitesData));
+      localStorage.setItem('bs_seuils2', JSON.stringify(seuilsData));
       document.getElementById('syncInfo').textContent = 'Stock sync ✓ ' + new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
       renderStockTab();
     }
@@ -1109,7 +1121,6 @@ function renderStockTab() {
   const el = document.getElementById('stockLive');
   let ok = 0, alert = 0;
 
-  // Utiliser directement stockData (vient de V10 via Stock_App)
   const items = Object.entries(stockData).sort((a,b) => a[0].localeCompare(b[0]));
 
   if (!items.length) {
@@ -1120,26 +1131,19 @@ function renderStockTab() {
   }
 
   el.innerHTML = items.map(([nom, stock]) => {
-    // Chercher les seuils dans INGS_REF (correspondance exacte ou partielle)
-    let ref = INGS_REF[nom];
-    if (!ref) {
-      for (const k of Object.keys(INGS_REF)) {
-        if (nom.toLowerCase().includes(k.toLowerCase()) || k.toLowerCase().includes(nom.toLowerCase())) {
-          ref = INGS_REF[k]; break;
-        }
-      }
-    }
-    // Si pas de ref, utiliser des seuils génériques
-    const seuil_al = ref?.seuil_al || 200;
-    const seuil_cr = ref?.seuil_cr || 100;
-    const unite    = ref?.unite || 'g';
+    // Utiliser unité et seuils de V10 en priorité
+    const unite    = unitesData[nom] || INGS_REF[nom]?.unite || 'g';
+    const seuil_al = seuilsData[nom]?.al || INGS_REF[nom]?.seuil_al || 200;
+    const seuil_cr = seuilsData[nom]?.cr || INGS_REF[nom]?.seuil_cr || 100;
 
     const st = stock <= 0 ? 'rupture' : stock < seuil_cr ? 'critique' : stock < seuil_al ? 'alerte' : 'ok';
     if (st === 'ok') ok++; else alert++;
 
     const pct = seuil_al > 0 ? Math.min(100, stock / seuil_al * 100) : 0;
     const barColor = st === 'ok' ? 'var(--green)' : st === 'alerte' ? 'var(--orange)' : 'var(--red)';
-    const qtyLabel = unite === 'g' && stock >= 1000 ? `${(stock/1000).toFixed(1)}kg` : `${stock}${unite}`;
+    const qtyLabel = unite === 'g' && stock >= 1000
+      ? `${(stock/1000).toFixed(1)}kg`
+      : `${stock}${unite}`;
 
     return `<div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:5px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
