@@ -745,7 +745,10 @@ const RECIPES = [
 ════════════════════════════════════════════════ */
 let currentFilter = 'all';
 let currentRecipe = null;
-let currentVol = null; // volume sélectionné pour les liquides
+let currentVol = null;
+let stockBouteilles = JSON.parse(localStorage.getItem('bs_stock_bouteilles') || '{}');
+let customRecettes = JSON.parse(localStorage.getItem('bs_custom_recettes') || '[]');
+let newRecetteType = 'jus';
 
 /* ════════════════════════════════════════════════
    STOCK
@@ -818,6 +821,165 @@ function fmtQty(qty, unite) {
     return `${Number.isInteger(qty) ? qty : qty.toFixed(1)} `;
   }
   return `${qty} ${unite}`;
+}
+
+/* ════════════════════════════════════════════════
+   STOCK BOUTEILLES
+════════════════════════════════════════════════ */
+function saveStockBouteilles() {
+  localStorage.setItem('bs_stock_bouteilles', JSON.stringify(stockBouteilles));
+}
+
+function renderStockBouteilles() {
+  const el = document.getElementById('stockBouteillesDisplay');
+  if (!el) return;
+  const keys = Object.keys(stockBouteilles).filter(k => stockBouteilles[k] > 0);
+  if (!keys.length) {
+    el.innerHTML = '<div class="empty" style="padding:12px">Aucune bouteille en production</div>';
+    return;
+  }
+  el.innerHTML = keys.map(nom => {
+    const ml = stockBouteilles[nom];
+    const verres = Math.floor(ml / 340);
+    const pct = Math.min(100, ml / 950 * 100);
+    const color = ml < 340 ? 'var(--red)' : ml < 680 ? 'var(--orange)' : 'var(--green)';
+    return `<div style="margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+        <span style="font-size:13px;font-weight:500">${nom}</span>
+        <span style="font-size:12px;color:${color};font-weight:500">${ml}ml · ${verres} verre${verres>1?'s':''}</span>
+      </div>
+      <div style="height:6px;background:var(--border);border-radius:3px">
+        <div style="height:100%;width:${pct}%;background:${color};border-radius:3px;transition:width .4s"></div>
+      </div>
+      ${ml < 340 ? `<div style="font-size:10px;color:var(--red);margin-top:3px">⚠ Stock insuffisant pour un verre</div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+/* ════════════════════════════════════════════════
+   NOUVELLE RECETTE
+════════════════════════════════════════════════ */
+function selectType(type, btn) {
+  newRecetteType = type;
+  document.querySelectorAll('#typeSelector .vol-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const volInput = document.getElementById('newRecetteVol');
+  volInput.value = type === 'sandwich' ? '1' : '950';
+}
+
+function populateIngSelects() {
+  const ingsNoms = Object.keys(INGS_REF).sort();
+  document.querySelectorAll('.ing-select').forEach(sel => {
+    if (sel.options.length <= 1) {
+      ingsNoms.forEach(nom => {
+        const o = document.createElement('option');
+        o.value = nom; o.textContent = nom;
+        sel.appendChild(o);
+      });
+    }
+  });
+}
+
+function addIngredientRow() {
+  const list = document.getElementById('newIngsList');
+  const ingsNoms = Object.keys(INGS_REF).sort();
+  const div = document.createElement('div');
+  div.className = 'ing-new-row';
+  div.innerHTML = `<div style="display:flex;gap:6px;margin-bottom:6px;align-items:center">
+    <select class="ing-select" style="flex:2;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'DM Mono',monospace;font-size:12px;padding:8px 6px;outline:none">
+      <option value="">-- Choisir --</option>
+      ${ingsNoms.map(n => `<option value="${n}">${n}</option>`).join('')}
+    </select>
+    <input type="number" class="ing-qty" placeholder="Qté" min="0"
+      style="width:70px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'DM Mono',monospace;font-size:13px;padding:8px 6px;outline:none;text-align:center">
+    <select class="ing-unite" style="width:60px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'DM Mono',monospace;font-size:12px;padding:8px 4px;outline:none">
+      <option value="g">g</option><option value="ml">ml</option><option value="u">u</option>
+    </select>
+    <button onclick="removeIngRow(this)" style="background:var(--rdim);border:none;color:var(--red);border-radius:6px;width:28px;height:28px;cursor:pointer;font-size:14px;flex-shrink:0">×</button>
+  </div>`;
+  list.appendChild(div);
+}
+
+function removeIngRow(btn) { btn.closest('.ing-new-row').remove(); }
+
+function addEtapeRow() {
+  const list = document.getElementById('newEtapesList');
+  const num = list.children.length + 1;
+  const div = document.createElement('div');
+  div.className = 'etape-row';
+  div.style.cssText = 'display:flex;gap:8px;margin-bottom:8px';
+  div.innerHTML = `<div style="width:24px;height:24px;min-width:24px;background:var(--gdim);border:1px solid var(--green);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:var(--green);margin-top:8px">${num}</div>
+    <div style="flex:1">
+      <input type="text" class="etape-action" placeholder="Action"
+        style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'DM Mono',monospace;font-size:12px;padding:8px 10px;outline:none;margin-bottom:4px">
+      <input type="text" class="etape-detail" placeholder="Détail"
+        style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--muted);font-family:'DM Mono',monospace;font-size:11px;padding:6px 10px;outline:none">
+    </div>
+    <button onclick="removeEtapeRow(this)" style="background:var(--rdim);border:none;color:var(--red);border-radius:6px;width:28px;height:28px;cursor:pointer;font-size:14px;flex-shrink:0;margin-top:4px">×</button>`;
+  list.appendChild(div);
+}
+
+function removeEtapeRow(btn) {
+  btn.closest('.etape-row').remove();
+  document.querySelectorAll('#newEtapesList .etape-row').forEach((r, i) => {
+    const n = r.querySelector('div');
+    if (n) n.textContent = i + 1;
+  });
+}
+
+function sauvegarderRecette() {
+  const nom  = document.getElementById('newRecetteName').value.trim();
+  const sub  = document.getElementById('newRecetteSub').value.trim();
+  const vol  = parseInt(document.getElementById('newRecetteVol').value) || 950;
+  const time = document.getElementById('newRecetteTime').value.trim() || '10 min';
+  const tip  = document.getElementById('newRecetteTip').value.trim();
+  if (!nom) { showToast('Donne un nom à la recette', true); return; }
+
+  const ings = [];
+  document.querySelectorAll('.ing-new-row').forEach(row => {
+    const n = row.querySelector('.ing-select').value;
+    const q = parseFloat(row.querySelector('.ing-qty').value) || 0;
+    const u = row.querySelector('.ing-unite').value;
+    if (n && q > 0) ings.push({ nom: n, qty_per_base: q, unite: u, note: '' });
+  });
+  if (!ings.length) { showToast('Ajoute au moins un ingrédient', true); return; }
+
+  const steps = [];
+  document.querySelectorAll('.etape-row').forEach(row => {
+    const a = row.querySelector('.etape-action').value.trim();
+    const d = row.querySelector('.etape-detail').value.trim();
+    if (a) steps.push({ action: a, detail: d });
+  });
+
+  const emojis = { jus:'🍊', smoothie:'🥤', soupe:'🍲', sandwich:'🥪' };
+  const newRec = {
+    id: 'custom_' + Date.now(),
+    type: newRecetteType,
+    caisse: nom,
+    emoji: emojis[newRecetteType] || '🍽',
+    title: nom, sub: sub || newRecetteType + ' maison',
+    time, kcal: '—',
+    baseVol: newRecetteType !== 'sandwich' ? vol : null,
+    ings, steps,
+    tip: tip || 'Recette personnalisée BS Salada.',
+    custom: true
+  };
+
+  customRecettes.push(newRec);
+  localStorage.setItem('bs_custom_recettes', JSON.stringify(customRecettes));
+  RECIPES.push(newRec);
+  showToast(`✅ "${nom}" sauvegardée !`);
+  resetNouvelleRecette();
+  renderRecipes();
+  switchTab('recettes', document.querySelectorAll('.tab')[0]);
+}
+
+function resetNouvelleRecette() {
+  document.getElementById('newRecetteName').value = '';
+  document.getElementById('newRecetteSub').value = '';
+  document.getElementById('newRecetteVol').value = '950';
+  document.getElementById('newRecetteTime').value = '';
+  document.getElementById('newRecetteTip').value = '';
 }
 
 /* ════════════════════════════════════════════════
