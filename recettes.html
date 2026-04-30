@@ -762,9 +762,10 @@ async function syncStock() {
     if (json.table && json.table.rows) {
       const newStock = {};
       json.table.rows.forEach(row => {
-        if (row.c[0]?.v && row.c[0].v !== 'Ingredient') {
-          newStock[row.c[0].v] = row.c[1]?.v || 0;
-        }
+        if (!row.c[0]?.v || row.c[0].v === 'Ingredient') return;
+        const nom = row.c[0].v;
+        if (typeof nom === 'string' && nom.includes('LISTE DE COURSES')) return;
+        newStock[nom] = row.c[1]?.v || 0;
       });
       stockData = newStock;
       localStorage.setItem('bs_stock', JSON.stringify(stockData));
@@ -1331,9 +1332,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!RECIPES.find(x => x.id === r.id)) RECIPES.push(r);
   });
   renderRecipes();
-  syncStock();
   renderStockBouteilles();
   populateIngSelects();
+  syncStock();
   // Auto-sync toutes les 5 minutes
   setInterval(syncStock, 5 * 60 * 1000);
 });
