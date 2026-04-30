@@ -1326,10 +1326,23 @@ async function deductStock() {
   } catch(e) {}
 
   showToast('✅ Stock déduit : ' + r.title);
-  if (btn) { btn.textContent = '✓ Déduit !'; }
-  const btnUndo = document.getElementById('btnUndo');
-  if (btnUndo) btnUndo.style.display = 'block';
-  setTimeout(() => renderDeductBlock(), 1500);
+  if (btn) { btn.textContent = '✓ Déduit !'; btn.disabled = false; }
+
+  // Afficher le bouton Annuler directement sans re-render
+  const deductBlock = document.getElementById('mDeduct');
+  if (deductBlock) {
+    let undoBtn = document.getElementById('btnUndo');
+    if (!undoBtn) {
+      undoBtn = document.createElement('button');
+      undoBtn.id = 'btnUndo';
+      undoBtn.className = 'btn-cancel';
+      undoBtn.style.marginTop = '8px';
+      undoBtn.onclick = undoDeductStock;
+      deductBlock.querySelector('.deduct-block').appendChild(undoBtn);
+    }
+    undoBtn.textContent = '↩ Annuler la dernière déduction';
+    undoBtn.style.display = 'block';
+  }
 }
 
 async function undoDeductStock() {
