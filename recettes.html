@@ -1280,8 +1280,11 @@ function renderDeductBlock() {
         <span class="deduct-qty">−${fmtQty(i.qty, i.unite)}</span>
       </div>`).join('')}
       <button class="btn-deduct" onclick="deductStock()">✅ Marquer comme vendu → déduit du stock</button>
+      <button class="btn-cancel" id="btnUndo" onclick="undoDeductStock()" style="display:none;margin-top:8px">↩ Annuler la dernière déduction</button>
     </div>`;
 }
+
+let lastDeduction = null;
 
 async function deductStock() {
   const r = currentRecipe;
@@ -1289,16 +1292,20 @@ async function deductStock() {
   const vol = currentVol || r.baseVol;
 
   const rows = [];
+  const snapshot = {};
+
   r.ings.forEach(ing => {
     const qty = ing.qty_per_base !== undefined
       ? Math.round(ing.qty_per_base * (vol / (r.baseVol || vol)))
       : ing.qty;
+    snapshot[ing.nom] = stockData[ing.nom];
     if (stockData[ing.nom] !== undefined) {
       stockData[ing.nom] = Math.max(0, (stockData[ing.nom] || 0) - qty);
     }
     rows.push([ing.nom, qty, ing.unite]);
   });
 
+  lastDeduction = { rows, snapshot, recette: r.title, vol };
   localStorage.setItem('bs_stock', JSON.stringify(stockData));
   renderStockTab();
 
@@ -1320,7 +1327,38 @@ async function deductStock() {
 
   showToast('✅ Stock déduit : ' + r.title);
   if (btn) { btn.textContent = '✓ Déduit !'; }
+  const btnUndo = document.getElementById('btnUndo');
+  if (btnUndo) btnUndo.style.display = 'block';
   setTimeout(() => renderDeductBlock(), 1500);
+}
+
+async function undoDeductStock() {
+  if (!lastDeduction) { showToast('Rien à annuler', true); return; }
+  const { rows, snapshot, recette, vol } = lastDeduction;
+
+  Object.entries(snapshot).forEach(([nom, val]) => {
+    if (val !== undefined) stockData[nom] = val;
+  });
+
+  localStorage.setItem('bs_stock', JSON.stringify(stockData));
+  renderStockTab();
+
+  try {
+    const now = new Date();
+    const d = `${String(now.getDate()).padStart(2,'0')}/${String(now.getMonth()+1).padStart(2,'0')}/${now.getFullYear()}`;
+    await fetch(STOCK_URL, {
+      method: 'POST', mode: 'no-cors',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        type: 'achats',
+        rows: rows.map(row => [d, row[0], row[1], row[2], 'ANNULATION ' + recette + (vol ? ' ' + vol + 'ml' : ''), 0])
+      })
+    });
+  } catch(e) {}
+
+  lastDeduction = null;
+  showToast('↩ Déduction annulée');
+  renderDeductBlock();
 }
 
 function closeModal(e) {
