@@ -728,6 +728,8 @@ function renderPanier() {
 
 // ── GOOGLE APPS SCRIPT ────────────────────────────────────────────────
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwenbhjtHVc1ifb2_y63ZWb8_9ysSrRcgTVYLbu6tt59W85pYDQhAWMprhq2KpH4Fhg/exec';
+// Identifiant de l'appareil — change "Tel1" en "Tel2" sur le deuxième téléphone
+const DEVICE_ID = 'Tel1';
 
 function envoyerLigne(date, heure, name, qty, prix, mode, lieu) {
   const params = new URLSearchParams({
@@ -737,6 +739,7 @@ function envoyerLigne(date, heure, name, qty, prix, mode, lieu) {
     qty:     qty,
     mode:    mode,
     lieu:    lieu,
+    device:  DEVICE_ID,
   });
   return fetch(`${SCRIPT_URL}?${params.toString()}`, {
     method: 'GET',
@@ -799,6 +802,7 @@ async function validerVente() {
   // Sauvegarde locale d'abord
   ventes.push(vente);
   localStorage.setItem('ventes', JSON.stringify(ventes));
+  localStorage.setItem('bs_last_vente', JSON.stringify(vente)); // pour annulation
 
   // Envoi Google Sheets
   const ok = await envoyerVersSheets(vente);
@@ -861,6 +865,12 @@ function renderHisto() {
       ? `<button onclick="resyncer(${v.id})" style="background:var(--red);border:none;color:white;padding:3px 10px;border-radius:100px;font-size:11px;font-weight:700;cursor:pointer;">⚠️ Renvoyer</button>`
       : `<span style="font-size:11px;color:var(--teal);">☁️ Sync</span>`;
 
+    // Bouton annuler uniquement sur la dernière vente
+    const isLast = v.id === todayVentes[todayVentes.length - 1].id;
+    const annulerBtn = isLast
+      ? `<button onclick="annulerDerniereVente()" style="background:#3d1010;border:1px solid #f87171;color:#f87171;padding:3px 10px;border-radius:100px;font-size:11px;font-weight:700;cursor:pointer;">↩ Annuler</button>`
+      : '';
+
     const div = document.createElement('div');
     div.className = 'histo-vente';
     div.setAttribute('data-id', v.id);
@@ -874,6 +884,7 @@ function renderHisto() {
         <span>💳 ${v.mode}</span>
         <span>${v.lieu === 'Sur place' ? '🪑' : '🥡'} ${v.lieu}</span>
         ${syncBadge}
+        ${annulerBtn}
       </div>
     `;
     list.appendChild(div);
@@ -894,6 +905,52 @@ async function resyncer(id) {
   } else {
     showToast('❌ Échec — vérifie ta connexion');
   }
+}
+
+// ── ANNULER DERNIÈRE VENTE ───────────────────────────────────────────
+async function annulerDerniereVente() {
+  const lastVente = JSON.parse(localStorage.getItem('bs_last_vente') || 'null');
+  if (!lastVente) { showToast('Aucune vente à annuler', false); return; }
+
+  if (!confirm('Annuler la dernière vente et remettre les ingrédients en stock ?')) return;
+
+  // Supprimer de l'historique local
+  const idx = ventes.findIndex(v => v.id === lastVente.id);
+  if (idx !== -1) ventes.splice(idx, 1);
+  localStorage.setItem('ventes', JSON.stringify(ventes));
+  localStorage.removeItem('bs_last_vente');
+
+  // Envoyer l'annulation vers le Apps Script
+  const now = new Date();
+  const date = now.toLocaleDateString('fr-FR');
+  const heure = now.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
+
+  const items = Object.entries(lastVente.items);
+  const produits  = items.map(([name]) => name).join('|');
+  const prix_list = items.map(([name]) => {
+    const p = PRODUCTS.find(x => x.name === name);
+    return p ? -p.price : 0; // prix négatif = annulation
+  }).join('|');
+  const qty_list  = items.map(([,qty]) => qty).join('|');
+
+  try {
+    const params = new URLSearchParams({
+      date:    `${date} ${heure}`,
+      produit: produits,
+      prix:    prix_list,
+      qty:     qty_list,
+      mode:    lastVente.mode,
+      lieu:    lastVente.lieu,
+      device:  DEVICE_ID,
+      annulation: 'true',
+    });
+    await fetch(`${SCRIPT_URL}?${params.toString()}`, {
+      method: 'GET', mode: 'no-cors'
+    });
+  } catch(e) {}
+
+  renderHisto();
+  showToast('↩ Vente annulée — stock remis à jour');
 }
 
 // ── EXPORT CSV ───────────────────────────────────────────────────────
