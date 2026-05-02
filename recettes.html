@@ -617,25 +617,29 @@ const RECIPES = [
   /* ── SANDWICHS ── */
   {
     id:'poulet_b', type:'sandwich', caisse:'Poulet B',
-    emoji:'🐔', title:'Sandwich Poulet Batata', sub:'Poulet · Patate douce · Crémeux',
-    time:'8 min', kcal:'490 kcal',
+    emoji:'🥖', title:'Poulet Baguette', sub:'Poulet · Philadelphia · Crudités',
+    time:'8 min', kcal:'520 kcal',
     ings:[
-      {nom:'Pain',        qty:2,   unite:'u',  note:'tranches'},
-      {nom:'Poulet',      qty:100, unite:'g',  note:'émincé, cuit'},
-      {nom:'Philadelphia',qty:30,  unite:'g',  note:'fromage frais'},
-      {nom:'Roquette',    qty:0.5, unite:'u',  note:'poignée'},
-      {nom:'Tomate',      qty:60,  unite:'g',  note:'2 rondelles'},
-      {nom:'Moutarde',    qty:5,   unite:'g',  note:'option'},
+      {nom:'Poulet',       qty:80,  unite:'g',  note:'émincé, cuit'},
+      {nom:'Philadelphia', qty:60,  unite:'g',  note:'fromage frais'},
+      {nom:'Carotte',      qty:16,  unite:'g',  note:'râpée'},
+      {nom:'Pomme',        qty:11,  unite:'g',  note:'verte, coupée fin'},
+      {nom:'Noix',         qty:8,   unite:'g',  note:'concassées'},
+      {nom:'Oignon Rouge', qty:11,  unite:'g',  note:'émincé fin'},
+      {nom:'Moutarde',     qty:8,   unite:'g',  note:''},
+      {nom:'Raisins secs', qty:8,   unite:'g',  note:''},
+      {nom:'Maïs',         qty:15,  unite:'g',  note:''},
+      {nom:'Petit pois',   qty:20,  unite:'g',  note:''},
     ],
     steps:[
-      {action:'Griller le pain', detail:'2 min au grille-pain ou à sec dans une poêle chaude.'},
-      {action:'Tartiner le Philadelphia', detail:'Sur les deux faces intérieures. Généreusement.'},
-      {action:'Ajouter moutarde', detail:'Fine couche sur une des faces (selon préférence client).'},
-      {action:'Empiler dans l\'ordre', detail:'Roquette → Tomate → Poulet émincé'},
-      {action:'Assaisonner', detail:'Sel, poivre, filet de citron sur le poulet.'},
+      {action:'Préparer la baguette', detail:'Couper en deux dans la longueur. Baguette à 0.41€/pièce.'},
+      {action:'Tartiner le Philadelphia', detail:'Généreusement sur les deux faces intérieures.'},
+      {action:'Ajouter la moutarde', detail:'Fine couche sur une des faces.'},
+      {action:'Préparer les crudités', detail:'Carotte râpée, pomme verte en fines lamelles, oignon émincé.'},
+      {action:'Empiler dans l\'ordre', detail:'Maïs + Petit pois → Carotte + Pomme → Poulet → Noix + Raisins secs'},
       {action:'Fermer et servir', detail:'Couper en diagonale. Emballer si emporter.'},
     ],
-    tip:'B = Batata (patate douce) : certaines versions incluent des tranches de patate douce rôtie. Préparer le poulet la veille pour gagner du temps.'
+    tip:'La baguette à 0.41€ est la base. Préparer le poulet à l\'avance et le conserver au frais. Les noix et raisins secs apportent le croquant et la douceur.'
   },
   {
     id:'poulet_t', type:'sandwich', caisse:'Poulet T',
@@ -740,6 +744,30 @@ const RECIPES = [
     ],
     tip:'T = Tomate : version avec légumes variés. Le concombre apporte croquant et fraîcheur au thon.'
   },
+  {
+    id:'soupe_butternut', type:'soupe', caisse:'Soupe Butternut',
+    emoji:'🍲', title:'Soupe Butternut', sub:'Réconfortant · Crémeux · Automne',
+    time:'35 min', kcal:'280 kcal', portions:'5',
+    ings:[
+      {nom:'Butternut',        qty:1,    unite:'u',  note:'≈1.2kg'},
+      {nom:'Oignon',           qty:1,    unite:'u',  note:''},
+      {nom:'Lard',             qty:150,  unite:'g',  note:'lardons'},
+      {nom:'Bouillon légumes', qty:2,    unite:'u',  note:'2 cubes'},
+      {nom:'Tête de moine',    qty:60,   unite:'g',  note:'râpée'},
+      {nom:'Beurre',           qty:25,   unite:'g',  note:''},
+    ],
+    steps:[
+      {action:"Préparer les légumes", detail:"Éplucher et couper le butternut en cubes. Émincer l\'oignon."},
+      {action:"Faire revenir", detail:"Faire fondre le beurre dans une grande casserole. Faire revenir l\'oignon et les lardons 5 min."},
+      {action:"Ajouter le butternut", detail:"Ajouter les cubes de butternut. Mélanger 2 min."},
+      {action:"Mouiller", detail:"Ajouter 1L d\'eau chaude + les 2 cubes de bouillon. Porter à ébullition."},
+      {action:"Cuire", detail:"Laisser mijoter 20 min à feu moyen jusqu'à ce que le butternut soit tendre."},
+      {action:"Mixer", detail:"Mixer jusqu'à obtenir une texture lisse et crémeuse."},
+      {action:"Servir", detail:"Dans des bols chauds. Parsemer de tête de moine râpée par-dessus."},
+    ],
+    tip:"Recette pour 5 portions. La tête de moine se râpe avec un girolle pour de belles rosettes. Peut se congeler sans la garniture."
+  },
+
 ];
 
 /* ════════════════════════════════════════════════
@@ -1326,23 +1354,11 @@ async function deductStock() {
   } catch(e) {}
 
   showToast('✅ Stock déduit : ' + r.title);
-  if (btn) { btn.textContent = '✓ Déduit !'; btn.disabled = false; }
+  if (btn) { btn.textContent = '✓ Déduit'; btn.disabled = false; }
 
-  // Afficher le bouton Annuler directement sans re-render
-  const deductBlock = document.getElementById('mDeduct');
-  if (deductBlock) {
-    let undoBtn = document.getElementById('btnUndo');
-    if (!undoBtn) {
-      undoBtn = document.createElement('button');
-      undoBtn.id = 'btnUndo';
-      undoBtn.className = 'btn-cancel';
-      undoBtn.style.marginTop = '8px';
-      undoBtn.onclick = undoDeductStock;
-      deductBlock.querySelector('.deduct-block').appendChild(undoBtn);
-    }
-    undoBtn.textContent = '↩ Annuler la dernière déduction';
-    undoBtn.style.display = 'block';
-  }
+  // Afficher bouton Annuler sans effacer le bloc
+  let undoBtn = document.getElementById('btnUndo');
+  if (undoBtn) undoBtn.style.display = 'block';
 }
 
 async function undoDeductStock() {
