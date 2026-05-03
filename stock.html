@@ -687,31 +687,64 @@ async function scScan(){
   document.getElementById('sc-preview').style.display='none';
   document.getElementById('sc-btn').style.display='none';
   document.getElementById('sc-loading').style.display='block';
-  document.getElementById('sc-loading-text').textContent='Analyse du ticket...';
+  document.getElementById('sc-loading-text').textContent='Analyse du ticket avec Claude AI...';
   try{
-    const base64=scImg; // scImg already contains pure base64
-    const mimeType='image/jpeg';
-
-    const body = JSON.stringify({type:'ocr',image:base64,mimeType:mimeType});
-    const res=await fetch(SCANNER_SHEET_URL,{
-      method:'POST',
-      headers:{'Content-Type':'text/plain;charset=utf-8'},
-      body:body
+    // Utiliser directement l'API Claude pour analyser le ticket
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': 'ANTHROPIC_API_KEY',
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1024,
+        messages: [{
+          role: 'user',
+          content: [
+            {
+              type: 'image',
+              source: { type: 'base64', media_type: 'image/jpeg', data: scImg }
+            },
+            {
+              type: 'text',
+              text: `Analyse ce ticket de caisse et retourne UNIQUEMENT un JSON valide avec cette structure exacte, sans texte avant ou après:
+{
+  "shop": "nom du magasin",
+  "date": "JJ/MM/AAAA",
+  "items": [
+    {"name": "nom produit", "quantity_g": 500, "price_eur": 1.99, "emoji": "🛒", "confidence": "high", "details": "ligne ticket"}
+  ],
+  "total": 0.00
+}
+Rules: quantity_g en grammes (si kg multiplier par 1000, si unité mettre 500), price_eur en euros (nombre décimal), confidence "high" si produit alimentaire clair sinon "medium", emoji approprié au produit. Ignorer TVA, total, modes de paiement.`
+            }
+          ]
+        }]
+      })
     });
-    const rawText=await res.text();
-    const parsed=JSON.parse(rawText);
-    if(parsed.items&&parsed.items.length>0){
-      scItems=parsed.items;
-      scShop=parsed.shop||'Magasin';
-      scDate=parsed.date||new Date().toLocaleDateString('fr-FR');
+
+    const data = await res.json();
+    if(data.error) throw new Error(data.error.message);
+
+    const text = data.content[0].text;
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    if(!jsonMatch) throw new Error('Réponse invalide');
+
+    const parsed = JSON.parse(jsonMatch[0]);
+
+    if(parsed.items && parsed.items.length > 0){
+      scItems = parsed.items;
+      scShop  = parsed.shop || 'Magasin';
+      scDate  = parsed.date || new Date().toLocaleDateString('fr-FR');
       document.getElementById('sc-loading').style.display='none';
       document.getElementById('sc-shop-badge').textContent=scShop;
       document.getElementById('sc-count-badge').textContent=scItems.length+' article'+(scItems.length>1?'s':'');
       scRenderItems();
       document.getElementById('sc-results').style.display='block';
-    }else if(parsed.error){
-      throw new Error(parsed.error);
-    }else{
+    } else {
       scShowManual();
     }
   }catch(err){
