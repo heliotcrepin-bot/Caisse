@@ -639,7 +639,20 @@ async function envoyerAchats(){
   if(historique.length>50)historique.pop();
   localStorage.setItem('bs_histo',JSON.stringify(historique));
   const rows=panier.map(i=>[d,i.nom,i.qty,i.unite,i.fourn,i.prix]);
-  try{await fetch(SHEET_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify({type:'achats',rows})});}catch(e){}
+  try{
+    for(const row of rows){
+      const params=new URLSearchParams({
+        type:'achat',
+        date:row[0],
+        nom:row[1],
+        qty:row[2],
+        unite:row[3],
+        fourn:row[4],
+        prix:row[5]
+      });
+      await fetch(SHEET_URL+'?'+params.toString(),{method:'GET',mode:'no-cors'});
+    }
+  }catch(e){}
   panier=[];updateFab();renderStock();renderCourses();renderHisto();closePanier();
   btn.textContent='✅ Envoyer vers Excel';btn.disabled=false;showToast('✅ Achats enregistrés !');
 }
