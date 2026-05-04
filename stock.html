@@ -650,7 +650,7 @@ async function envoyerAchats(){
         fourn:row[4],
         prix:row[5]
       });
-      await fetch(SHEET_URL+'?'+params.toString(),{method:'GET',mode:'no-cors'});
+      await fetch(SHEET_URL+'?'+params.toString(),{method:'GET'});
     }
   }catch(e){}
   panier=[];updateFab();renderStock();renderCourses();renderHisto();closePanier();
