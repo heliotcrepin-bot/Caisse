@@ -706,11 +706,14 @@ async function scScan(){
     const base64=scImg; // scImg already contains pure base64
     const mimeType='image/jpeg';
 
-    const body = JSON.stringify({type:'ocr',image:base64,mimeType:mimeType});
+    // Envoyer via FormData pour contourner CORS Safari
+    const formData = new FormData();
+    formData.append('type', 'ocr');
+    formData.append('image', base64);
+    formData.append('mimeType', mimeType);
     const res=await fetch(SCANNER_SHEET_URL,{
       method:'POST',
-      headers:{'Content-Type':'text/plain;charset=utf-8'},
-      body:body
+      body:formData
     });
     const rawText=await res.text();
     const parsed=JSON.parse(rawText);
