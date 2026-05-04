@@ -402,15 +402,16 @@ async function refreshStock(){
     const res=await fetch(url);const text=await res.text();
     const json=JSON.parse(text.substring(47).slice(0,-2));
     if(json.table&&json.table.rows){
+      // Remplacer TOUT le stock (pas merger) pour éviter les vieilles valeurs
       const newStock={};
       const newSeuils={};
       json.table.rows.forEach(row=>{
-        if(!row.c[0]?.v||row.c[0].v==='Ingredient')return;
-        const nom=row.c[0].v;
-        if(typeof nom==='string'&&nom.includes('LISTE DE COURSES'))return;
-        newStock[nom]=row.c[1]?.v||0;
-        if(row.c[3]?.v!=null||row.c[4]?.v!=null)
-          newSeuils[nom]={al:row.c[3]?.v||0, cr:row.c[4]?.v||0};
+        if(row.c[0]?.v && row.c[0].v!=='Ingredient'){
+          const nom=row.c[0].v;
+          newStock[nom]=row.c[1]?.v||0;
+          if(row.c[3]?.v!=null||row.c[4]?.v!=null)
+            newSeuils[nom]={al:row.c[3]?.v||0, cr:row.c[4]?.v||0};
+        }
       });
       stockData=newStock;
       if(Object.keys(newSeuils).length>0){
@@ -689,7 +690,10 @@ async function scScan(){
   document.getElementById('sc-loading').style.display='block';
   document.getElementById('sc-loading-text').textContent='Analyse du ticket...';
   try{
-    const body = JSON.stringify({type:'ocr',image:scImg,mimeType:'image/jpeg'});
+    const base64=scImg; // scImg already contains pure base64
+    const mimeType='image/jpeg';
+
+    const body = JSON.stringify({type:'ocr',image:base64,mimeType:mimeType});
     const res=await fetch(SCANNER_SHEET_URL,{
       method:'POST',
       headers:{'Content-Type':'text/plain;charset=utf-8'},
