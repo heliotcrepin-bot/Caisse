@@ -885,13 +885,16 @@ async function scEnvoyer(){
   historique.unshift({date:scDate,items:hitoItems});
   if(historique.length>50)historique.pop();
   localStorage.setItem('bs_histo',JSON.stringify(historique));
-  // 3. Envoyer vers Google Sheets avec type:save pour mettre à jour Stock_App
+  // 3. Envoyer vers Google Sheets via FormData
   try{
-    const body=JSON.stringify({type:'save',date:scDate,magasin:scShop,items:scItems});
+    const formData = new FormData();
+    formData.append('type', 'save');
+    formData.append('date', scDate);
+    formData.append('magasin', scShop);
+    formData.append('items', JSON.stringify(scItems));
     await fetch(SCANNER_SHEET_URL,{
       method:'POST',
-      headers:{'Content-Type':'text/plain;charset=utf-8'},
-      body:body
+      body:formData
     });
   }catch(e){}
   // 4. Afficher succès
