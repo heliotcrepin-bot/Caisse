@@ -836,16 +836,29 @@ function scRenderItems(){
   scItems.forEach((item,i)=>{
     total+=item.price_eur||0;
     const div=document.createElement('div');div.className='sc-item';
+    const unite = item.unite || 'g';
+    const qtyStep = unite === 'u' ? 1 : 10;
+    const prixTotal = item.price_total || (item.price_eur || 0);
+    const isUnknown = item.name && item.name.startsWith('Inconnu:');
+    const unknownBadge = isUnknown ? `<span style="font-size:10px;background:var(--odim);color:var(--orange);padding:2px 6px;border-radius:10px;margin-left:6px">À identifier</span>` : '';
     div.innerHTML=`<span style="font-size:20px;flex-shrink:0">${item.emoji||'🥬'}</span>
       <div class="sc-item-info">
-        <input style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:'DM Mono',monospace;font-size:12px;padding:4px 6px;outline:none;margin-bottom:3px" 
-          value="${item.name}" onchange="scUpdateName(${i},this.value)">
+        <div style="display:flex;align-items:center;gap:4px;margin-bottom:3px">
+          <input style="flex:1;background:var(--surface);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:'DM Mono',monospace;font-size:12px;padding:4px 6px;outline:none" 
+            value="${item.name}" onchange="scUpdateName(${i},this.value)">
+          ${unknownBadge}
+        </div>
         <div class="sc-qty-row">
-          <input class="sc-qty" type="number" value="${item.quantity_g}" min="0" step="10" onchange="scUpdateQty(${i},this.value)">
-          <span style="font-size:11px;color:var(--muted)">g</span>
-          <span style="font-size:11px;color:var(--muted);margin-left:6px">prix TTC:</span>
+          <input class="sc-qty" type="number" value="${item.quantity_g}" min="0" step="${qtyStep}" onchange="scUpdateQty(${i},this.value)">
+          <select onchange="scUpdateUnite(${i},this.value)" style="background:var(--surface);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:'DM Mono',monospace;font-size:11px;padding:3px 4px;outline:none">
+            <option value="g" ${unite==='g'?'selected':''}>g</option>
+            <option value="ml" ${unite==='ml'?'selected':''}>ml</option>
+            <option value="u" ${unite==='u'?'selected':''}>u</option>
+            <option value="l" ${unite==='l'?'selected':''}>L</option>
+          </select>
+          <span style="font-size:11px;color:var(--muted);margin-left:4px">total:</span>
           <input style="width:60px;background:var(--surface);border:1px solid var(--border);border-radius:6px;color:var(--accent);font-family:'DM Mono',monospace;font-size:12px;padding:3px 5px;text-align:center;outline:none" 
-            type="number" value="${item.price_eur||0}" step="0.01" min="0" onchange="scUpdatePrice(${i},this.value)">
+            type="number" value="${prixTotal}" step="0.01" min="0" onchange="scUpdatePrice(${i},this.value)">
           <span style="font-size:11px;color:var(--muted)">€</span>
         </div>
       </div>
@@ -856,6 +869,7 @@ function scRenderItems(){
 }
 
 function scUpdateQty(i,val){scItems[i].quantity_g=parseInt(val)||0;}
+function scUpdateUnite(i,val){scItems[i].unite=val;}
 function scUpdateName(i,val){scItems[i].name=val.trim();}
 function scUpdatePrice(i,val){
   scItems[i].price_eur=parseFloat(val)||0;
