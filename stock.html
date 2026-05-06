@@ -136,7 +136,10 @@ body{background:var(--bg);color:var(--text);font-family:'DM Mono',monospace;min-
 </div>
 <div class="tab-content" id="tab-scanner">
   <div class="section">
-    <div class="sec-title">Scanner un ticket</div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      <div class="sec-title" style="margin-bottom:0">Scanner un ticket</div>
+      <button onclick="scToggleComptable()" style="background:var(--bdim);border:1px solid var(--blue);color:var(--blue);font-family:'DM Mono',monospace;font-size:10px;padding:4px 10px;border-radius:20px;cursor:pointer" id="btn-comptable">📁 Comptable (<span id="comptable-count">0</span>)</button>
+    </div>
     <div class="sc-zone" id="sc-upload">
       <input type="file" id="sc-file" accept="image/*" capture="environment" style="position:absolute;inset:0;opacity:0;cursor:pointer;font-size:16px">
       <div style="font-size:28px;margin-bottom:8px">📷</div>
@@ -144,6 +147,10 @@ body{background:var(--bg);color:var(--text);font-family:'DM Mono',monospace;min-
       <div style="font-size:11px;color:var(--muted);margin-top:4px">Auchan, Lidl, Continente...</div>
     </div>
     <img id="sc-preview" style="display:none;width:100%;border-radius:10px;margin-top:10px;max-height:160px;object-fit:cover">
+    <div id="sc-actions" style="display:none;margin-top:8px;display:none;gap:6px;flex-wrap:wrap">
+      <button onclick="scPartager()" style="flex:1;background:var(--bdim);border:1px solid var(--blue);color:var(--blue);font-family:'DM Mono',monospace;font-size:12px;padding:8px;border-radius:10px;cursor:pointer">📤 Partager</button>
+      <button onclick="scSauvegarder()" style="flex:1;background:var(--gdim);border:1px solid var(--green);color:var(--green);font-family:'DM Mono',monospace;font-size:12px;padding:8px;border-radius:10px;cursor:pointer">💾 Comptable</button>
+    </div>
     <button class="btn-green" id="sc-btn" onclick="scScan()" disabled style="margin-top:10px;opacity:0.4">📷 Analyser le ticket</button>
   </div>
   <div id="sc-loading" style="display:none;text-align:center;padding:2rem">
@@ -170,6 +177,17 @@ body{background:var(--bg);color:var(--text);font-family:'DM Mono',monospace;min-
       <button class="btn-cancel" onclick="scReset()">↩ Nouveau ticket</button>
     </div>
   </div>
+  <!-- TICKETS COMPTABLE -->
+  <div id="sc-comptable" style="display:none">
+    <div class="section">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <div class="sec-title" style="margin-bottom:0">📁 Tickets pour comptable</div>
+        <button onclick="scToggleComptable()" style="background:transparent;border:none;color:var(--muted);font-size:12px;cursor:pointer">✕ Fermer</button>
+      </div>
+      <div id="sc-comptable-list"></div>
+    </div>
+  </div>
+
   <div id="sc-success" style="display:none;text-align:center;padding:2rem 1rem">
     <div style="font-size:36px;margin-bottom:10px">✅</div>
     <div style="font-family:Syne,sans-serif;font-size:17px;font-weight:800;color:var(--accent);margin-bottom:6px">Stock mis à jour !</div>
@@ -384,6 +402,8 @@ let curIng=null;
 INGS.forEach(i=>{if(prixData[i.nom]===undefined)prixData[i.nom]=i.prix_kg;});
 
 document.addEventListener('DOMContentLoaded',()=>{
+  // Mettre à jour compteur tickets comptable
+  document.getElementById('comptable-count').textContent=ticketsComptable.length;
   const sel=document.getElementById('sc-manual-select');
   if(sel)INGS.forEach(ing=>{const o=document.createElement('option');o.value=ing.nom;o.textContent=ing.nom+' ('+ing.unite+')';sel.appendChild(o);});renderStock();renderCourses();renderHisto();refreshStock();});
 
@@ -678,7 +698,8 @@ function switchTab(tab){
 
 // ── SCANNER ─────────────────────────────────────────────────────────
 const SCANNER_SHEET_URL='https://script.google.com/macros/s/AKfycbwenbhjtHVc1ifb2_y63ZWb8_9ysSrRcgTVYLbu6tt59W85pYDQhAWMprhq2KpH4Fhg/exec';
-let scImg=null, scItems=[], scShop='', scDate='';
+let scImg=null, scImgFull=null, scItems=[], scShop='', scDate='';
+let ticketsComptable=JSON.parse(localStorage.getItem('bs_tickets_comptable')||'[]');
 
 document.addEventListener('DOMContentLoaded',()=>{
   document.getElementById('sc-file').addEventListener('change',function(e){
@@ -686,14 +707,58 @@ document.addEventListener('DOMContentLoaded',()=>{
     const reader=new FileReader();
     reader.onload=function(ev){
       scImg=ev.target.result.split(',')[1];
+      scImgFull=ev.target.result; // garder la version complète pour partage
       const prev=document.getElementById('sc-preview');
       prev.src=ev.target.result;prev.style.display='block';
       const btn=document.getElementById('sc-btn');
       btn.disabled=false;btn.style.opacity='1';
+      // Afficher boutons partage
+      const actions=document.getElementById('sc-actions');
+      if(actions)actions.style.display='flex';
     };
     reader.readAsDataURL(file);
   });
 });
+
+async function scPartager(){
+  if(!scImgFull){showToast('Pas de photo',true);return;}
+  try{
+    // Convertir base64 en blob
+    const res=await fetch(scImgFull);
+    const blob=await res.blob();
+    const file=new File([blob],'ticket.jpg',{type:'image/jpeg'});
+    if(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){
+      await navigator.share({
+        title:'Ticket BS Salada',
+        text:'Ticket de caisse - '+new Date().toLocaleDateString('fr-FR'),
+        files:[file]
+      });
+    } else if(navigator.share){
+      await navigator.share({
+        title:'Ticket BS Salada',
+        text:'Ticket de caisse - '+new Date().toLocaleDateString('fr-FR'),
+        url:scImgFull
+      });
+    } else {
+      showToast('Partage non disponible sur cet appareil',true);
+    }
+  }catch(e){
+    if(e.name!=='AbortError')showToast('Erreur partage: '+e.message,true);
+  }
+}
+
+async function scSauvegarder(){
+  if(!scImgFull){showToast('Pas de photo',true);return;}
+  const entry={
+    date:new Date().toLocaleDateString('fr-FR'),
+    heure:new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}),
+    img:scImgFull
+  };
+  ticketsComptable.unshift(entry);
+  if(ticketsComptable.length>50)ticketsComptable.pop();
+  localStorage.setItem('bs_tickets_comptable',JSON.stringify(ticketsComptable));
+  showToast('💾 Ticket sauvegardé pour le comptable');
+}
 
 async function scScan(){
   if(!scImg)return;
@@ -919,6 +984,64 @@ async function scEnvoyer(){
   renderStock();renderCourses();renderHisto();
   // 5. Sync automatique après 3 secondes
   setTimeout(()=>refreshStock(),3000);
+}
+
+function scToggleComptable(){
+  const el=document.getElementById('sc-comptable');
+  const isVisible=el.style.display!=='none';
+  // Cacher tout le reste
+  document.getElementById('sc-upload').style.display=isVisible?'block':'none';
+  document.getElementById('sc-results').style.display='none';
+  document.getElementById('sc-success').style.display='none';
+  el.style.display=isVisible?'none':'block';
+  if(!isVisible)renderTicketsComptable();
+}
+
+function renderTicketsComptable(){
+  const list=document.getElementById('sc-comptable-list');
+  document.getElementById('comptable-count').textContent=ticketsComptable.length;
+  if(!ticketsComptable.length){
+    list.innerHTML='<div class="empty">Aucun ticket sauvegardé</div>';
+    return;
+  }
+  list.innerHTML=ticketsComptable.map((t,i)=>`
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px;margin-bottom:8px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <span style="font-size:12px;color:var(--muted)">📅 ${t.date} ${t.heure}</span>
+        <div style="display:flex;gap:6px">
+          <button onclick="partagerTicketComptable(${i})" style="background:var(--bdim);border:1px solid var(--blue);color:var(--blue);font-family:'DM Mono',monospace;font-size:10px;padding:3px 8px;border-radius:20px;cursor:pointer">📤 Partager</button>
+          <button onclick="supprimerTicketComptable(${i})" style="background:var(--rdim);border:none;color:var(--red);border-radius:6px;width:24px;height:24px;cursor:pointer;font-size:12px">×</button>
+        </div>
+      </div>
+      <img src="${t.img}" style="width:100%;border-radius:8px;max-height:200px;object-fit:cover">
+    </div>`).join('');
+}
+
+async function partagerTicketComptable(i){
+  const t=ticketsComptable[i];
+  if(!t)return;
+  try{
+    const res=await fetch(t.img);
+    const blob=await res.blob();
+    const file=new File([blob],`ticket_${t.date.replace(/\//g,'-')}.jpg`,{type:'image/jpeg'});
+    if(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){
+      await navigator.share({
+        title:'Ticket BS Salada - '+t.date,
+        text:'Ticket de caisse du '+t.date,
+        files:[file]
+      });
+    } else {
+      showToast('Partage non disponible',true);
+    }
+  }catch(e){
+    if(e.name!=='AbortError')showToast('Erreur: '+e.message,true);
+  }
+}
+
+function supprimerTicketComptable(i){
+  ticketsComptable.splice(i,1);
+  localStorage.setItem('bs_tickets_comptable',JSON.stringify(ticketsComptable));
+  renderTicketsComptable();
 }
 
 function scReset(){
