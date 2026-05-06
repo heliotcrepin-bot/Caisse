@@ -749,15 +749,39 @@ async function scPartager(){
 
 async function scSauvegarder(){
   if(!scImgFull){showToast('Pas de photo',true);return;}
-  const entry={
-    date:new Date().toLocaleDateString('fr-FR'),
-    heure:new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}),
-    img:scImgFull
-  };
-  ticketsComptable.unshift(entry);
-  if(ticketsComptable.length>50)ticketsComptable.pop();
-  localStorage.setItem('bs_tickets_comptable',JSON.stringify(ticketsComptable));
-  showToast('💾 Ticket sauvegardé pour le comptable');
+  try{
+    // Compresser l'image pour localStorage
+    const img=new Image();
+    img.src=scImgFull;
+    await new Promise(r=>img.onload=r);
+    const canvas=document.createElement('canvas');
+    const maxW=600;
+    const ratio=Math.min(maxW/img.width,1);
+    canvas.width=img.width*ratio;
+    canvas.height=img.height*ratio;
+    canvas.getContext('2d').drawImage(img,0,0,canvas.width,canvas.height);
+    const thumb=canvas.toDataURL('image/jpeg',0.5);
+    const entry={
+      date:new Date().toLocaleDateString('fr-FR'),
+      heure:new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}),
+      img:thumb,
+      imgFull:scImgFull
+    };
+    ticketsComptable.unshift(entry);
+    if(ticketsComptable.length>20)ticketsComptable.pop();
+    try{
+      localStorage.setItem('bs_tickets_comptable',JSON.stringify(ticketsComptable));
+    }catch(e){
+      // Si trop grand, sauvegarder sans l'image complète
+      ticketsComptable[0].imgFull=null;
+      localStorage.setItem('bs_tickets_comptable',JSON.stringify(ticketsComptable));
+    }
+    // Mettre à jour le compteur
+    document.getElementById('comptable-count').textContent=ticketsComptable.length;
+    showToast('💾 Ticket sauvegardé pour le comptable');
+  }catch(e){
+    showToast('Erreur: '+e.message,true);
+  }
 }
 
 async function scScan(){
