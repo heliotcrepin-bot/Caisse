@@ -138,63 +138,65 @@ body{background:var(--bg);color:var(--text);font-family:'DM Mono',monospace;min-
   <div class="section">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
       <div class="sec-title" style="margin-bottom:0">Scanner un ticket</div>
-      <button onclick="scToggleComptable()" style="background:var(--bdim);border:1px solid var(--blue);color:var(--blue);font-family:'DM Mono',monospace;font-size:10px;padding:4px 10px;border-radius:20px;cursor:pointer" id="btn-comptable">📁 Comptable (<span id="comptable-count">0</span>)</button>
+      <button onclick="scToggleComptable()" style="background:var(--bdim);border:1px solid var(--blue);color:var(--blue);font-family:'DM Mono',monospace;font-size:10px;padding:4px 10px;border-radius:20px;cursor:pointer" id="btn-comptable">📁 Tickets (<span id="comptable-count">0</span>)</button>
     </div>
-    <div class="sc-zone" id="sc-upload">
-      <input type="file" id="sc-file" accept="image/*" capture="environment" style="position:absolute;inset:0;opacity:0;cursor:pointer;font-size:16px">
-      <div style="font-size:28px;margin-bottom:8px">📷</div>
-      <div style="font-size:14px;font-weight:500;color:var(--text)">Photographier le ticket de caisse</div>
-      <div style="font-size:11px;color:var(--muted);margin-top:4px">Auchan, Lidl, Continente...</div>
-    </div>
-    <img id="sc-preview" style="display:none;width:100%;border-radius:10px;margin-top:10px;max-height:160px;object-fit:cover">
-    <div id="sc-actions" style="display:none;margin-top:8px;display:none;gap:6px;flex-wrap:wrap">
-      <button onclick="scPartager()" style="flex:1;background:var(--bdim);border:1px solid var(--blue);color:var(--blue);font-family:'DM Mono',monospace;font-size:12px;padding:8px;border-radius:10px;cursor:pointer">📤 Partager</button>
-      <button onclick="scSauvegarder()" style="flex:1;background:var(--gdim);border:1px solid var(--green);color:var(--green);font-family:'DM Mono',monospace;font-size:12px;padding:8px;border-radius:10px;cursor:pointer">💾 Comptable</button>
-    </div>
-    <button class="btn-green" id="sc-btn" onclick="scScan()" disabled style="margin-top:10px;opacity:0.4">📷 Analyser le ticket</button>
-  </div>
-  <div id="sc-loading" style="display:none;text-align:center;padding:2rem">
-    <div class="sc-spinner"></div>
-    <div id="sc-loading-text" style="font-size:13px;color:var(--muted);margin-top:10px">Lecture du ticket...</div>
-  </div>
-  <div id="sc-results" style="display:none">
-    <div class="section">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-        <div class="sec-title" style="margin-bottom:0">Produits détectés</div>
-        <div style="display:flex;gap:6px">
-          <span id="sc-shop-badge" style="font-size:11px;background:var(--bdim);border:1px solid var(--blue);color:var(--blue);padding:3px 9px;border-radius:20px"></span>
-          <span id="sc-count-badge" style="font-size:11px;background:var(--gdim);border:1px solid var(--green);color:var(--green);padding:3px 9px;border-radius:20px"></span>
-        </div>
+
+    <!-- ZONE UPLOAD -->
+    <div id="sc-upload">
+      <div class="sc-zone" style="position:relative">
+        <input type="file" id="sc-file" accept="image/*" capture="environment" style="position:absolute;inset:0;opacity:0;cursor:pointer;font-size:16px">
+        <div style="font-size:36px;margin-bottom:8px">📷</div>
+        <div style="font-size:15px;font-weight:500;color:var(--text)">Photo du ticket</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:4px">Auchan · Lidl · Continente · Marché</div>
       </div>
-      <div id="sc-items"></div>
-      <div style="display:flex;justify-content:space-between;align-items:center;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:11px 14px;margin-top:8px">
-        <span style="font-size:12px;color:var(--muted)">Total ticket</span>
-        <span id="sc-total" style="font-size:16px;font-weight:500;color:var(--accent)">0,00 €</span>
+      <img id="sc-preview" style="display:none;width:100%;border-radius:10px;margin-top:10px;max-height:200px;object-fit:contain;background:var(--card)">
+
+      <!-- Magasin + bouton analyser -->
+      <div id="sc-after-photo" style="display:none;margin-top:10px">
+        <input type="text" id="sc-magasin" placeholder="Magasin (ex: Auchan, Lidl...)" style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'DM Mono',monospace;font-size:13px;padding:10px 12px;outline:none;margin-bottom:8px">
+        <button class="btn-green" id="sc-btn" onclick="scScan()">🔍 Lire le total du ticket</button>
       </div>
     </div>
-    <div class="section" style="padding-bottom:20px">
-      <button class="btn-green" onclick="scEnvoyer()">✅ Ajouter au stock + Sheets</button>
+
+    <!-- LOADING -->
+    <div id="sc-loading" style="display:none;text-align:center;padding:2rem">
+      <div class="sc-spinner"></div>
+      <div style="font-size:13px;color:var(--muted);margin-top:10px">Lecture du total...</div>
+    </div>
+
+    <!-- RÉSULTAT : total détecté -->
+    <div id="sc-result-zone" style="display:none">
+      <div style="background:var(--card);border:1px solid var(--green);border-radius:12px;padding:16px;margin-bottom:10px;text-align:center">
+        <div style="font-size:11px;color:var(--muted);margin-bottom:6px">TOTAL DÉTECTÉ</div>
+        <input type="number" id="sc-total-input" step="0.01" min="0"
+          style="font-family:'Syne',sans-serif;font-size:32px;font-weight:800;color:var(--accent);background:transparent;border:none;outline:none;text-align:center;width:160px">
+        <div style="font-size:13px;color:var(--muted);margin-top:2px">€ — modifiable</div>
+      </div>
+      <div style="display:flex;gap:8px;margin-bottom:8px">
+        <button onclick="scEnvoyer()" class="btn-green" style="flex:2">✅ Envoyer vers V10</button>
+        <button onclick="scPartagerEtEnvoyer()" style="flex:1;background:var(--bdim);border:1px solid var(--blue);color:var(--blue);font-family:'DM Mono',monospace;font-size:12px;padding:12px;border-radius:13px;cursor:pointer">📤 + Comptable</button>
+      </div>
       <button class="btn-cancel" onclick="scReset()">↩ Nouveau ticket</button>
     </div>
+
+    <!-- SUCCÈS -->
+    <div id="sc-success" style="display:none;text-align:center;padding:1.5rem 0">
+      <div style="font-size:40px;margin-bottom:8px">✅</div>
+      <div style="font-family:Syne,sans-serif;font-size:17px;font-weight:800;color:var(--accent);margin-bottom:4px">Ticket enregistré !</div>
+      <div id="sc-success-detail" style="font-size:13px;color:var(--muted);margin-bottom:1.2rem"></div>
+      <button class="btn-green" onclick="scReset()">📷 Nouveau ticket</button>
+    </div>
   </div>
-  <!-- TICKETS COMPTABLE -->
+
+  <!-- LISTE TICKETS COMPTABLE -->
   <div id="sc-comptable" style="display:none">
     <div class="section">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-        <div class="sec-title" style="margin-bottom:0">📁 Tickets pour comptable</div>
+        <div class="sec-title" style="margin-bottom:0">📁 Tickets sauvegardés</div>
         <button onclick="scToggleComptable()" style="background:transparent;border:none;color:var(--muted);font-size:12px;cursor:pointer">✕ Fermer</button>
       </div>
       <div id="sc-comptable-list"></div>
     </div>
-  </div>
-
-  <div id="sc-success" style="display:none;text-align:center;padding:2rem 1rem">
-    <div style="font-size:36px;margin-bottom:10px">✅</div>
-    <div style="font-family:Syne,sans-serif;font-size:17px;font-weight:800;color:var(--accent);margin-bottom:6px">Stock mis à jour !</div>
-    <div style="font-size:12px;color:var(--muted);margin-bottom:1.5rem">Ajouté à Google Sheets</div>
-    <div id="sc-success-detail" style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:left;font-size:12px;color:var(--muted);margin-bottom:1rem"></div>
-    <button class="btn-green" onclick="scReset()">📷 Nouveau ticket</button>
-    <button class="btn-cancel" onclick="switchTab('stock');scReset()">📊 Voir le stock</button>
   </div>
 </div>
 <div class="overlay" id="modalOverlay" onclick="closeModal(event)">
@@ -402,10 +404,8 @@ let curIng=null;
 INGS.forEach(i=>{if(prixData[i.nom]===undefined)prixData[i.nom]=i.prix_kg;});
 
 document.addEventListener('DOMContentLoaded',()=>{
-  // Mettre à jour compteur tickets comptable
-  document.getElementById('comptable-count').textContent=ticketsComptable.length;
-  const sel=document.getElementById('sc-manual-select');
-  if(sel)INGS.forEach(ing=>{const o=document.createElement('option');o.value=ing.nom;o.textContent=ing.nom+' ('+ing.unite+')';sel.appendChild(o);});renderStock();renderCourses();renderHisto();refreshStock();});
+  renderStock();renderCourses();renderHisto();refreshStock();
+});
 
 function resetCache(){
   if(!confirm("Vider le cache et resynchroniser ?")) return;
@@ -696,327 +696,135 @@ function switchTab(tab){
   if(tab==='tarifs')renderTarifs();
 }
 
-// ── SCANNER ─────────────────────────────────────────────────────────
-const SCANNER_SHEET_URL='https://script.google.com/macros/s/AKfycbwenbhjtHVc1ifb2_y63ZWb8_9ysSrRcgTVYLbu6tt59W85pYDQhAWMprhq2KpH4Fhg/exec';
-let scImg=null, scImgFull=null, scItems=[], scShop='', scDate='';
+// ── SCANNER ──────────────────────────────────────────────────────────────────
+// Flux : photo → Apps Script → Claude API (server-side) → total → V10
+// L'appel Claude se fait CÔTÉ SERVEUR (Apps Script) pour éviter le blocage CORS
+// ─────────────────────────────────────────────────────────────────────────────
+let scImg=null, scImgFull=null, scTotalDetecte=0, scMagasin='', scDateTicket='';
 let ticketsComptable=JSON.parse(localStorage.getItem('bs_tickets_comptable')||'[]');
 
 document.addEventListener('DOMContentLoaded',()=>{
+  document.getElementById('comptable-count').textContent=ticketsComptable.length;
   document.getElementById('sc-file').addEventListener('change',function(e){
     const file=e.target.files[0];if(!file)return;
     const reader=new FileReader();
     reader.onload=function(ev){
+      scImgFull=ev.target.result;
       scImg=ev.target.result.split(',')[1];
-      scImgFull=ev.target.result; // garder la version complète pour partage
       const prev=document.getElementById('sc-preview');
       prev.src=ev.target.result;prev.style.display='block';
-      const btn=document.getElementById('sc-btn');
-      btn.disabled=false;btn.style.opacity='1';
-      // Afficher boutons partage
-      const actions=document.getElementById('sc-actions');
-      if(actions)actions.style.display='flex';
+      document.getElementById('sc-after-photo').style.display='block';
     };
     reader.readAsDataURL(file);
   });
 });
 
-async function scPartager(){
-  if(!scImgFull){showToast('Pas de photo',true);return;}
+async function scScan(){
+  if(!scImg){showToast('Pas de photo',true);return;}
+  document.getElementById('sc-after-photo').style.display='none';
+  document.getElementById('sc-preview').style.display='none';
+  document.getElementById('sc-loading').style.display='block';
+
   try{
-    // Convertir base64 en blob
+    // ✅ Passe par Apps Script (pas Claude directement — CORS bloqué depuis navigateur)
+    const magManuel=document.getElementById('sc-magasin').value.trim();
+    const formData=new FormData();
+    formData.append('type','ocr_total');
+    formData.append('image',scImg);
+    formData.append('mimeType','image/jpeg');
+    if(magManuel)formData.append('magasin',magManuel);
+
+    const res=await fetch(SHEET_URL,{method:'POST',body:formData});
+    const data=await res.json();
+
+    if(!data.ok)throw new Error(data.error||'Erreur Apps Script');
+
+    scTotalDetecte=parseFloat(data.total)||0;
+    scMagasin=data.magasin||magManuel||'Magasin';
+    scDateTicket=data.date||new Date().toLocaleDateString('fr-FR');
+
+    document.getElementById('sc-loading').style.display='none';
+    document.getElementById('sc-total-input').value=scTotalDetecte.toFixed(2);
+    document.getElementById('sc-result-zone').style.display='block';
+
+  }catch(err){
+    document.getElementById('sc-loading').style.display='none';
+    document.getElementById('sc-after-photo').style.display='block';
+    document.getElementById('sc-preview').style.display='block';
+    showToast('Erreur: '+err.message,true);
+    console.error('scScan error:',err);
+  }
+}
+
+async function scEnvoyer(partagerAussi=false){
+  const total=parseFloat(document.getElementById('sc-total-input').value)||0;
+  if(!total){showToast('Total = 0 — vérifie le ticket',true);return;}
+  const date=scDateTicket||new Date().toLocaleDateString('fr-FR');
+  const magasin=scMagasin||'Magasin';
+
+  // 1. Sauvegarder miniature pour comptable
+  await scSauvegarderTicket(total,date,magasin);
+
+  // 2. Partager photo si demandé
+  if(partagerAussi)await scPartager();
+
+  // 3. V10 déjà écrit par handleOCRTotal dans Apps Script — afficher succès
+  document.getElementById('sc-result-zone').style.display='none';
+  document.getElementById('sc-success-detail').textContent=`${date} · ${magasin} · ${total.toFixed(2).replace('.',',')} €`;
+  document.getElementById('sc-success').style.display='block';
+}
+
+async function scPartagerEtEnvoyer(){
+  await scEnvoyer(true);
+}
+
+async function scPartager(){
+  if(!scImgFull)return;
+  try{
     const res=await fetch(scImgFull);
     const blob=await res.blob();
-    const file=new File([blob],'ticket.jpg',{type:'image/jpeg'});
+    const total=parseFloat(document.getElementById('sc-total-input').value)||0;
+    const file=new File([blob],`ticket_${scDateTicket.replace(/\//g,'-')}_${total.toFixed(2)}€.jpg`,{type:'image/jpeg'});
     if(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){
       await navigator.share({
-        title:'Ticket BS Salada',
-        text:'Ticket de caisse - '+new Date().toLocaleDateString('fr-FR'),
+        title:`Ticket ${scMagasin} — ${total.toFixed(2)}€`,
+        text:`Ticket de caisse ${scMagasin} du ${scDateTicket} — Total: ${total.toFixed(2)}€`,
         files:[file]
       });
-    } else if(navigator.share){
-      await navigator.share({
-        title:'Ticket BS Salada',
-        text:'Ticket de caisse - '+new Date().toLocaleDateString('fr-FR'),
-        url:scImgFull
-      });
-    } else {
-      showToast('Partage non disponible sur cet appareil',true);
+    }else if(navigator.share){
+      await navigator.share({title:`Ticket ${scMagasin}`,text:`Total: ${total.toFixed(2)}€ - ${scDateTicket}`});
+    }else{
+      showToast('Partage non disponible',true);
     }
-  }catch(e){
-    if(e.name!=='AbortError')showToast('Erreur partage: '+e.message,true);
-  }
+  }catch(e){if(e.name!=='AbortError')console.warn('Partage:',e);}
 }
 
-async function scSauvegarder(){
-  if(!scImgFull){showToast('Pas de photo',true);return;}
+async function scSauvegarderTicket(total, date, magasin){
+  if(!scImgFull)return;
   try{
-    // Compresser l'image pour localStorage
-    const img=new Image();
-    img.src=scImgFull;
+    const img=new Image();img.src=scImgFull;
     await new Promise(r=>img.onload=r);
     const canvas=document.createElement('canvas');
-    const maxW=600;
-    const ratio=Math.min(maxW/img.width,1);
-    canvas.width=img.width*ratio;
-    canvas.height=img.height*ratio;
+    const ratio=Math.min(600/img.width,1);
+    canvas.width=img.width*ratio;canvas.height=img.height*ratio;
     canvas.getContext('2d').drawImage(img,0,0,canvas.width,canvas.height);
     const thumb=canvas.toDataURL('image/jpeg',0.5);
-    const entry={
-      date:new Date().toLocaleDateString('fr-FR'),
+    ticketsComptable.unshift({
+      date,
       heure:new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}),
-      img:thumb,
-      imgFull:scImgFull
-    };
-    ticketsComptable.unshift(entry);
-    if(ticketsComptable.length>20)ticketsComptable.pop();
-    try{
-      localStorage.setItem('bs_tickets_comptable',JSON.stringify(ticketsComptable));
-    }catch(e){
-      // Si trop grand, sauvegarder sans l'image complète
-      ticketsComptable[0].imgFull=null;
-      localStorage.setItem('bs_tickets_comptable',JSON.stringify(ticketsComptable));
-    }
-    // Mettre à jour le compteur
+      magasin,total,img:thumb
+    });
+    if(ticketsComptable.length>30)ticketsComptable.pop();
+    try{localStorage.setItem('bs_tickets_comptable',JSON.stringify(ticketsComptable));}
+    catch(e){ticketsComptable[0].img='';localStorage.setItem('bs_tickets_comptable',JSON.stringify(ticketsComptable));}
     document.getElementById('comptable-count').textContent=ticketsComptable.length;
-    showToast('💾 Ticket sauvegardé pour le comptable');
-  }catch(e){
-    showToast('Erreur: '+e.message,true);
-  }
-}
-
-async function scScan(){
-  if(!scImg)return;
-  document.getElementById('sc-upload').style.display='none';
-  document.getElementById('sc-preview').style.display='none';
-  document.getElementById('sc-btn').style.display='none';
-  document.getElementById('sc-loading').style.display='block';
-  document.getElementById('sc-loading-text').textContent='Analyse du ticket...';
-  try{
-    const base64=scImg; // scImg already contains pure base64
-    const mimeType='image/jpeg';
-
-    // Envoyer via FormData pour contourner CORS Safari
-    const formData = new FormData();
-    formData.append('type', 'ocr');
-    formData.append('image', base64);
-    formData.append('mimeType', mimeType);
-    const res=await fetch(SCANNER_SHEET_URL,{
-      method:'POST',
-      body:formData
-    });
-    const rawText=await res.text();
-    const parsed=JSON.parse(rawText);
-    if(parsed.items&&parsed.items.length>0){
-      scItems=parsed.items;
-      scShop=parsed.shop||'Magasin';
-      scDate=parsed.date||new Date().toLocaleDateString('fr-FR');
-      document.getElementById('sc-loading').style.display='none';
-      document.getElementById('sc-shop-badge').textContent=scShop;
-      document.getElementById('sc-count-badge').textContent=scItems.length+' article'+(scItems.length>1?'s':'');
-      scRenderItems();
-      document.getElementById('sc-results').style.display='block';
-    }else if(parsed.error){
-      throw new Error(parsed.error);
-    }else{
-      scShowManual();
-    }
-  }catch(err){
-    console.error('Erreur scan:',err);
-    document.getElementById('sc-loading').style.display='none';
-    document.getElementById('sc-upload').style.display='block';
-    document.getElementById('sc-preview').style.display='block';
-    document.getElementById('sc-btn').style.display='block';
-    showToast('Erreur: '+err.message,true);
-  }
-}
-
-function scShowResults(){
-  document.getElementById('sc-loading').style.display='none';
-  document.getElementById('sc-shop-badge').textContent=scShop;
-  document.getElementById('sc-count-badge').textContent=scItems.length+' article'+(scItems.length>1?'s':'');
-  scRenderItems();
-  document.getElementById('sc-results').style.display='block';
-}
-
-function scParseTicket(rawText){
-  const IGNORE=['total','troco','iva','tva','numerario','multibanco','mb way','visa','mastercard','contribuinte','sirer','nif','obrigado','merci','ticket','recibo','fatura','subtotal','desconto','atcud','data emissao','operador','caixa'];
-  const lines=rawText.split('\n').map(l=>l.trim()).filter(l=>l.length>3);
-  scShop=scDetectShop(lines);
-  scDate=scDetectDate(lines)||new Date().toLocaleDateString('fr-FR');
-  const parsed=[];
-  lines.forEach(line=>{
-    const lower=line.toLowerCase();
-    if(IGNORE.some(kw=>lower.includes(kw)))return;
-    const priceMatch=line.match(/(\d+[.,]\d{2})\s*€?$/);
-    if(!priceMatch)return;
-    const price=parseFloat(priceMatch[1].replace(',','.'));
-    if(price>50||price<=0)return;
-    let qty_g=500;
-    const kgMatch=line.match(/(\d+[.,]\d+)\s*kg/i);
-    const gMatch=line.match(/(\d+)\s*g\b/i);
-    if(kgMatch)qty_g=Math.round(parseFloat(kgMatch[1].replace(',','.'))*1000);
-    else if(gMatch)qty_g=parseInt(gMatch[1]);
-    const name=line.replace(/(\d+[.,]\d{2})\s*€?$/,'').replace(/(\d+[.,]\d+)\s*kg/gi,'').replace(/(\d+)\s*g\b/gi,'').replace(/\d+\s*x\s*/gi,'').trim();
-    if(name.length>2)parsed.push({name:scCap(name),quantity_g:qty_g,price_eur:price,emoji:scEmoji(name),confidence:'medium',details:line});
-  });
-  scItems=parsed;
-  scShowResults();
-}
-
-function scShowManual(){
-  scShop='Marché';scDate=new Date().toLocaleDateString('fr-FR');scItems=[];
-  document.getElementById('sc-loading').style.display='none';
-  scShowResults();
-}
-
-function scDetectShop(lines){
-  const shops=['auchan','lidl','continente','pingo doce','intermarche','minipreco','mercadona','jumbo'];
-  for(const l of lines.slice(0,6)){const low=l.toLowerCase();for(const s of shops){if(low.includes(s))return scCap(s);}}
-  return 'Magasin';
-}
-
-function scDetectDate(lines){
-  for(const l of lines){const m=l.match(/(\d{2})[\/-](\d{2})[\/-](\d{2,4})/);if(m)return m[1]+'/'+m[2]+'/'+(m[3].length===2?'20'+m[3]:m[3]);}
-  return null;
-}
-
-function scEmoji(n){
-  n=n.toLowerCase();
-  if(n.includes('orange'))return'🍊';if(n.includes('banane')||n.includes('banana'))return'🍌';
-  if(n.includes('mangue')||n.includes('mango'))return'🥭';if(n.includes('citron')||n.includes('limao'))return'🍋';
-  if(n.includes('fraise')||n.includes('morango'))return'🍓';if(n.includes('tomate'))return'🍅';
-  if(n.includes('pomme')||n.includes('maca'))return'🍎';if(n.includes('ananas'))return'🍍';
-  if(n.includes('kiwi'))return'🥝';if(n.includes('avocat'))return'🥑';
-  if(n.includes('poulet')||n.includes('frango'))return'🍗';if(n.includes('sardine')||n.includes('thon'))return'🐟';
-  if(n.includes('oeuf')||n.includes('ovo'))return'🥚';if(n.includes('lait')||n.includes('leite'))return'🥛';
-  if(n.includes('pain')||n.includes('pao'))return'🍞';if(n.includes('gingembre')||n.includes('gengibre'))return'🫚';
-  if(n.includes('carotte')||n.includes('cenoura'))return'🥕';if(n.includes('concombre')||n.includes('pepino'))return'🥒';
-  return'🛒';
-}
-
-function scCap(str){return str.toLowerCase().split(' ').map(w=>w.charAt(0).toUpperCase()+w.slice(1)).join(' ');}
-
-function scAddManual(){
-  const sel=document.getElementById('sc-manual-select');
-  const ing=INGS.find(i=>i.nom===sel.value);if(!ing)return;
-  const qty=parseInt(document.getElementById('sc-manual-qty').value)||0;
-  const price=parseFloat(document.getElementById('sc-manual-price').value)||0;
-  if(!qty){showToast('Saisis une quantité',true);return;}
-  scItems.push({name:ing.nom,quantity_g:qty,price_eur:price,emoji:scEmoji(ing.nom),confidence:'high',details:'Manuel'});
-  document.getElementById('sc-count-badge').textContent=scItems.length+' article'+(scItems.length>1?'s':'');
-  scRenderItems();
-  document.getElementById('sc-manual-qty').value='';
-  document.getElementById('sc-manual-price').value='';
-  sel.value='';
-  showToast('✅ Ajouté');
-}
-
-function scShowResults(){
-  document.getElementById('sc-loading').style.display='none';
-  document.getElementById('sc-shop-badge').textContent=scShop;
-  document.getElementById('sc-count-badge').textContent=scItems.length+' article'+(scItems.length>1?'s':'');
-  scRenderItems();
-  document.getElementById('sc-results').style.display='block';
-}
-
-function scRenderItems(){
-  const list=document.getElementById('sc-items');list.innerHTML='';
-  let total=0;
-  scItems.forEach((item,i)=>{
-    total+=item.price_eur||0;
-    const div=document.createElement('div');div.className='sc-item';
-    const unite = item.unite || 'g';
-    const qtyStep = unite === 'u' ? 1 : 10;
-    const prixTotal = item.price_total || (item.price_eur || 0);
-    const isUnknown = item.name && item.name.startsWith('Inconnu:');
-    const unknownBadge = isUnknown ? `<span style="font-size:10px;background:var(--odim);color:var(--orange);padding:2px 6px;border-radius:10px;margin-left:6px">À identifier</span>` : '';
-    div.innerHTML=`<span style="font-size:20px;flex-shrink:0">${item.emoji||'🥬'}</span>
-      <div class="sc-item-info">
-        <div style="display:flex;align-items:center;gap:4px;margin-bottom:3px">
-          <input style="flex:1;background:var(--surface);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:'DM Mono',monospace;font-size:12px;padding:4px 6px;outline:none" 
-            value="${item.name}" onchange="scUpdateName(${i},this.value)">
-          ${unknownBadge}
-        </div>
-        <div class="sc-qty-row">
-          <input class="sc-qty" type="number" value="${item.quantity_g}" min="0" step="${qtyStep}" onchange="scUpdateQty(${i},this.value)">
-          <select onchange="scUpdateUnite(${i},this.value)" style="background:var(--surface);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:'DM Mono',monospace;font-size:11px;padding:3px 4px;outline:none">
-            <option value="g" ${unite==='g'?'selected':''}>g</option>
-            <option value="ml" ${unite==='ml'?'selected':''}>ml</option>
-            <option value="u" ${unite==='u'?'selected':''}>u</option>
-            <option value="l" ${unite==='l'?'selected':''}>L</option>
-          </select>
-          <span style="font-size:11px;color:var(--muted);margin-left:4px">total:</span>
-          <input style="width:60px;background:var(--surface);border:1px solid var(--border);border-radius:6px;color:var(--accent);font-family:'DM Mono',monospace;font-size:12px;padding:3px 5px;text-align:center;outline:none" 
-            type="number" value="${prixTotal}" step="0.01" min="0" onchange="scUpdatePrice(${i},this.value)">
-          <span style="font-size:11px;color:var(--muted)">€</span>
-        </div>
-      </div>
-      <button class="sc-del" onclick="scRemove(${i})" style="align-self:center">×</button>`;
-    list.appendChild(div);
-  });
-  document.getElementById('sc-total').textContent=total.toFixed(2).replace('.',',')+' €';
-}
-
-function scUpdateQty(i,val){scItems[i].quantity_g=parseInt(val)||0;}
-function scUpdateUnite(i,val){scItems[i].unite=val;}
-function scUpdateName(i,val){scItems[i].name=val.trim();}
-function scUpdatePrice(i,val){
-  scItems[i].price_eur=parseFloat(val)||0;
-  // Recalculate total
-  const total=scItems.reduce((s,item)=>s+(item.price_eur||0),0);
-  document.getElementById('sc-total').textContent=total.toFixed(2).replace('.',',')+' €';
-}
-function scRemove(i){scItems.splice(i,1);document.getElementById('sc-count-badge').textContent=scItems.length+' article'+(scItems.length>1?'s':'');scRenderItems();}
-
-async function scEnvoyer(){
-  // 1. Mettre à jour le stock local
-  const hitoItems=[];
-  scItems.forEach(item=>{
-    const match=INGS.find(ing=>{
-      const a=ing.nom.toLowerCase(),b=item.name.toLowerCase();
-      return a===b||b.includes(a)||a.includes(b);
-    });
-    if(match){
-      stockData[match.nom]=(stockData[match.nom]||0)+item.quantity_g;
-      hitoItems.push({nom:match.nom,qty:item.quantity_g,unite:match.unite,fourn:scShop,prix:item.price_eur||0});
-    }else{
-      hitoItems.push({nom:item.name,qty:item.quantity_g,unite:'g',fourn:scShop,prix:item.price_eur||0});
-    }
-  });
-  localStorage.setItem('bs_stock',JSON.stringify(stockData));
-  // 2. Ajouter à l'historique
-  historique.unshift({date:scDate,items:hitoItems});
-  if(historique.length>50)historique.pop();
-  localStorage.setItem('bs_histo',JSON.stringify(historique));
-  // 3. Envoyer vers Google Sheets via FormData
-  try{
-    const formData = new FormData();
-    formData.append('type', 'save');
-    formData.append('date', scDate);
-    formData.append('magasin', scShop);
-    formData.append('items', JSON.stringify(scItems));
-    await fetch(SCANNER_SHEET_URL,{
-      method:'POST',
-      body:formData
-    });
-  }catch(e){}
-  // 4. Afficher succès
-  document.getElementById('sc-results').style.display='none';
-  const total=scItems.reduce((s,i)=>s+(i.price_eur||0),0);
-  document.getElementById('sc-success-detail').innerHTML=`<b style="color:var(--text)">${scDate}</b> · ${scShop}<br>${scItems.length} produits · <b style="color:var(--accent)">${total.toFixed(2).replace('.',',')}€</b><br><br>${scItems.map(i=>`${i.emoji||'•'} ${i.name} : ${i.quantity_g}g`).join('<br>')}`;
-  document.getElementById('sc-success').style.display='block';
-  renderStock();renderCourses();renderHisto();
-  // 5. Sync automatique après 3 secondes
-  setTimeout(()=>refreshStock(),3000);
+  }catch(e){console.warn('Sauvegarde ticket:',e);}
 }
 
 function scToggleComptable(){
   const el=document.getElementById('sc-comptable');
   const isVisible=el.style.display!=='none';
-  // Cacher tout le reste
   document.getElementById('sc-upload').style.display=isVisible?'block':'none';
-  document.getElementById('sc-results').style.display='none';
-  document.getElementById('sc-success').style.display='none';
   el.style.display=isVisible?'none':'block';
   if(!isVisible)renderTicketsComptable();
 }
@@ -1024,42 +832,40 @@ function scToggleComptable(){
 function renderTicketsComptable(){
   const list=document.getElementById('sc-comptable-list');
   document.getElementById('comptable-count').textContent=ticketsComptable.length;
-  if(!ticketsComptable.length){
-    list.innerHTML='<div class="empty">Aucun ticket sauvegardé</div>';
-    return;
-  }
+  if(!ticketsComptable.length){list.innerHTML='<div class="empty">Aucun ticket sauvegardé</div>';return;}
   list.innerHTML=ticketsComptable.map((t,i)=>`
     <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px;margin-bottom:8px">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-        <span style="font-size:12px;color:var(--muted)">📅 ${t.date} ${t.heure}</span>
-        <div style="display:flex;gap:6px">
-          <button onclick="partagerTicketComptable(${i})" style="background:var(--bdim);border:1px solid var(--blue);color:var(--blue);font-family:'DM Mono',monospace;font-size:10px;padding:3px 8px;border-radius:20px;cursor:pointer">📤 Partager</button>
-          <button onclick="supprimerTicketComptable(${i})" style="background:var(--rdim);border:none;color:var(--red);border-radius:6px;width:24px;height:24px;cursor:pointer;font-size:12px">×</button>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <div>
+          <span style="font-size:12px;color:var(--text);font-weight:500">${t.magasin||'Magasin'}</span>
+          <span style="font-size:10px;color:var(--muted);margin-left:6px">📅 ${t.date} ${t.heure}</span>
+        </div>
+        <span style="font-size:15px;font-weight:700;color:var(--accent)">${(t.total||0).toFixed(2).replace('.',',')} €</span>
+      </div>
+      <div style="display:flex;gap:6px;align-items:center">
+        ${t.img?`<img src="${t.img}" style="width:60px;height:60px;border-radius:6px;object-fit:cover;flex-shrink:0">`:''}
+        <div style="flex:1;display:flex;gap:6px">
+          <button onclick="partagerTicketComptable(${i})" style="flex:1;background:var(--bdim);border:1px solid var(--blue);color:var(--blue);font-family:'DM Mono',monospace;font-size:10px;padding:5px;border-radius:8px;cursor:pointer">📤 Partager</button>
+          <button onclick="supprimerTicketComptable(${i})" style="background:var(--rdim);border:none;color:var(--red);border-radius:6px;width:30px;cursor:pointer;font-size:14px">×</button>
         </div>
       </div>
-      <img src="${t.img}" style="width:100%;border-radius:8px;max-height:200px;object-fit:cover">
     </div>`).join('');
 }
 
 async function partagerTicketComptable(i){
-  const t=ticketsComptable[i];
-  if(!t)return;
+  const t=ticketsComptable[i];if(!t)return;
   try{
-    const res=await fetch(t.img);
-    const blob=await res.blob();
-    const file=new File([blob],`ticket_${t.date.replace(/\//g,'-')}.jpg`,{type:'image/jpeg'});
-    if(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){
-      await navigator.share({
-        title:'Ticket BS Salada - '+t.date,
-        text:'Ticket de caisse du '+t.date,
-        files:[file]
-      });
-    } else {
-      showToast('Partage non disponible',true);
+    if(t.img){
+      const res=await fetch(t.img);const blob=await res.blob();
+      const file=new File([blob],`ticket_${t.date.replace(/\//g,'-')}.jpg`,{type:'image/jpeg'});
+      if(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){
+        await navigator.share({title:`Ticket ${t.magasin} — ${(t.total||0).toFixed(2)}€`,text:`${t.date} · ${t.magasin} · Total: ${(t.total||0).toFixed(2)}€`,files:[file]});
+        return;
+      }
     }
-  }catch(e){
-    if(e.name!=='AbortError')showToast('Erreur: '+e.message,true);
-  }
+    if(navigator.share)await navigator.share({title:`Ticket ${t.magasin}`,text:`${t.date} · ${t.magasin} · Total: ${(t.total||0).toFixed(2)}€`});
+    else showToast('Partage non disponible',true);
+  }catch(e){if(e.name!=='AbortError')showToast('Erreur: '+e.message,true);}
 }
 
 function supprimerTicketComptable(i){
@@ -1069,15 +875,14 @@ function supprimerTicketComptable(i){
 }
 
 function scReset(){
-  scImg=null;scItems=[];scShop='';scDate='';
+  scImg=null;scImgFull=null;scTotalDetecte=0;scMagasin='';scDateTicket='';
   document.getElementById('sc-preview').style.display='none';
   document.getElementById('sc-loading').style.display='none';
-  document.getElementById('sc-results').style.display='none';
+  document.getElementById('sc-result-zone').style.display='none';
   document.getElementById('sc-success').style.display='none';
   document.getElementById('sc-upload').style.display='block';
-  document.getElementById('sc-btn').style.display='block';
-  document.getElementById('sc-btn').disabled=true;
-  document.getElementById('sc-btn').style.opacity='0.4';
+  document.getElementById('sc-after-photo').style.display='none';
+  document.getElementById('sc-magasin').value='';
   document.getElementById('sc-file').value='';
 }
 
