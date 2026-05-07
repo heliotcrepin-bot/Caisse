@@ -604,17 +604,27 @@
     <div class="modal-handle"></div>
     <div class="modal-header">
       <div class="modal-title">🥗 Composer la salade</div>
-      <button class="modal-close" onclick="fermerSalade()">✕</button>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button onclick="ouvrirGestionIngs()" style="background:var(--surface2);border:1px solid var(--border);color:var(--muted);padding:5px 10px;border-radius:20px;font-size:11px;cursor:pointer">⚙️ Gérer</button>
+        <button class="modal-close" onclick="fermerSalade()">✕</button>
+      </div>
     </div>
 
-    <div class="modal-section-title">Ingrédients</div>
+    <!-- BASE -->
+    <div class="modal-section-title">Base <span style="color:var(--red);font-size:9px">OBLIGATOIRE</span></div>
+    <div class="sauce-row" id="base-row">
+      <button class="sauce-btn" id="base-Salade" onclick="selectBase('Salade')">🥗 Salade</button>
+      <button class="sauce-btn" id="base-Quinoa" onclick="selectBase('Quinoa')">🌾 Quinoa</button>
+      <button class="sauce-btn" id="base-Pates" onclick="selectBase('Pates')">🍝 Pâtes</button>
+    </div>
+
+    <!-- ACCOMPAGNEMENTS -->
+    <div class="modal-section-title">
+      Accompagnements <span id="ing-count-label" style="color:var(--teal);font-size:9px">0/5</span>
+    </div>
     <div class="ingredients-grid" id="ing-grid"></div>
 
-    <div class="ing-add-row">
-      <input class="ing-add-input" id="ing-custom-input" placeholder="Ajouter un ingrédient...">
-      <button class="ing-add-btn" onclick="ajouterIngredientCustom()">+ Ajouter</button>
-    </div>
-
+    <!-- SAUCE -->
     <div class="modal-section-title">Sauce</div>
     <div class="sauce-row">
       <button class="sauce-btn" id="sauce-Yaourt" onclick="toggleSauce('Yaourt')">🥛 Yaourt</button>
@@ -624,9 +634,31 @@
     </div>
 
     <div class="modal-footer">
-      <button class="modal-validate" onclick="validerSalade()">
+      <button class="modal-validate" id="salade-validate-btn" onclick="validerSalade()">
         ✅ Ajouter la salade — 10,00 €
       </button>
+    </div>
+  </div>
+</div>
+
+<!-- MODALE GESTION INGRÉDIENTS -->
+<div class="modal-overlay" id="gestion-modal">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <div class="modal-title">⚙️ Gérer les ingrédients</div>
+      <button class="modal-close" onclick="fermerGestion()">✕</button>
+    </div>
+    <div class="modal-section-title">Ingrédients actuels</div>
+    <div id="gestion-list" style="padding:0 16px"></div>
+    <div class="modal-section-title">Ajouter un ingrédient</div>
+    <div class="ing-add-row">
+      <input class="ing-add-input" id="ing-custom-input" placeholder="Nom de l'ingrédient...">
+      <input class="ing-add-input" id="ing-custom-icon" placeholder="Emoji" style="width:60px;flex:none">
+      <button class="ing-add-btn" onclick="ajouterIngredient()">+ Add</button>
+    </div>
+    <div style="padding:12px 16px">
+      <button onclick="fermerGestion()" style="width:100%;background:var(--accent);color:#0f0f0f;border:none;border-radius:var(--radius);padding:14px;font-size:15px;font-weight:700;cursor:pointer">✅ Terminé</button>
     </div>
   </div>
 </div>
@@ -1146,32 +1178,40 @@ function showSection(name) {
 
 
 // ── MODALE SALADE ─────────────────────────────────────────────────────────────
-const INGREDIENTS_SALADE = [
-  { nom: 'Concombre',    icon: '🥒' },
-  { nom: 'Myrtilles',    icon: '🫐' },
-  { nom: 'Feta',         icon: '🧀' },
-  { nom: 'Maïs',         icon: '🌽' },
-  { nom: 'Oignon Rouge', icon: '🧅' },
-  { nom: 'Poulet',       icon: '🍗' },
-  { nom: 'Carotte',      icon: '🥕' },
-  { nom: 'Thon',         icon: '🐟' },
-  { nom: 'Tomate',       icon: '🍅' },
-  { nom: 'Olives',       icon: '🫒' },
-  { nom: 'Oeuf',         icon: '🥚' },
-  { nom: 'Avocat',       icon: '🥑' },
-  { nom: 'Betterave',    icon: '🔴' },
-  { nom: 'Pâtes',        icon: '🍝' },
-  { nom: 'Quinoa',       icon: '🌾' },
-  { nom: 'Croutons',     icon: '🍞' },
-  { nom: 'Épinard',      icon: '🥬' },
-  { nom: 'Noix',         icon: '🥜' },
+const ING_DEFAULT = [
+  { nom:'Avocat',            icon:'🥑' },
+  { nom:'Mangue',            icon:'🥭' },
+  { nom:'Olive',             icon:'🫒' },
+  { nom:'Concombre',         icon:'🥒' },
+  { nom:'Carotte',           icon:'🥕' },
+  { nom:'Brocoli',           icon:'🥦' },
+  { nom:'Ananas',            icon:'🍍' },
+  { nom:'Patate douce',      icon:'🍠' },
+  { nom:'Poulet',            icon:'🍗' },
+  { nom:'Oeuf',              icon:'🥚' },
+  { nom:'Saumon',            icon:'🐟' },
+  { nom:'Betterave',         icon:'🔴' },
+  { nom:'Oignon Rouge',      icon:'🧅' },
+  { nom:'Pois chiche',       icon:'🫘' },
+  { nom:'Feta',              icon:'🧀' },
+  { nom:'Bille Mozzarella',  icon:'🫙' },
+  { nom:'Tomate confite',    icon:'🍅' },
+  { nom:'Thon',              icon:'🐠' },
 ];
 
-let saladeIngredients = new Set(); // ingrédients sélectionnés
+// Charger ingrédients depuis localStorage (pour persistance des modifs)
+let ingredientsListe = JSON.parse(localStorage.getItem('bs_salade_ings') || 'null') || ING_DEFAULT;
+
+let saladeBase = null;
+let saladeIngredients = new Set();
 let saladeSauce = null;
-let ingredientsCustom = []; // ingrédients ajoutés manuellement
+
+function sauvegarderIngs() {
+  localStorage.setItem('bs_salade_ings', JSON.stringify(ingredientsListe));
+}
 
 function ouvrirSalade() {
+  saladeBase = null;
   saladeIngredients = new Set();
   saladeSauce = null;
   renderSaladeModal();
@@ -1182,29 +1222,64 @@ function fermerSalade() {
   document.getElementById('salade-modal').classList.remove('open');
 }
 
+function selectBase(base) {
+  saladeBase = saladeBase === base ? null : base;
+  ['Salade','Quinoa','Pates'].forEach(b => {
+    const btn = document.getElementById(`base-${b}`);
+    if (btn) btn.classList.toggle('selected', saladeBase === b);
+  });
+}
+
 function renderSaladeModal() {
+  // Base
+  ['Salade','Quinoa','Pates'].forEach(b => {
+    const btn = document.getElementById(`base-${b}`);
+    if (btn) btn.classList.toggle('selected', saladeBase === b);
+  });
+
+  // Compteur
+  const count = saladeIngredients.size;
+  const lbl = document.getElementById('ing-count-label');
+  if (lbl) {
+    lbl.textContent = `${count}/5`;
+    lbl.style.color = count >= 5 ? 'var(--red)' : 'var(--teal)';
+  }
+
+  // Grille ingrédients
   const grid = document.getElementById('ing-grid');
-  const allIngs = [...INGREDIENTS_SALADE, ...ingredientsCustom.map(n => ({ nom: n, icon: '🥗' }))];
-  
-  grid.innerHTML = allIngs.map(ing => `
-    <button class="ing-btn ${saladeIngredients.has(ing.nom) ? 'selected' : ''}"
-      onclick="toggleIngredient('${ing.nom}')">
-      <span class="ing-icon">${ing.icon}</span>
-      <span class="ing-name">${ing.nom}</span>
-    </button>
-  `).join('');
+  if (grid) {
+    grid.innerHTML = ingredientsListe.map(ing => {
+      const sel = saladeIngredients.has(ing.nom);
+      const disabled = !sel && count >= 5;
+      return `<button class="ing-btn ${sel ? 'selected' : ''} ${disabled ? 'disabled' : ''}"
+        onclick="toggleIngredient('${ing.nom}')"
+        style="${disabled ? 'opacity:0.35;pointer-events:none' : ''}">
+        <span class="ing-icon">${ing.icon}</span>
+        <span class="ing-name">${ing.nom}</span>
+      </button>`;
+    }).join('');
+  }
 
   // Sauces
   ['Yaourt','Vinaigrette','Basilic','Oriental'].forEach(s => {
     const btn = document.getElementById(`sauce-${s}`);
     if (btn) btn.classList.toggle('selected', saladeSauce === s);
   });
+
+  // Bouton valider
+  const vBtn = document.getElementById('salade-validate-btn');
+  if (vBtn) {
+    const ok = saladeBase !== null;
+    vBtn.disabled = !ok;
+    vBtn.style.opacity = ok ? '1' : '0.4';
+  }
 }
 
 function toggleIngredient(nom) {
   if (saladeIngredients.has(nom)) {
     saladeIngredients.delete(nom);
   } else {
+    if (saladeIngredients.size >= 5) return;
     saladeIngredients.add(nom);
   }
   renderSaladeModal();
@@ -1215,59 +1290,31 @@ function toggleSauce(sauce) {
   renderSaladeModal();
 }
 
-function ajouterIngredientCustom() {
-  const input = document.getElementById('ing-custom-input');
-  const val = input.value.trim();
-  if (!val) return;
-  if (!ingredientsCustom.includes(val) && !INGREDIENTS_SALADE.find(i => i.nom === val)) {
-    ingredientsCustom.push(val);
-  }
-  saladeIngredients.add(val);
-  input.value = '';
-  renderSaladeModal();
-}
-
 function validerSalade() {
-  // Construire le nom de la salade avec les détails
+  if (!saladeBase) { showToast('⚠️ Choisis une base'); return; }
+
   const ings = [...saladeIngredients];
-  const sauce = saladeSauce;
-  
-  // Créer un nom descriptif pour l'historique
-  const detail = [
-    ings.length > 0 ? ings.join(', ') : 'Nature',
-    sauce ? `Sauce ${sauce}` : null
-  ].filter(Boolean).join(' · ');
-  
-  const nomVente = `Salade (${detail})`;
-  
-  // Ajouter au panier avec le nom complet
-  // On utilise 'Salade' comme clé produit mais on stocke le détail
+  const baseLabel = saladeBase === 'Pates' ? 'Pâtes' : saladeBase;
+  const detail = [baseLabel, ...ings, saladeSauce ? `Sauce ${saladeSauce}` : null].filter(Boolean).join(' · ');
+
   if (!panier['Salade']) panier['Salade'] = 0;
   panier['Salade'] += 1;
-  
-  // Stocker les détails de la salade pour l'envoi
-  if (!window.saladeDetails) window.saladeDetails = [];
-  window.saladeDetails.push({
-    ingredients: ings,
-    sauce: sauce,
-    detail: detail
-  });
 
   updateCountBadge('Salade');
   updateTotal();
   renderPanier();
   fermerSalade();
-  showToast(`🥗 Salade ajoutée !`);
-  
-  // Envoyer les détails vers V10 pour suivi des accompagnements
-  envoyerDetailsSalade(ings, sauce);
+  showToast('🥗 Salade ajoutée !');
+
+  // Envoyer détails vers V10
+  envoyerDetailsSalade(baseLabel, ings, saladeSauce);
 }
 
-async function envoyerDetailsSalade(ingredients, sauce) {
-  if (!ingredients.length && !sauce) return;
+async function envoyerDetailsSalade(base, ingredients, sauce) {
   try {
     const params = new URLSearchParams({
       type: 'salade_detail',
+      base: base,
       ingredients: ingredients.join('|'),
       sauce: sauce || '',
       date: new Date().toLocaleDateString('fr-FR'),
@@ -1276,10 +1323,57 @@ async function envoyerDetailsSalade(ingredients, sauce) {
   } catch(e) {}
 }
 
-// Fermer la modale en cliquant à l'extérieur
+// ── GESTION INGRÉDIENTS ────────────────────────────────────────────────────────
+function ouvrirGestionIngs() {
+  renderGestion();
+  document.getElementById('gestion-modal').classList.add('open');
+}
+
+function fermerGestion() {
+  document.getElementById('gestion-modal').classList.remove('open');
+  renderSaladeModal(); // rafraîchir la grille
+}
+
+function renderGestion() {
+  const list = document.getElementById('gestion-list');
+  list.innerHTML = ingredientsListe.map((ing, i) => `
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)">
+      <span style="font-size:13px">${ing.icon} ${ing.nom}</span>
+      <button onclick="supprimerIngredient(${i})"
+        style="background:var(--surface2);border:1px solid var(--border);color:var(--red);border-radius:8px;padding:4px 10px;font-size:11px;cursor:pointer">
+        🗑 Retirer
+      </button>
+    </div>
+  `).join('');
+}
+
+function supprimerIngredient(i) {
+  const nom = ingredientsListe[i].nom;
+  ingredientsListe.splice(i, 1);
+  saladeIngredients.delete(nom);
+  sauvegarderIngs();
+  renderGestion();
+}
+
+function ajouterIngredient() {
+  const nomInput = document.getElementById('ing-custom-input');
+  const iconInput = document.getElementById('ing-custom-icon');
+  const nom = nomInput.value.trim();
+  const icon = iconInput.value.trim() || '🥗';
+  if (!nom) return;
+  if (ingredientsListe.find(i => i.nom === nom)) { showToast('Déjà dans la liste'); return; }
+  ingredientsListe.push({ nom, icon });
+  sauvegarderIngs();
+  nomInput.value = '';
+  iconInput.value = '';
+  renderGestion();
+  showToast(`✅ ${nom} ajouté !`);
+}
+
+// Fermer modales en cliquant à l'extérieur
 document.addEventListener('click', function(e) {
-  const modal = document.getElementById('salade-modal');
-  if (e.target === modal) fermerSalade();
+  if (e.target === document.getElementById('salade-modal')) fermerSalade();
+  if (e.target === document.getElementById('gestion-modal')) fermerGestion();
 });
 
 // ── UTILS ────────────────────────────────────────────────────────────
