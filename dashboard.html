@@ -287,6 +287,19 @@ body {
 
 .empty { text-align: center; color: var(--muted); font-size: 12px; padding: 20px 0; }
 .badge { font-size: 10px; background: var(--surface); border: 1px solid var(--border); color: var(--muted); padding: 2px 8px; border-radius: 10px; }
+
+/* VUE ANNUELLE */
+.view-toggle { display:flex; gap:6px; margin-bottom:20px; }
+.view-btn { flex:1; background:var(--surface); border:1px solid var(--border); color:var(--muted); font-family:'DM Mono',monospace; font-size:11px; padding:8px; border-radius:10px; cursor:pointer; transition:all 0.2s; }
+.view-btn.active { background:var(--accent); border-color:var(--accent); color:var(--bg); font-weight:500; }
+.chart-card { background:var(--card); border:1px solid var(--border); border-radius:16px; padding:16px; margin-bottom:16px; overflow:hidden; }
+.chart-title { font-size:10px; color:var(--muted); letter-spacing:1px; text-transform:uppercase; margin-bottom:14px; }
+.chart-legend { display:flex; gap:14px; margin-bottom:12px; flex-wrap:wrap; }
+.legend-item { display:flex; align-items:center; gap:5px; font-size:10px; color:var(--muted); }
+.legend-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+svg.chart { width:100%; overflow:visible; }
+.kpi-annual { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px; }
+.kpi-annual-full { grid-column:1/-1; }
 </style>
 </head>
 <body>
@@ -299,7 +312,13 @@ body {
   <button class="sync-btn" onclick="loadData()" id="sync-btn">⟳ Sync</button>
 </div>
 
-<!-- Navigation mois -->
+<!-- Toggle vue -->
+<div class="view-toggle">
+  <button class="view-btn active" id="btn-mois" onclick="setView('mois')">📅 Vue mois</button>
+  <button class="view-btn" id="btn-annuel" onclick="setView('annuel')">📊 Vue annuelle</button>
+</div>
+
+<!-- Navigation mois (visible en vue mois) -->
 <div class="mois-nav" id="mois-nav"></div>
 
 <!-- KPIs -->
@@ -448,7 +467,11 @@ function buildUI() {
       onclick="selectMois('${m.moisStr}')">${m.label}</button>`
   ).join('');
 
-  renderMois(moisData, jourData, charges);
+  if (currentView === 'annuel') {
+    renderAnnuel(moisData, charges);
+  } else {
+    renderMois(moisData, jourData, charges);
+  }
 }
 
 function selectMois(moisStr) {
@@ -560,6 +583,173 @@ function renderMois(moisData, jourData, chargesRows) {
 function fmt(n) {
   if (isNaN(n)) return '0,00 €';
   return n.toFixed(2).replace('.', ',') + ' €';
+}
+
+// ── VUE ANNUELLE ─────────────────────────────────────────────────────────────
+let currentView = 'mois';
+
+function setView(v) {
+  currentView = v;
+  document.getElementById('btn-mois').classList.toggle('active', v==='mois');
+  document.getElementById('btn-annuel').classList.toggle('active', v==='annuel');
+  document.getElementById('mois-nav').style.display = v==='mois' ? 'flex' : 'none';
+  if (allData) buildUI();
+}
+
+function renderAnnuel(moisData, chargesRows) {
+  const kpiEl = document.getElementById('kpi-section');
+  const moisActifs = moisData.filter(m => m.ca > 0 || m.achats > 0);
+
+  // Totaux annuels
+  const totalCA      = moisActifs.reduce((s,m) => s+m.ca, 0);
+  const totalAchats  = moisActifs.reduce((s,m) => s+m.achats, 0);
+  const totalCharges = moisActifs.reduce((s,m) => s+m.charges, 0);
+  const totalMarge   = totalCA - totalAchats - totalCharges;
+  const totalPct     = totalCA > 0 ? Math.round(totalMarge/totalCA*100) : 0;
+
+  kpiEl.innerHTML = `
+    <div class="kpi-annual">
+      <div class="kpi-card kpi-annual-full">
+        <div class="kpi-label">CA Annuel Total</div>
+        <div class="kpi-value green" style="font-size:28px">${fmt(totalCA)}</div>
+        <div class="kpi-sub">${moisActifs.length} mois d'activité</div>
+      </div>
+      <div class="kpi-card ${totalMarge>=0?'':'danger'}">
+        <div class="kpi-label">Marge Brute</div>
+        <div class="kpi-value ${totalMarge>=0?'green':'red'}">${fmt(totalMarge)}</div>
+        <div class="kpi-sub">${totalPct}% du CA</div>
+      </div>
+      <div class="kpi-card warning">
+        <div class="kpi-label">Coût Achats</div>
+        <div class="kpi-value">${fmt(totalAchats)}</div>
+        <div class="kpi-sub">${totalCA>0?Math.round(totalAchats/totalCA*100):0}% du CA</div>
+      </div>
+      <div class="kpi-card info">
+        <div class="kpi-label">Charges Fixes</div>
+        <div class="kpi-value">${fmt(totalCharges)}</div>
+        <div class="kpi-sub">Toute l'année</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Meilleur mois CA</div>
+        <div class="kpi-value" style="font-size:16px">${moisActifs.length ? moisActifs.reduce((a,b)=>a.ca>b.ca?a:b).label : '—'}</div>
+        <div class="kpi-sub">${moisActifs.length ? fmt(Math.max(...moisActifs.map(m=>m.ca))) : '—'}</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Meilleure marge</div>
+        <div class="kpi-value green" style="font-size:16px">${moisActifs.length ? moisActifs.reduce((a,b)=>a.pct>b.pct?a:b).label : '—'}</div>
+        <div class="kpi-sub">${moisActifs.length ? Math.max(...moisActifs.map(m=>m.pct)) + '%' : '—'}</div>
+      </div>
+    </div>`;
+
+  // Graphique en lignes SVG
+  document.getElementById('bar-section').style.display = 'none';
+  document.getElementById('charges-section').style.display = 'none';
+  document.getElementById('jour-section').style.display = 'none';
+
+  const histoEl = document.getElementById('histo-section');
+  histoEl.style.display = 'block';
+
+  // Injecter graphique avant l'historique
+  let chartEl = document.getElementById('annual-chart');
+  if (!chartEl) {
+    chartEl = document.createElement('div');
+    chartEl.id = 'annual-chart';
+    histoEl.parentNode.insertBefore(chartEl, histoEl);
+  }
+
+  if (moisActifs.length > 0) {
+    chartEl.innerHTML = buildLineChart(moisActifs);
+  }
+
+  // Tableau récap par mois
+  document.getElementById('histo-list').innerHTML = `
+    <div class="jour-row" style="font-size:10px;color:var(--muted)">
+      <span style="width:70px">Mois</span>
+      <span style="flex:1;text-align:right">CA</span>
+      <span style="flex:1;text-align:right">Achats</span>
+      <span style="flex:1;text-align:right">Charges</span>
+      <span style="flex:1;text-align:right">Marge</span>
+      <span style="width:45px;text-align:right">%</span>
+    </div>
+    ${moisActifs.map(m => `
+    <div class="jour-row" onclick="selectMoisFromAnnuel('${m.moisStr}')">
+      <span class="jour-date" style="width:70px">${m.label}</span>
+      <span class="jour-ca" style="flex:1;text-align:right">${fmt(m.ca)}</span>
+      <span class="jour-achats" style="flex:1;text-align:right">${fmt(m.achats)}</span>
+      <span style="flex:1;text-align:right;color:var(--red);font-size:11px">${fmt(m.charges)}</span>
+      <span class="jour-marge ${m.marge>=0?'pos':'neg'}" style="flex:1;text-align:right">${fmt(m.marge)}</span>
+      <span class="${m.pct>=0?'jour-marge pos':'jour-marge neg'}" style="width:45px;text-align:right">${m.pct}%</span>
+    </div>`).join('')}`;
+}
+
+function selectMoisFromAnnuel(moisStr) {
+  selectedMois = moisStr;
+  setView('mois');
+}
+
+function buildLineChart(moisData) {
+  const W = 320, H = 140, PAD = { t:10, r:10, b:30, l:50 };
+  const cw = W - PAD.l - PAD.r;
+  const ch = H - PAD.t - PAD.b;
+  const n = moisData.length;
+
+  const allVals = moisData.flatMap(m => [m.ca, m.achats+m.charges, m.marge]);
+  const maxV = Math.max(...allVals, 1);
+  const minV = Math.min(...allVals, 0);
+  const range = maxV - minV || 1;
+
+  const xPos = i => PAD.l + (n===1 ? cw/2 : i/(n-1)*cw);
+  const yPos = v => PAD.t + ch - ((v-minV)/range)*ch;
+
+  const line = (arr, key) => arr.map((m,i) => `${i===0?'M':'L'}${xPos(i).toFixed(1)},${yPos(m[key]).toFixed(1)}`).join(' ');
+  const area = (arr, key) => `${line(arr,key)} L${xPos(n-1).toFixed(1)},${(PAD.t+ch).toFixed(1)} L${PAD.l.toFixed(1)},${(PAD.t+ch).toFixed(1)} Z`;
+
+  // Grille Y (3 lignes)
+  const gridLines = [0, 0.5, 1].map(t => {
+    const v = minV + t*range;
+    const y = yPos(v);
+    const label = v >= 1000 ? (v/1000).toFixed(1)+'k' : v.toFixed(0);
+    return `<line x1="${PAD.l}" y1="${y.toFixed(1)}" x2="${W-PAD.r}" y2="${y.toFixed(1)}" stroke="#1e2e21" stroke-width="1"/>
+            <text x="${(PAD.l-4).toFixed(1)}" y="${y.toFixed(1)}" text-anchor="end" dominant-baseline="middle" fill="#5a7a5e" font-size="8">${label}</text>`;
+  }).join('');
+
+  // Labels X
+  const xLabels = moisData.map((m,i) => {
+    const shortLabel = m.label.split(' ')[0].slice(0,3);
+    return `<text x="${xPos(i).toFixed(1)}" y="${(H-PAD.b+14).toFixed(1)}" text-anchor="middle" fill="#5a7a5e" font-size="8">${shortLabel}</text>`;
+  }).join('');
+
+  // Points interactifs
+  const dots = (key, color) => moisData.map((m,i) =>
+    `<circle cx="${xPos(i).toFixed(1)}" cy="${yPos(m[key]).toFixed(1)}" r="3" fill="${color}" stroke="var(--bg)" stroke-width="1.5">
+       <title>${m.label}: ${fmt(m[key])}</title>
+     </circle>`
+  ).join('');
+
+  const coûtTotal = m => m.achats + m.charges;
+
+  return `<div class="chart-card">
+    <div class="chart-title">Évolution annuelle</div>
+    <div class="chart-legend">
+      <div class="legend-item"><div class="legend-dot" style="background:#4ade80"></div>CA</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#fb923c"></div>Coûts</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#60a5fa"></div>Marge</div>
+    </div>
+    <svg class="chart" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" font-family="DM Mono, monospace">
+      ${gridLines}
+      ${xLabels}
+      <!-- Zone marge -->
+      <path d="${area(moisData,'marge')}" fill="rgba(96,165,250,0.06)" stroke="none"/>
+      <!-- Lignes -->
+      <path d="${line(moisData,'ca')}" fill="none" stroke="#4ade80" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+      <path d="${moisData.map((m,i)=>`${i===0?'M':'L'}${xPos(i).toFixed(1)},${yPos(coûtTotal(m)).toFixed(1)}`).join(' ')}" fill="none" stroke="#fb923c" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="4,2"/>
+      <path d="${line(moisData,'marge')}" fill="none" stroke="#60a5fa" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+      <!-- Points -->
+      ${dots('ca','#4ade80')}
+      ${moisData.map((m,i)=>`<circle cx="${xPos(i).toFixed(1)}" cy="${yPos(coûtTotal(m)).toFixed(1)}" r="3" fill="#fb923c" stroke="var(--bg)" stroke-width="1.5"><title>${m.label} Coûts: ${fmt(coûtTotal(m))}</title></circle>`).join('')}
+      ${dots('marge','#60a5fa')}
+    </svg>
+  </div>`;
 }
 
 // Charger au démarrage
