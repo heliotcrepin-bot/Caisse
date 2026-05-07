@@ -634,6 +634,14 @@
     </div>
 
     <div class="modal-footer">
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;font-size:11px;color:var(--muted)">
+        <span>Coût matière estimé</span>
+        <span id="cout-salade" style="color:var(--orange);font-weight:600">—</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0 10px;font-size:11px;color:var(--muted)">
+        <span>Marge estimée</span>
+        <span id="marge-salade" style="color:var(--accent);font-weight:600">—</span>
+      </div>
       <button class="modal-validate" id="salade-validate-btn" onclick="validerSalade()">
         ✅ Ajouter la salade — 10,00 €
       </button>
@@ -754,6 +762,7 @@ document.addEventListener('DOMContentLoaded', () => {
   renderProducts();
   renderPanier();
   renderHisto();
+  chargerCoutsSalade(); // charger les coûts depuis V10
 });
 
 function updateDate() {
@@ -1199,6 +1208,32 @@ const ING_DEFAULT = [
   { nom:'Thon',              icon:'🐠' },
 ];
 
+// ── COÛTS MATIÈRE — lus depuis Config_Salade dans V10 ────────────────────────
+let COUT_MAP = {}; // { 'Avocat': 0.318, ... } — chargé depuis V10
+
+async function chargerCoutsSalade() {
+  try {
+    const res = await fetch(`${SCRIPT_URL}?type=config_salade`, { method:'GET' });
+    const data = await res.json();
+    if (data.ok && data.couts) {
+      COUT_MAP = data.couts;
+    }
+  } catch(e) {
+    console.warn('Coûts salade non chargés:', e);
+  }
+}
+
+function calculerCoutSalade() {
+  let cout = 0;
+  for (const b of (saladeBases || [])) {
+    cout += COUT_MAP[b] || COUT_MAP[b === 'Pates' ? 'Pâtes' : b] || 0;
+  }
+  for (const ing of (saladeIngredients || [])) {
+    cout += COUT_MAP[ing] || 0;
+  }
+  return cout;
+}
+
 // Charger ingrédients depuis localStorage (pour persistance des modifs)
 let ingredientsListe = JSON.parse(localStorage.getItem('bs_salade_ings') || 'null') || ING_DEFAULT;
 
@@ -1284,6 +1319,17 @@ function renderSaladeModal() {
     const ok = saladeBases && saladeBases.size > 0;
     vBtn.disabled = !ok;
     vBtn.style.opacity = ok ? '1' : '0.4';
+  }
+
+  // Afficher coût matière + marge
+  const cout = calculerCoutSalade();
+  const marge = 10 - cout;
+  const coutEl = document.getElementById('cout-salade');
+  const margeEl = document.getElementById('marge-salade');
+  if (coutEl) coutEl.textContent = cout > 0 ? cout.toFixed(2).replace('.',',') + ' €' : '—';
+  if (margeEl) {
+    margeEl.textContent = cout > 0 ? marge.toFixed(2).replace('.',',') + ' € (' + Math.round(marge/10*100) + '%)' : '—';
+    margeEl.style.color = marge >= 6 ? 'var(--accent)' : marge >= 4 ? 'var(--orange)' : 'var(--red)';
   }
 }
 
