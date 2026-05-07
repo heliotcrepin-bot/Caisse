@@ -611,7 +611,7 @@
     </div>
 
     <!-- BASE -->
-    <div class="modal-section-title">Base <span style="color:var(--red);font-size:9px">OBLIGATOIRE</span></div>
+    <div class="modal-section-title">Base <span style="color:var(--red);font-size:9px">MAX 2</span></div>
     <div class="sauce-row" id="base-row">
       <button class="sauce-btn" id="base-Salade" onclick="selectBase('Salade')">🥗 Salade</button>
       <button class="sauce-btn" id="base-Quinoa" onclick="selectBase('Quinoa')">🌾 Quinoa</button>
@@ -1211,7 +1211,7 @@ function sauvegarderIngs() {
 }
 
 function ouvrirSalade() {
-  saladeBase = null;
+  saladeBases = new Set();
   saladeIngredients = new Set();
   saladeSauce = null;
   renderSaladeModal();
@@ -1222,19 +1222,31 @@ function fermerSalade() {
   document.getElementById('salade-modal').classList.remove('open');
 }
 
+// bases = Set de max 2
+let saladeBases = new Set();
+
 function selectBase(base) {
-  saladeBase = saladeBase === base ? null : base;
+  if (saladeBases.has(base)) {
+    saladeBases.delete(base);
+  } else {
+    if (saladeBases.size >= 2) {
+      showToast('Maximum 2 bases');
+      return;
+    }
+    saladeBases.add(base);
+  }
   ['Salade','Quinoa','Pates'].forEach(b => {
     const btn = document.getElementById(`base-${b}`);
-    if (btn) btn.classList.toggle('selected', saladeBase === b);
+    if (btn) btn.classList.toggle('selected', saladeBases.has(b));
   });
+  renderSaladeModal();
 }
 
 function renderSaladeModal() {
   // Base
   ['Salade','Quinoa','Pates'].forEach(b => {
     const btn = document.getElementById(`base-${b}`);
-    if (btn) btn.classList.toggle('selected', saladeBase === b);
+    if (btn) btn.classList.toggle('selected', saladeBases && saladeBases.has(b));
   });
 
   // Compteur
@@ -1269,7 +1281,7 @@ function renderSaladeModal() {
   // Bouton valider
   const vBtn = document.getElementById('salade-validate-btn');
   if (vBtn) {
-    const ok = saladeBase !== null;
+    const ok = saladeBases && saladeBases.size > 0;
     vBtn.disabled = !ok;
     vBtn.style.opacity = ok ? '1' : '0.4';
   }
@@ -1291,10 +1303,10 @@ function toggleSauce(sauce) {
 }
 
 function validerSalade() {
-  if (!saladeBase) { showToast('⚠️ Choisis une base'); return; }
+  if (!saladeBases || saladeBases.size === 0) { showToast('⚠️ Choisis une base'); return; }
 
   const ings = [...saladeIngredients];
-  const baseLabel = saladeBase === 'Pates' ? 'Pâtes' : saladeBase;
+  const baseLabel = [...saladeBases].map(b => b === 'Pates' ? 'Pâtes' : b).join(' + ');
   const detail = [baseLabel, ...ings, saladeSauce ? `Sauce ${saladeSauce}` : null].filter(Boolean).join(' · ');
 
   if (!panier['Salade']) panier['Salade'] = 0;
