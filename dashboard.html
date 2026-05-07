@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BS Salada — Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0f0b;
+  --card: #111a13;
+  --surface: #162019;
+  --border: #1e2e21;
+  --text: #e8f0e9;
+  --muted: #5a7a5e;
+  --accent: #4ade80;
+  --accent2: #86efac;
+  --red: #f87171;
+  --orange: #fb923c;
+  --yellow: #fbbf24;
+  --blue: #60a5fa;
+  --gdim: rgba(74,222,128,0.08);
+  --rdim: rgba(248,113,113,0.08);
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Mono', monospace;
+  min-height: 100vh;
+  padding: 20px 16px 40px;
+}
+
+/* HEADER */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 28px;
+}
+.logo {
+  font-family: 'Syne', sans-serif;
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--accent);
+  letter-spacing: -0.5px;
+}
+.subtitle { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.sync-btn {
+  background: var(--gdim);
+  border: 1px solid var(--border);
+  color: var(--accent);
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  padding: 8px 14px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.sync-btn:hover { background: var(--accent); color: var(--bg); }
+.sync-btn.loading { opacity: 0.5; pointer-events: none; }
+
+/* MOIS SELECTOR */
+.mois-nav {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  margin-bottom: 20px;
+  padding-bottom: 4px;
+  scrollbar-width: none;
+}
+.mois-nav::-webkit-scrollbar { display: none; }
+.mois-pill {
+  flex-shrink: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--muted);
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  padding: 6px 14px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+.mois-pill.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--bg);
+  font-weight: 500;
+}
+
+/* KPI CARDS */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.kpi-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 16px;
+  position: relative;
+  overflow: hidden;
+}
+.kpi-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: var(--accent);
+  opacity: 0.3;
+}
+.kpi-card.danger::before { background: var(--red); }
+.kpi-card.warning::before { background: var(--orange); }
+.kpi-card.info::before { background: var(--blue); }
+.kpi-label {
+  font-size: 9px;
+  color: var(--muted);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.kpi-value {
+  font-family: 'Syne', sans-serif;
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--text);
+  line-height: 1;
+}
+.kpi-value.green { color: var(--accent); }
+.kpi-value.red { color: var(--red); }
+.kpi-sub {
+  font-size: 10px;
+  color: var(--muted);
+  margin-top: 4px;
+}
+
+/* MARGE BAR */
+.marge-bar-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+.marge-bar-title {
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+.bar-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.bar-label {
+  font-size: 10px;
+  color: var(--muted);
+  width: 60px;
+  flex-shrink: 0;
+}
+.bar-track {
+  flex: 1;
+  height: 8px;
+  background: var(--surface);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.bar-fill.ca { background: var(--accent); }
+.bar-fill.achats { background: var(--orange); }
+.bar-fill.charges { background: var(--red); }
+.bar-fill.marge { background: var(--blue); }
+.bar-amount {
+  font-size: 11px;
+  color: var(--text);
+  width: 70px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+/* CHARGES SECTION */
+.section-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.charges-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 14px;
+  margin-bottom: 16px;
+}
+.charge-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+}
+.charge-row:last-child { border-bottom: none; }
+.charge-name { font-size: 12px; color: var(--text); }
+.charge-amount { font-size: 12px; color: var(--orange); font-weight: 500; }
+
+/* HISTORIQUE MOIS */
+.histo-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 14px;
+  margin-bottom: 16px;
+}
+.histo-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+}
+.histo-row:last-child { border-bottom: none; }
+.histo-mois { font-size: 12px; color: var(--text); }
+.histo-ca { font-size: 12px; color: var(--accent); }
+.histo-marge {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+.histo-marge.pos { background: var(--gdim); color: var(--accent); }
+.histo-marge.neg { background: var(--rdim); color: var(--red); }
+
+/* DETAIL JOUR */
+.jour-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 14px;
+  margin-bottom: 16px;
+}
+.jour-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 11px;
+}
+.jour-row:last-child { border-bottom: none; }
+.jour-date { color: var(--muted); }
+.jour-ca { color: var(--text); }
+.jour-achats { color: var(--orange); }
+.jour-marge.pos { color: var(--accent); }
+.jour-marge.neg { color: var(--red); }
+
+/* LOADING */
+.loader {
+  text-align: center;
+  padding: 3rem 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+.spinner {
+  width: 28px; height: 28px;
+  border: 2px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin: 0 auto 12px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.empty { text-align: center; color: var(--muted); font-size: 12px; padding: 20px 0; }
+.badge { font-size: 10px; background: var(--surface); border: 1px solid var(--border); color: var(--muted); padding: 2px 8px; border-radius: 10px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <div class="logo">🥗 BS Salada</div>
+    <div class="subtitle">Dashboard financier</div>
+  </div>
+  <button class="sync-btn" onclick="loadData()" id="sync-btn">⟳ Sync</button>
+</div>
+
+<!-- Navigation mois -->
+<div class="mois-nav" id="mois-nav"></div>
+
+<!-- KPIs -->
+<div id="kpi-section">
+  <div class="loader"><div class="spinner"></div>Chargement...</div>
+</div>
+
+<!-- Barre répartition -->
+<div id="bar-section" style="display:none">
+  <div class="marge-bar-card">
+    <div class="marge-bar-title">Répartition du CA</div>
+    <div class="bar-row">
+      <div class="bar-label">CA</div>
+      <div class="bar-track"><div class="bar-fill ca" id="bar-ca" style="width:0%"></div></div>
+      <div class="bar-amount" id="bar-ca-amt"></div>
+    </div>
+    <div class="bar-row">
+      <div class="bar-label">Achats</div>
+      <div class="bar-track"><div class="bar-fill achats" id="bar-achats" style="width:0%"></div></div>
+      <div class="bar-amount" id="bar-achats-amt"></div>
+    </div>
+    <div class="bar-row">
+      <div class="bar-label">Charges</div>
+      <div class="bar-track"><div class="bar-fill charges" id="bar-charges" style="width:0%"></div></div>
+      <div class="bar-amount" id="bar-charges-amt"></div>
+    </div>
+    <div class="bar-row">
+      <div class="bar-label">Marge</div>
+      <div class="bar-track"><div class="bar-fill marge" id="bar-marge" style="width:0%"></div></div>
+      <div class="bar-amount" id="bar-marge-amt"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Charges détail -->
+<div id="charges-section" style="display:none">
+  <div class="section-title">Charges fixes <span class="badge" id="charges-mois"></span></div>
+  <div class="charges-card" id="charges-list"></div>
+</div>
+
+<!-- Historique mois -->
+<div id="histo-section" style="display:none">
+  <div class="section-title">Historique mensuel</div>
+  <div class="histo-card" id="histo-list"></div>
+</div>
+
+<!-- Détail par jour -->
+<div id="jour-section" style="display:none">
+  <div class="section-title">Détail par jour <span class="badge" id="jour-mois-badge"></span></div>
+  <div class="jour-card" id="jour-list"></div>
+</div>
+
+<script>
+const SHEET_URL = 'https://script.google.com/macros/s/AKfycbwenbhjtHVc1ifb2_y63ZWb8_9ysSrRcgTVYLbu6tt59W85pYDQhAWMprhq2KpH4Fhg/exec';
+
+let allData = null;
+let selectedMois = null;
+
+const MOIS_MAP = {
+  'jan':'01','fev':'02','mar':'03','avr':'04','mai':'05','jun':'06',
+  'jul':'07','aou':'08','sep':'09','oct':'10','nov':'11','dec':'12'
+};
+
+async function loadData() {
+  const btn = document.getElementById('sync-btn');
+  btn.classList.add('loading');
+  btn.textContent = '⟳ Sync...';
+
+  try {
+    // Charger les 3 onglets en parallèle
+    const [margeBrute, achatsTickets, charges] = await Promise.all([
+      fetchSheet('margeBrute'),
+      fetchSheet('achatsTickets'),
+      fetchSheet('charges')
+    ]);
+
+    allData = { margeBrute, achatsTickets, charges };
+    buildUI();
+  } catch(err) {
+    document.getElementById('kpi-section').innerHTML =
+      `<div class="empty">Erreur chargement: ${err.message}</div>`;
+  }
+
+  btn.classList.remove('loading');
+  btn.textContent = '⟳ Sync';
+}
+
+async function fetchSheet(type) {
+  const res = await fetch(`${SHEET_URL}?type=dashboard&sheet=${type}`, { method:'GET' });
+  const data = await res.json();
+  return data.rows || [];
+}
+
+function buildUI() {
+  const { margeBrute, achatsTickets, charges } = allData;
+
+  // Parser Marge Brute
+  const moisData = [];
+  const jourData = [];
+
+  margeBrute.forEach(row => {
+    const a = String(row[0]||'').trim().toLowerCase();
+    if (!a) return;
+
+    // Ligne mois : "Jan 2026"
+    const parts = a.split(' ');
+    if (parts.length === 2 && MOIS_MAP[parts[0]]) {
+      const moisStr = MOIS_MAP[parts[0]] + '/' + parts[1];
+      const ca      = parseFloat(row[1]) || 0;
+      const achats  = parseFloat(row[2]) || 0;
+      const charges = parseFloat(row[3]) || 0;
+      const marge   = ca - achats - charges;
+      const pct     = ca > 0 ? Math.round(marge/ca*100) : 0;
+      if (ca > 0 || achats > 0) {
+        moisData.push({ label: row[0], moisStr, ca, achats, charges, marge, pct });
+      }
+      return;
+    }
+
+    // Ligne jour : contient /
+    if (String(row[0]).includes('/') && !a.includes('mois') && !a.includes('date')) {
+      const ca     = parseFloat(row[1]) || 0;
+      const achats = parseFloat(row[2]) || 0;
+      const marge  = ca - achats;
+      const pct    = ca > 0 ? Math.round(marge/ca*100) : 0;
+      const dateVal = String(row[0]).trim();
+      // Extraire MM/YYYY
+      const dp = dateVal.split('/');
+      if (dp.length >= 3) {
+        const moisStr = dp[1].padStart(2,'0') + '/' + dp[2];
+        jourData.push({ date: dateVal, moisStr, ca, achats, marge, pct });
+      }
+    }
+  });
+
+  // Mois avec données
+  const moisActifs = moisData.filter(m => m.ca > 0 || m.achats > 0);
+  if (!selectedMois && moisActifs.length > 0) {
+    selectedMois = moisActifs[moisActifs.length - 1].moisStr;
+  }
+
+  // Nav mois
+  const nav = document.getElementById('mois-nav');
+  nav.innerHTML = moisActifs.map(m =>
+    `<button class="mois-pill ${m.moisStr===selectedMois?'active':''}"
+      onclick="selectMois('${m.moisStr}')">${m.label}</button>`
+  ).join('');
+
+  renderMois(moisData, jourData, charges);
+}
+
+function selectMois(moisStr) {
+  selectedMois = moisStr;
+  buildUI();
+}
+
+function renderMois(moisData, jourData, chargesRows) {
+  const mois = moisData.find(m => m.moisStr === selectedMois);
+
+  // KPIs
+  const kpiEl = document.getElementById('kpi-section');
+  if (!mois) {
+    kpiEl.innerHTML = '<div class="empty">Aucune donnée pour ce mois</div>';
+    return;
+  }
+
+  const margeClass = mois.marge >= 0 ? 'green' : 'red';
+  const pctClass   = mois.pct >= 0 ? 'green' : 'red';
+
+  kpiEl.innerHTML = `
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-label">CA Ventes</div>
+        <div class="kpi-value green">${fmt(mois.ca)}</div>
+        <div class="kpi-sub">Ce mois</div>
+      </div>
+      <div class="kpi-card ${mois.marge>=0?'':'danger'}">
+        <div class="kpi-label">Marge Brute</div>
+        <div class="kpi-value ${margeClass}">${fmt(mois.marge)}</div>
+        <div class="kpi-sub">${mois.pct}% du CA</div>
+      </div>
+      <div class="kpi-card warning">
+        <div class="kpi-label">Coût Achats</div>
+        <div class="kpi-value">${fmt(mois.achats)}</div>
+        <div class="kpi-sub">${mois.ca>0?Math.round(mois.achats/mois.ca*100):0}% du CA</div>
+      </div>
+      <div class="kpi-card info">
+        <div class="kpi-label">Charges Fixes</div>
+        <div class="kpi-value">${fmt(mois.charges)}</div>
+        <div class="kpi-sub">Loyer, élec, eau...</div>
+      </div>
+    </div>`;
+
+  // Barres
+  document.getElementById('bar-section').style.display = 'block';
+  const maxVal = Math.max(mois.ca, 1);
+  setTimeout(() => {
+    document.getElementById('bar-ca').style.width     = '100%';
+    document.getElementById('bar-achats').style.width = Math.min(100, mois.achats/maxVal*100) + '%';
+    document.getElementById('bar-charges').style.width= Math.min(100, mois.charges/maxVal*100) + '%';
+    document.getElementById('bar-marge').style.width  = Math.max(0, Math.min(100, mois.marge/maxVal*100)) + '%';
+  }, 100);
+  document.getElementById('bar-ca-amt').textContent     = fmt(mois.ca);
+  document.getElementById('bar-achats-amt').textContent = fmt(mois.achats);
+  document.getElementById('bar-charges-amt').textContent= fmt(mois.charges);
+  document.getElementById('bar-marge-amt').textContent  = fmt(mois.marge);
+
+  // Charges détail
+  const chargesMois = chargesRows.filter(r => String(r[0]).trim() === selectedMois);
+  const chargesEl = document.getElementById('charges-section');
+  document.getElementById('charges-mois').textContent = selectedMois;
+  if (chargesMois.length > 0) {
+    chargesEl.style.display = 'block';
+    document.getElementById('charges-list').innerHTML = chargesMois.map(r =>
+      `<div class="charge-row">
+        <span class="charge-name">${r[1]||'—'}</span>
+        <span class="charge-amount">${fmt(parseFloat(r[2])||0)}</span>
+      </div>`
+    ).join('');
+  } else {
+    chargesEl.style.display = 'none';
+  }
+
+  // Historique mois
+  const histoEl = document.getElementById('histo-section');
+  histoEl.style.display = 'block';
+  const moisActifs = moisData.filter(m => m.ca > 0 || m.achats > 0).reverse();
+  document.getElementById('histo-list').innerHTML = moisActifs.length ? moisActifs.map(m =>
+    `<div class="histo-row" onclick="selectMois('${m.moisStr}')">
+      <span class="histo-mois">${m.label}</span>
+      <span class="histo-ca">${fmt(m.ca)}</span>
+      <span class="histo-marge ${m.marge>=0?'pos':'neg'}">${m.pct}%</span>
+    </div>`
+  ).join('') : '<div class="empty">Aucun historique</div>';
+
+  // Détail par jour
+  const joursFiltered = jourData
+    .filter(j => j.moisStr === selectedMois && (j.ca > 0 || j.achats > 0))
+    .sort((a,b) => {
+      const [da,ma,ya] = a.date.split('/').map(Number);
+      const [db,mb,yb] = b.date.split('/').map(Number);
+      return new Date(yb,mb-1,db) - new Date(ya,ma-1,da);
+    });
+
+  const jourEl = document.getElementById('jour-section');
+  document.getElementById('jour-mois-badge').textContent = selectedMois;
+  jourEl.style.display = 'block';
+  document.getElementById('jour-list').innerHTML = joursFiltered.length ? joursFiltered.map(j =>
+    `<div class="jour-row">
+      <span class="jour-date">${j.date}</span>
+      <span class="jour-ca">${fmt(j.ca)}</span>
+      <span class="jour-achats">-${fmt(j.achats)}</span>
+      <span class="jour-marge ${j.marge>=0?'pos':'neg'}">${fmt(j.marge)}</span>
+    </div>`
+  ).join('') : '<div class="empty">Aucune vente ce mois</div>';
+}
+
+function fmt(n) {
+  if (isNaN(n)) return '0,00 €';
+  return n.toFixed(2).replace('.', ',') + ' €';
+}
+
+// Charger au démarrage
+loadData();
+</script>
+</body>
+</html>
