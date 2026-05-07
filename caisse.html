@@ -460,6 +460,99 @@
 
   .main-section { display: none; }
   .main-section.active { display: block; }
+
+  /* ── MODALE SALADE ── */
+  .modal-overlay {
+    position: fixed; inset: 0; z-index: 200;
+    background: rgba(0,0,0,0.85);
+    display: none; align-items: flex-end;
+    backdrop-filter: blur(4px);
+  }
+  .modal-overlay.open { display: flex; }
+  .modal-sheet {
+    background: var(--surface);
+    border-radius: 24px 24px 0 0;
+    width: 100%;
+    max-height: 88dvh;
+    overflow-y: auto;
+    padding: 0 0 calc(20px + env(safe-area-inset-bottom));
+    animation: slideUp 0.25s ease;
+  }
+  @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+  .modal-handle {
+    width: 40px; height: 4px; background: var(--border);
+    border-radius: 2px; margin: 12px auto 0;
+  }
+  .modal-header {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 14px 16px 10px;
+    border-bottom: 1px solid var(--border);
+    position: sticky; top: 0; background: var(--surface); z-index: 1;
+  }
+  .modal-title { font-size: 17px; font-weight: 700; }
+  .modal-close {
+    background: var(--surface2); border: 1px solid var(--border);
+    color: var(--muted); width: 32px; height: 32px; border-radius: 50%;
+    font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+  }
+  .modal-section-title {
+    font-size: 10px; font-weight: 600; letter-spacing: 1px;
+    text-transform: uppercase; color: var(--muted);
+    padding: 12px 16px 6px;
+  }
+  .ingredients-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 8px; padding: 0 16px 4px;
+  }
+  .ing-btn {
+    background: var(--surface2); border: 1.5px solid var(--border);
+    border-radius: 12px; padding: 10px 6px; cursor: pointer;
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    transition: all 0.12s; -webkit-user-select: none;
+  }
+  .ing-btn.selected {
+    border-color: var(--teal); background: rgba(77,216,192,0.12);
+  }
+  .ing-btn .ing-icon { font-size: 22px; }
+  .ing-btn .ing-name { font-size: 10px; color: var(--muted); text-align: center; line-height: 1.2; }
+  .ing-btn.selected .ing-name { color: var(--teal); }
+  .sauce-row {
+    display: flex; gap: 8px; padding: 0 16px 4px; flex-wrap: wrap;
+  }
+  .sauce-btn {
+    flex: 1; min-width: 80px;
+    background: var(--surface2); border: 1.5px solid var(--border);
+    border-radius: 10px; padding: 10px 8px; cursor: pointer;
+    font-size: 12px; font-weight: 600; color: var(--muted);
+    text-align: center; transition: all 0.12s;
+  }
+  .sauce-btn.selected {
+    border-color: var(--accent); background: var(--accent-dim); color: var(--accent);
+  }
+  .modal-footer {
+    padding: 12px 16px 0;
+    position: sticky; bottom: 0; background: var(--surface);
+    border-top: 1px solid var(--border);
+  }
+  .modal-validate {
+    width: 100%; background: var(--accent); color: #0f0f0f;
+    border: none; border-radius: var(--radius); padding: 15px;
+    font-size: 15px; font-weight: 700; cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .ing-add-row {
+    display: flex; gap: 8px; padding: 8px 16px 0; align-items: center;
+  }
+  .ing-add-input {
+    flex: 1; background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 10px; color: var(--text); font-family: 'DM Sans', sans-serif;
+    font-size: 13px; padding: 8px 12px; outline: none;
+  }
+  .ing-add-btn {
+    background: var(--accent-dim); border: 1px solid var(--accent);
+    color: var(--accent); border-radius: 10px; padding: 8px 14px;
+    font-size: 12px; font-weight: 700; cursor: pointer;
+  }
 </style>
 </head>
 <body>
@@ -505,6 +598,39 @@
   </div>
 </div>
 
+<!-- ═══════════════ MODALE SALADE ═══════════════ -->
+<div class="modal-overlay" id="salade-modal">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <div class="modal-title">🥗 Composer la salade</div>
+      <button class="modal-close" onclick="fermerSalade()">✕</button>
+    </div>
+
+    <div class="modal-section-title">Ingrédients</div>
+    <div class="ingredients-grid" id="ing-grid"></div>
+
+    <div class="ing-add-row">
+      <input class="ing-add-input" id="ing-custom-input" placeholder="Ajouter un ingrédient...">
+      <button class="ing-add-btn" onclick="ajouterIngredientCustom()">+ Ajouter</button>
+    </div>
+
+    <div class="modal-section-title">Sauce</div>
+    <div class="sauce-row">
+      <button class="sauce-btn" id="sauce-Yaourt" onclick="toggleSauce('Yaourt')">🥛 Yaourt</button>
+      <button class="sauce-btn" id="sauce-Vinaigrette" onclick="toggleSauce('Vinaigrette')">🫒 Vinaigrette</button>
+      <button class="sauce-btn" id="sauce-Basilic" onclick="toggleSauce('Basilic')">🌿 Basilic</button>
+      <button class="sauce-btn" id="sauce-Oriental" onclick="toggleSauce('Oriental')">🌶 Oriental</button>
+    </div>
+
+    <div class="modal-footer">
+      <button class="modal-validate" onclick="validerSalade()">
+        ✅ Ajouter la salade — 10,00 €
+      </button>
+    </div>
+  </div>
+</div>
+
 <!-- PAIEMENT BAR (sticky bottom) -->
 <div class="paiement-bar" id="paiement-bar">
   <div style="display:flex; gap:6px; align-items:center; margin-bottom:2px;">
@@ -537,7 +663,7 @@
 // ── PRODUITS ────────────────────────────────────────────────────────
 const PRODUCTS = [
   // Salade
-  { name: 'Salade',    price: 10,  cat: 'salade',   icon: '🥗' },
+  { name: 'Salade',    price: 10,  cat: 'salade',   icon: '🥗', modal: true },
   // Smoothies
   { name: 'Alma',      price: 6,   cat: 'smoothie', icon: '🍍' },
   { name: 'Choco',     price: 6,   cat: 'smoothie', icon: '🍫' },
@@ -545,7 +671,7 @@ const PRODUCTS = [
   { name: 'Explosao',  price: 6,   cat: 'smoothie', icon: '💥' },
   { name: 'Smoothie',  price: 6,   cat: 'smoothie', icon: '🥤' },
   // Sandwichs
-  { name: 'Poulet B',  price: 6,   cat: 'sandwich', icon: '🐔' },
+  { name: 'Poulet B',  price: 6,   cat: 'sandwich', icon: '🥖', destock: true },
   { name: 'Poulet T',  price: 6,   cat: 'sandwich', icon: '🐓' },
   { name: 'Sardine B', price: 6,   cat: 'sandwich', icon: '🐟' },
   { name: 'Sardine T', price: 6,   cat: 'sandwich', icon: '🐠' },
@@ -643,6 +769,10 @@ function renderProducts() {
 
 // ── PANIER ───────────────────────────────────────────────────────────
 function addProduct(p) {
+  if (p.modal) {
+    ouvrirSalade();
+    return;
+  }
   panier[p.name] = (panier[p.name] || 0) + 1;
   updateCountBadge(p.name);
   updateTotal();
@@ -1013,6 +1143,144 @@ function showSection(name) {
     document.getElementById('paiement-bar').style.display = 'flex';
   }
 }
+
+
+// ── MODALE SALADE ─────────────────────────────────────────────────────────────
+const INGREDIENTS_SALADE = [
+  { nom: 'Concombre',    icon: '🥒' },
+  { nom: 'Myrtilles',    icon: '🫐' },
+  { nom: 'Feta',         icon: '🧀' },
+  { nom: 'Maïs',         icon: '🌽' },
+  { nom: 'Oignon Rouge', icon: '🧅' },
+  { nom: 'Poulet',       icon: '🍗' },
+  { nom: 'Carotte',      icon: '🥕' },
+  { nom: 'Thon',         icon: '🐟' },
+  { nom: 'Tomate',       icon: '🍅' },
+  { nom: 'Olives',       icon: '🫒' },
+  { nom: 'Oeuf',         icon: '🥚' },
+  { nom: 'Avocat',       icon: '🥑' },
+  { nom: 'Betterave',    icon: '🔴' },
+  { nom: 'Pâtes',        icon: '🍝' },
+  { nom: 'Quinoa',       icon: '🌾' },
+  { nom: 'Croutons',     icon: '🍞' },
+  { nom: 'Épinard',      icon: '🥬' },
+  { nom: 'Noix',         icon: '🥜' },
+];
+
+let saladeIngredients = new Set(); // ingrédients sélectionnés
+let saladeSauce = null;
+let ingredientsCustom = []; // ingrédients ajoutés manuellement
+
+function ouvrirSalade() {
+  saladeIngredients = new Set();
+  saladeSauce = null;
+  renderSaladeModal();
+  document.getElementById('salade-modal').classList.add('open');
+}
+
+function fermerSalade() {
+  document.getElementById('salade-modal').classList.remove('open');
+}
+
+function renderSaladeModal() {
+  const grid = document.getElementById('ing-grid');
+  const allIngs = [...INGREDIENTS_SALADE, ...ingredientsCustom.map(n => ({ nom: n, icon: '🥗' }))];
+  
+  grid.innerHTML = allIngs.map(ing => `
+    <button class="ing-btn ${saladeIngredients.has(ing.nom) ? 'selected' : ''}"
+      onclick="toggleIngredient('${ing.nom}')">
+      <span class="ing-icon">${ing.icon}</span>
+      <span class="ing-name">${ing.nom}</span>
+    </button>
+  `).join('');
+
+  // Sauces
+  ['Yaourt','Vinaigrette','Basilic','Oriental'].forEach(s => {
+    const btn = document.getElementById(`sauce-${s}`);
+    if (btn) btn.classList.toggle('selected', saladeSauce === s);
+  });
+}
+
+function toggleIngredient(nom) {
+  if (saladeIngredients.has(nom)) {
+    saladeIngredients.delete(nom);
+  } else {
+    saladeIngredients.add(nom);
+  }
+  renderSaladeModal();
+}
+
+function toggleSauce(sauce) {
+  saladeSauce = saladeSauce === sauce ? null : sauce;
+  renderSaladeModal();
+}
+
+function ajouterIngredientCustom() {
+  const input = document.getElementById('ing-custom-input');
+  const val = input.value.trim();
+  if (!val) return;
+  if (!ingredientsCustom.includes(val) && !INGREDIENTS_SALADE.find(i => i.nom === val)) {
+    ingredientsCustom.push(val);
+  }
+  saladeIngredients.add(val);
+  input.value = '';
+  renderSaladeModal();
+}
+
+function validerSalade() {
+  // Construire le nom de la salade avec les détails
+  const ings = [...saladeIngredients];
+  const sauce = saladeSauce;
+  
+  // Créer un nom descriptif pour l'historique
+  const detail = [
+    ings.length > 0 ? ings.join(', ') : 'Nature',
+    sauce ? `Sauce ${sauce}` : null
+  ].filter(Boolean).join(' · ');
+  
+  const nomVente = `Salade (${detail})`;
+  
+  // Ajouter au panier avec le nom complet
+  // On utilise 'Salade' comme clé produit mais on stocke le détail
+  if (!panier['Salade']) panier['Salade'] = 0;
+  panier['Salade'] += 1;
+  
+  // Stocker les détails de la salade pour l'envoi
+  if (!window.saladeDetails) window.saladeDetails = [];
+  window.saladeDetails.push({
+    ingredients: ings,
+    sauce: sauce,
+    detail: detail
+  });
+
+  updateCountBadge('Salade');
+  updateTotal();
+  renderPanier();
+  fermerSalade();
+  showToast(`🥗 Salade ajoutée !`);
+  
+  // Envoyer les détails vers V10 pour suivi des accompagnements
+  envoyerDetailsSalade(ings, sauce);
+}
+
+async function envoyerDetailsSalade(ingredients, sauce) {
+  if (!ingredients.length && !sauce) return;
+  try {
+    const params = new URLSearchParams({
+      type: 'salade_detail',
+      ingredients: ingredients.join('|'),
+      sauce: sauce || '',
+      date: new Date().toLocaleDateString('fr-FR'),
+    });
+    await fetch(`${SCRIPT_URL}?${params.toString()}`, { method:'GET', mode:'no-cors' });
+  } catch(e) {}
+}
+
+// Fermer la modale en cliquant à l'extérieur
+document.addEventListener('click', function(e) {
+  const modal = document.getElementById('salade-modal');
+  if (e.target === modal) fermerSalade();
+});
 
 // ── UTILS ────────────────────────────────────────────────────────────
 function formatPrice(n) {
