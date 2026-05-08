@@ -404,208 +404,176 @@ const RECIPES = [
 
   /* ── JUS ── */
   {
-    id:'ginger', type:'jus', caisse:'Ginger',
-    emoji:'🫚', title:'Ginger Shot', sub:'Détox · Immunitaire · Peps',
-    time:'5 min', kcal:'80 kcal',
-    baseVol: 300,
+    id:'suco_rosa', type:'jus', caisse:'Suco Rosa',
+    emoji:'🔴', title:'Suco Rosa', sub:'Orange · Betterave · Gingembre',
+    time:'5 min', kcal:'90 kcal', baseVol:300,
     ings:[
-      {nom:'Orange',       qty_per_base:150, unite:'g',  note:'pressée'},
-      {nom:'Gingembre',    qty_per_base:20,  unite:'g',  note:'frais, râpé'},
-      {nom:'Citron jaune', qty_per_base:30,  unite:'g',  note:'jus'},
-      {nom:'Cannelle',     qty_per_base:1,   unite:'g',  note:'pincée'},
+      {nom:'Orange',    qty_per_base:150, unite:'g', note:'pressée'},
+      {nom:'Betterave', qty_per_base:80,  unite:'g', note:'crue avec casca'},
+      {nom:'Gingembre', qty_per_base:15,  unite:'g', note:'frais'},
     ],
     steps:[
-      {action:'Préparer le gingembre', detail:'Peler et râper finement. Récupérer tout le jus.'},
-      {action:'Presser l\'orange', detail:'À la centrifugeuse ou presse-agrumes. Filtrer si désiré.'},
-      {action:'Ajouter citron + gingembre', detail:'Mélanger dans le verre. Le citron fixe les arômes du gingembre.'},
-      {action:'Saupoudrer cannelle', detail:'Une pincée par-dessus. Servir immédiatement.'},
+      {action:'Préparer', detail:'Betterave crue avec la peau (casca), orange pelée, gingembre.'},
+      {action:'Centrifuger', detail:'Betterave → Orange → Gingembre.'},
+      {action:'Servir', detail:'Immédiatement. Couleur rouge profond.'},
     ],
-    tip:'Ce jus est un shot concentré. Pour un format 500ml, diluer légèrement avec de l\'eau froide.'
+    tip:'La betterave tache — travailler avec soin. Consommer vite pour garder les nutriments.'
   },
   {
-    id:'jus_jour', type:'jus', caisse:'Jus du jour',
-    emoji:'🍊', title:'Jus du Jour', sub:'Orange · Saisonnier · Vitaminé',
-    time:'5 min', kcal:'120 kcal',
-    baseVol: 500,
+    id:'vale_agradavel', type:'jus', caisse:'Vale Agradavel',
+    emoji:'🍉', title:'Vale Agradável', sub:'Pastèque · Concombre · Citron · Gingembre',
+    time:'5 min', kcal:'80 kcal', baseVol:300,
     ings:[
-      {nom:'Orange',       qty_per_base:350, unite:'g',  note:'3 grosses oranges'},
-      {nom:'Citron jaune', qty_per_base:30,  unite:'g',  note:'½ citron'},
+      {nom:'Pastèque',  qty_per_base:200, unite:'g', note:'sans pépins'},
+      {nom:'Concombre', qty_per_base:80,  unite:'g', note:'frais'},
+      {nom:'Citron jaune', qty_per_base:20, unite:'g', note:'jus'},
+      {nom:'Gingembre', qty_per_base:10,  unite:'g', note:'frais'},
     ],
     steps:[
-      {action:'Laver et couper les oranges', detail:'En deux, retirer les pépins apparents.'},
-      {action:'Presser', detail:'À la centrifugeuse. Les oranges en premier, le citron après.'},
-      {action:'Goûter et ajuster', detail:'Trop acide ? Plus d\'orange. Trop doux ? Plus de citron.'},
-      {action:'Servir', detail:'Dans un verre froid avec glaçons. Consommer dans l\'heure.'},
+      {action:'Centrifuger', detail:'Pastèque → Concombre → Gingembre.'},
+      {action:'Ajouter citron', detail:'Presser le citron dans le jus.'},
+      {action:'Servir frais', detail:'Avec glaçons. Très désaltérant.'},
     ],
-    tip:'Le jus du jour change selon les arrivages. Adapter les proportions selon la douceur des fruits.'
+    tip:'Hydratant et léger. Idéal pour l'été.'
   },
   {
-    id:'overgnith', type:'jus', caisse:'Overgnith',
-    emoji:'🌙', title:'Overnight Detox', sub:'Nuit · Récupération · Vert',
-    time:'6 min', kcal:'90 kcal',
-    baseVol: 400,
+    id:'raiz_viva', type:'jus', caisse:'Raiz Viva',
+    emoji:'🍏', title:'Raiz Viva', sub:'Pomme · Citron · Cannelle · Lin',
+    time:'5 min', kcal:'100 kcal', baseVol:300,
     ings:[
-      {nom:'Pomme',        qty_per_base:180, unite:'g',  note:'évidée'},
-      {nom:'Gingembre',    qty_per_base:15,  unite:'g',  note:'frais'},
-      {nom:'Citron vert',  qty_per_base:20,  unite:'g',  note:'jus'},
-      {nom:'Chia',         qty_per_base:5,   unite:'g',  note:'à laisser gonfler'},
+      {nom:'Pomme',     qty_per_base:200, unite:'g', note:'avec casca (peau)'},
+      {nom:'Citron jaune', qty_per_base:30, unite:'g', note:'jus'},
+      {nom:'Cannelle',  qty_per_base:1,   unite:'g', note:'en poudre'},
+      {nom:'Lin',       qty_per_base:5,   unite:'g', note:'graines de linhaça'},
     ],
     steps:[
-      {action:'Centrifuger pomme + gingembre', detail:'Pomme d\'abord (dense), gingembre ensuite.'},
-      {action:'Ajouter citron vert pressé', detail:'Directement dans le jus obtenu.'},
-      {action:'Verser dans le verre', detail:'Ajouter les graines de chia.'},
-      {action:'Option : préparer la veille', detail:'Laisser au frigo toute la nuit — les chia gonflent et épaississent le jus.'},
+      {action:'Centrifuger la pomme', detail:'Pomme entière avec la peau pour plus de fibres.'},
+      {action:'Ajouter citron', detail:'Presser directement dans le jus.'},
+      {action:'Cannelle + lin', detail:'Saupoudrer et mélanger avant de servir.'},
+      {action:'Servir', detail:'Dans un verre froid.'},
     ],
-    tip:'Idéal préparé la veille au soir. Les chia apportent des oméga-3 et épaississent légèrement le jus.'
+    tip:'Les graines de lin gonflent — servir et boire rapidement. La cannelle stabilise la glycémie.'
   },
   {
-    id:'raiz', type:'jus', caisse:'Raiz',
-    emoji:'🌿', title:'Raiz (Racines)', sub:'Carotte · Betterave · Terre',
-    time:'6 min', kcal:'130 kcal',
-    baseVol: 400,
+    id:'ginger_zinga', type:'jus', caisse:'Ginger Zinga',
+    emoji:'🫚', title:'Ginger Zinga', sub:'Gingembre · Pomme · Épinard · Carotte · Citron',
+    time:'5 min', kcal:'85 kcal', baseVol:300,
     ings:[
-      {nom:'Carotte',      qty_per_base:180, unite:'g',  note:'épluchée'},
-      {nom:'Betterave',    qty_per_base:100, unite:'g',  note:'cuite ou crue'},
-      {nom:'Gingembre',    qty_per_base:10,  unite:'g',  note:'½ cm'},
-      {nom:'Citron jaune', qty_per_base:20,  unite:'g',  note:'jus'},
+      {nom:'Gingembre', qty_per_base:20,  unite:'g', note:'frais, râpé'},
+      {nom:'Pomme',     qty_per_base:120, unite:'g', note:''},
+      {nom:'Épinard',   qty_per_base:50,  unite:'g', note:'feuilles fraîches'},
+      {nom:'Carotte',   qty_per_base:80,  unite:'g', note:'épluchée'},
+      {nom:'Citron jaune', qty_per_base:20, unite:'g', note:'jus'},
     ],
     steps:[
-      {action:'Préparer les légumes', detail:'Carottes pelées, betterave pelée (crue : plus de nutriments, cuite : plus douce).'},
-      {action:'Ordre centrifugeuse', detail:'1. Betterave → 2. Carotte → 3. Gingembre'},
-      {action:'Ajouter le citron', detail:'Presser directement dans le jus. Empêche l\'oxydation de la betterave.'},
-      {action:'Servir vite', detail:'La betterave s\'oxyde rapidement. Consommer dans les 20 minutes.'},
+      {action:'Centrifuger', detail:'Carotte → Pomme → Épinard → Gingembre.'},
+      {action:'Ajouter citron', detail:'Presser le citron dans le jus obtenu.'},
+      {action:'Servir', detail:'Couleur verte intense. Boire immédiatement.'},
     ],
-    tip:'ATTENTION : la betterave tache les mains et les vêtements. Travailler avec des gants. Le jus doit être d\'un rouge profond.'
+    tip:'Jus vert détox. Le gingembre est prononcé — ajuster la quantité selon les goûts.'
   },
   {
-    id:'rosa', type:'jus', caisse:'Rosa',
-    emoji:'🌹', title:'Rosa', sub:'Pastèque · Fraise · Floral',
-    time:'5 min', kcal:'110 kcal',
-    baseVol: 400,
-    ings:[
-      {nom:'Pastèque',     qty_per_base:250, unite:'g',  note:'sans pépins'},
-      {nom:'Fraise',       qty_per_base:80,  unite:'g',  note:'fraîche'},
-      {nom:'Citron vert',  qty_per_base:15,  unite:'g',  note:'jus'},
-    ],
+    id:'jus_jour', type:'jus', caisse:'Jus du Jour',
+    emoji:'🥤', title:'Jus du Jour', sub:'Saisonnier · Créatif · Variable',
+    time:'5 min', kcal:'—', baseVol:300,
+    ings:[],
     steps:[
-      {action:'Préparer la pastèque', detail:'Couper en morceaux, retirer les pépins si besoin.'},
-      {action:'Centrifuger pastèque + fraises', detail:'La pastèque en premier car plus d\'eau. Les fraises après.'},
-      {action:'Presser le citron vert', detail:'Ajouter dans le jus pour équilibrer la douceur.'},
-      {action:'Servir avec glaçons', detail:'Le rosa se boit très frais. Décorer d\'une rondelle de citron vert.'},
+      {action:'Jus du moment', detail:'Ce jus change chaque jour selon les arrivages et l'inspiration du moment.'},
+      {action:'Créer depuis zéro', detail:'Utilise le bouton + pour créer une nouvelle recette personnalisée.'},
     ],
-    tip:'Si la pastèque est très sucrée, augmenter le citron vert. Ce jus est naturellement rose vif — sans colorant.'
-  },
-  {
-    id:'valle', type:'jus', caisse:'Valle',
-    emoji:'🍌', title:'Valle', sub:'Banane · Mangue · Tropical',
-    time:'5 min', kcal:'160 kcal',
-    baseVol: 400,
-    ings:[
-      {nom:'Mangue',       qty_per_base:150, unite:'g',  note:'mûre'},
-      {nom:'Banane',       qty_per_base:100, unite:'g',  note:'bien mûre'},
-      {nom:'Orange',       qty_per_base:100, unite:'g',  note:'jus base'},
-      {nom:'Citron vert',  qty_per_base:10,  unite:'g',  note:'équilibre'},
-    ],
-    steps:[
-      {action:'Centrifuger la mangue', detail:'Peler, dénoyauter, couper en morceaux. Centrifuger.'},
-      {action:'Ajouter banane + orange', detail:'La banane est trop épaisse pour la centrifugeuse — mixer séparément avec un peu du jus d\'orange.'},
-      {action:'Mélanger les deux jus', detail:'Incorporer le jus d\'orange + banane mixée au jus de mangue.'},
-      {action:'Finir avec citron vert', detail:'Quelques gouttes pour la fraîcheur. Servir immédiatement.'},
-    ],
-    tip:'La banane épaissit le jus naturellement. Pour une texture plus liquide, réduire la banane et augmenter l\'orange.'
+    tip:'Pas de recette fixe — utilise ce produit pour les jus improvisés. Les ingrédients varient chaque jour.'
   },
 
-  /* ── SMOOTHIES ── */
+    /* ── SMOOTHIES ── */
   {
     id:'alma_selvagem', type:'smoothie', caisse:'Alma Selvagem',
-    emoji:'🍍', title:'Alma Selvagem', sub:'Ananas · Pitaya · Coco · Tropical',
-    time:'4 min', kcal:'320 kcal', baseVol:500,
+    emoji:'🍍', title:'Alma Selvagem', sub:'Ananas · Pitaya · Coco · Whey',
+    time:'4 min', kcal:'340 kcal', baseVol:500,
     ings:[
-      {nom:'Lait amandes', qty_per_base:200, unite:'ml', note:'base'},
+      {nom:'Lait amandes', qty_per_base:200, unite:'ml', note:'base liquide'},
       {nom:'Ananas',       qty_per_base:150, unite:'g',  note:'frais ou congelé'},
       {nom:'Pitaya',       qty_per_base:80,  unite:'g',  note:'pitaya rouge'},
       {nom:'Banane',       qty_per_base:80,  unite:'g',  note:''},
       {nom:'Citron vert',  qty_per_base:15,  unite:'g',  note:'jus'},
       {nom:'Huile coco',   qty_per_base:10,  unite:'ml', note:'1 c.s.'},
-      {nom:'Granola',      qty_per_base:30,  unite:'g',  note:'topping'},
-      {nom:'Amandes',      qty_per_base:15,  unite:'g',  note:'topping'},
+      {nom:'Maca poudre',  qty_per_base:5,   unite:'g',  note:'1 scoop'},
     ],
+    toppings:['Granola 30g','Amandes 15g','Banane en rondelles','Whey végétale 1 scoop'],
     steps:[
-      {action:'Liquide en premier', detail:"Lait d'amandes au fond du blender."},
-      {action:'Fruits + huile coco', detail:'Ananas, pitaya, banane et citron. La pitaya donne la couleur rose intense.'},
-      {action:'Mixer 45 secondes', detail:'Texture épaisse et lisse.'},
-      {action:'Topping', detail:'Granola + amandes + rondelles de banane.'},
+      {action:'Liquide en premier', detail:'Lait d'amandes au fond du blender.'},
+      {action:'Fruits + huile coco + maca', detail:'Ananas, pitaya, banane, citron, huile coco, maca.'},
+      {action:'Mixer 45 secondes', detail:'Texture épaisse et lisse. Couleur rose intense.'},
+      {action:'Topping', detail:'Granola + amandes + rondelles de banane. Ajouter 1 scoop whey végétale.'},
     ],
-    tip:'La pitaya congelée est idéale pour la texture et la couleur.'
+    tip:'La pitaya congelée est idéale. La maca apporte énergie et récupération. Whey végétale en topping.'
   },
   {
     id:'double_choco', type:'smoothie', caisse:'Double Choco Coco Nuts',
-    emoji:'🍫', title:'Double Choco Coco Nuts', sub:'Cacao · Dattes · Coco · Intense',
-    time:'5 min', kcal:'380 kcal', baseVol:500,
+    emoji:'🍫', title:'Double Choco Coco Nuts', sub:'Cacao · Dattes · Coco · Whey Cacao',
+    time:'5 min', kcal:'420 kcal', baseVol:500,
     ings:[
-      {nom:'Lait amandes', qty_per_base:200, unite:'ml', note:''},
-      {nom:'Dattes',       qty_per_base:40,  unite:'g',  note:'3-4 dattes dénoyautées'},
+      {nom:'Lait amandes', qty_per_base:200, unite:'ml', note:'base'},
+      {nom:'Dattes',       qty_per_base:40,  unite:'g',  note:'3-4 dénoyautées'},
       {nom:'Banane',       qty_per_base:100, unite:'g',  note:'congelée'},
       {nom:'Cacao poudre', qty_per_base:15,  unite:'g',  note:'non sucré'},
-      {nom:'Cacao nibs',   qty_per_base:10,  unite:'g',  note:'+ topping'},
-      {nom:'Granola',      qty_per_base:30,  unite:'g',  note:'topping'},
-      {nom:'Coco râpé',    qty_per_base:15,  unite:'g',  note:'topping'},
+      {nom:'Cacao nibs',   qty_per_base:10,  unite:'g',  note:'dans le blender'},
     ],
+    toppings:['Granola 30g','Cacao nibs 10g','Coco râpé 15g','Myrtilles 30g','Whey cacao 1 scoop'],
     steps:[
-      {action:'Tremper les dattes', detail:"5 min dans de l'eau chaude. Égoutter."},
-      {action:'Blender : lait + dattes', detail:'Mixer seuls 15s pour crémer les dattes.'},
-      {action:'Ajouter banane + cacao', detail:'Banane congelée + cacao poudre + moitié des nibs.'},
+      {action:'Tremper les dattes', detail:'5 min dans eau chaude. Égoutter.'},
+      {action:'Lait + dattes', detail:'Mixer 15s pour crémer les dattes.'},
+      {action:'Ajouter banane + cacao + nibs', detail:'Banane congelée + cacao poudre + nibs.'},
       {action:'Mixer 45 secondes', detail:'Texture chocolatée onctueuse.'},
-      {action:'Topping', detail:'Granola + cacao nibs + coco râpé + myrtilles.'},
+      {action:'Topping', detail:'Granola + cacao nibs + coco râpé + myrtilles + 1 scoop whey cacao.'},
     ],
-    tip:'Double choco = cacao poudre dans le smoothie + cacao nibs en topping.'
+    tip:'Double choco = cacao dans le blender + nibs en topping. Les myrtilles apportent les antioxydants.'
   },
   {
     id:'energia_tropical', type:'smoothie', caisse:'Energia Tropical',
-    emoji:'🥭', title:'Energia Tropical', sub:'Mangue · Maracujá · Chia · Protéine',
-    time:'4 min', kcal:'360 kcal', baseVol:500,
+    emoji:'🥭', title:'Energia Tropical', sub:'Mangue · Fruit de la passion · Chia · Whey',
+    time:'4 min', kcal:'380 kcal', baseVol:500,
     ings:[
-      {nom:'Lait amandes',  qty_per_base:200, unite:'ml', note:''},
-      {nom:'Mangue fraîche',qty_per_base:150, unite:'g',  note:'congelée de préférence'},
+      {nom:'Lait amandes',  qty_per_base:200, unite:'ml', note:'base'},
+      {nom:'Mangue fraîche',qty_per_base:180, unite:'g',  note:'congelée de préférence'},
       {nom:'Yaourt grec',   qty_per_base:80,  unite:'g',  note:'sans lactose'},
       {nom:'Chia',          qty_per_base:8,   unite:'g',  note:'graines'},
-      {nom:'Granola',       qty_per_base:30,  unite:'g',  note:'topping'},
-      {nom:'Coco râpé',     qty_per_base:15,  unite:'g',  note:'topping'},
     ],
+    toppings:['Granola 30g','Mangue fraîche en dés','Coco râpé 15g','Whey vanille 1 scoop'],
     steps:[
-      {action:'Liquide + yaourt', detail:'Lait + yaourt au fond du blender.'},
-      {action:'Mangue + chia', detail:'Mangue congelée et graines de chia.'},
+      {action:'Lait + yaourt', detail:'Au fond du blender.'},
+      {action:'Mangue + chia', detail:'Mangue congelée + graines de chia.'},
       {action:'Mixer 45 secondes', detail:'Onctueux et tropical.'},
-      {action:'Topping', detail:'Granola + mangue fraîche en dés + coco râpé.'},
+      {action:'Topping', detail:'Granola + mangue en dés + coco râpé + 1 scoop whey vanille.'},
     ],
-    tip:'La mangue congelée donne un résultat plus épais. Le yaourt apporte les protéines.'
+    tip:'La mangue congelée donne la texture. Le fruit de la passion est acidulé — ajouter au goût. Whey vanille en topping.'
   },
   {
     id:'explosao_proteina', type:'smoothie', caisse:'Explosao de Proteina',
-    emoji:'💥', title:'Explosão de Proteína', sub:'Banane · Myrtilles · Yaourt · Protéine',
-    time:'4 min', kcal:'340 kcal', baseVol:500,
+    emoji:'💥', title:'Explosão de Proteína', sub:'Banane · Myrtilles · Yaourt · Whey Vanille',
+    time:'4 min', kcal:'380 kcal', baseVol:500,
     ings:[
-      {nom:'Banane',       qty_per_base:120, unite:'g',  note:'congelée'},
+      {nom:'Lait amandes', qty_per_base:200, unite:'ml', note:'base — 200ml'},
+      {nom:'Banane',       qty_per_base:180, unite:'g',  note:'congelée — 180-200g'},
       {nom:'Yaourt grec',  qty_per_base:80,  unite:'g',  note:'naturel'},
-      {nom:'Myrtilles',    qty_per_base:60,  unite:'g',  note:'fraîches ou congelées'},
-      {nom:'Lait amandes', qty_per_base:180, unite:'ml', note:''},
-      {nom:'Granola',      qty_per_base:30,  unite:'g',  note:'sans gluten, topping'},
+      {nom:'Myrtilles',    qty_per_base:60,  unite:'g',  note:'congelées'},
     ],
+    toppings:['Granola sans gluten 30g','Myrtilles 20g','Beurre de cacahuète 15g','Fraise fraîche','Whey vanille 1 scoop'],
     steps:[
-      {action:'Base liquide', detail:"Lait d'amandes au fond."},
-      {action:'Yaourt + banane + myrtilles', detail:'Banane congelée pour la texture épaisse.'},
-      {action:'Mixer 45 secondes', detail:'Couleur violette. Texture crémeuse.'},
-      {action:'Topping', detail:'Granola sans gluten + myrtilles + rondelles de banane.'},
+      {action:'Base liquide', detail:'Lait d'amandes 200ml au fond.'},
+      {action:'Banane + yaourt + myrtilles', detail:'Banane congelée 180-200g pour la texture épaisse.'},
+      {action:'Mixer 45 secondes', detail:'Couleur violette intense. Texture crémeuse.'},
+      {action:'Topping', detail:'Granola sans gluten + myrtilles + beurre de cacahuète + fraise + 1 scoop whey vanille.'},
     ],
-    tip:'Riche en protéines grâce au yaourt. Les myrtilles congelées donnent une belle couleur violette.'
+    tip:'Volume : 200ml lait + 180-200g fruit. Riche en protéines grâce au yaourt + whey. Beurre de cacahuète en filet sur le dessus.'
   },
   {
     id:'nouveau_smoothie', type:'smoothie', caisse:'Nouveau Smoothie',
     emoji:'🆕', title:'Nouveau Smoothie', sub:'Création du jour',
     time:'4 min', kcal:'—', baseVol:500,
     ings:[],
+    toppings:[],
     steps:[{action:'Recette à définir', detail:'Ce smoothie est une création du moment.'}],
-    tip:"Utiliser pour les créations non encore référencées."
+    tip:'Utiliser pour les créations non encore référencées.'
   },
 
     /* ── SANDWICHS ── */
@@ -1127,6 +1095,18 @@ function updateBatch(id) {
       <span class="ing-stock ${stCls}">${stockLabel(ing.nom)}</span>
     </div>`;
   }).join('');
+
+  // Afficher les toppings si présents
+  if (r.toppings && r.toppings.length > 0) {
+    ingsEl.innerHTML += `
+      <div style="margin-top:10px;padding:8px 10px;background:var(--bdim);border:1px solid var(--blue);border-radius:10px">
+        <div style="font-size:10px;color:var(--blue);font-weight:600;letter-spacing:1px;margin-bottom:6px">✨ TOPPINGS</div>
+        ${r.toppings.map(t => `<div class="ing-row" style="background:var(--bdim);border:1px solid var(--border)">
+          <span style="font-size:14px">⭐</span>
+          <span class="ing-name">${t}</span>
+        </div>`).join('')}
+      </div>`;
+  }
 }
 
 async function doBatch(id) {
