@@ -1354,28 +1354,35 @@ function validerSalade() {
 
   const ings = [...saladeIngredients];
   const baseLabel = [...saladeBases].map(b => b === 'Pates' ? 'Pâtes' : b).join(' + ');
-  const detail = [baseLabel, ...ings, saladeSauce ? `Sauce ${saladeSauce}` : null].filter(Boolean).join(' · ');
+
+  // Calculer le coût réel de cette salade
+  const coutReel = calculerCoutSalade();
 
   if (!panier['Salade']) panier['Salade'] = 0;
   panier['Salade'] += 1;
+
+  // Stocker le coût pour l'envoi à V10 lors du paiement
+  if (!window.saladeCouts) window.saladeCouts = [];
+  window.saladeCouts.push(coutReel);
 
   updateCountBadge('Salade');
   updateTotal();
   renderPanier();
   fermerSalade();
-  showToast('🥗 Salade ajoutée !');
+  showToast(`🥗 Salade ajoutée — coût ${coutReel.toFixed(2)}€`);
 
-  // Envoyer détails vers V10
-  envoyerDetailsSalade(baseLabel, ings, saladeSauce);
+  // Envoyer détails + coût vers V10
+  envoyerDetailsSalade(baseLabel, ings, saladeSauce, coutReel);
 }
 
-async function envoyerDetailsSalade(base, ingredients, sauce) {
+async function envoyerDetailsSalade(base, ingredients, sauce, cout) {
   try {
     const params = new URLSearchParams({
       type: 'salade_detail',
       base: base,
       ingredients: ingredients.join('|'),
       sauce: sauce || '',
+      cout: (cout || 0).toFixed(4),
       date: new Date().toLocaleDateString('fr-FR'),
     });
     await fetch(`${SCRIPT_URL}?${params.toString()}`, { method:'GET', mode:'no-cors' });
