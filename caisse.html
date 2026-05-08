@@ -1188,15 +1188,14 @@ function showSection(name) {
 // ── MODALE SALADE ─────────────────────────────────────────────────────────────
 const ING_DEFAULT = [
   { nom:'Avocat',            icon:'🥑' },
-  { nom:'Mangue',            icon:'🥭' },
-  { nom:'Olive',             icon:'🫒' },
+  { nom:'Mangue fraîche',    icon:'🥭' },
+  { nom:'Olives coupées',    icon:'🫒' },
   { nom:'Concombre',         icon:'🥒' },
   { nom:'Carotte',           icon:'🥕' },
-  { nom:'Brocoli',           icon:'🥦' },
+  { nom:'Épinard',           icon:'🥬' },
   { nom:'Ananas',            icon:'🍍' },
   { nom:'Patate douce',      icon:'🍠' },
   { nom:'Poulet',            icon:'🍗' },
-  { nom:'Oeuf',              icon:'🥚' },
   { nom:'Saumon',            icon:'🐟' },
   { nom:'Betterave',         icon:'🔴' },
   { nom:'Oignon Rouge',      icon:'🧅' },
@@ -1205,6 +1204,7 @@ const ING_DEFAULT = [
   { nom:'Bille Mozzarella',  icon:'🫙' },
   { nom:'Tomate confite',    icon:'🍅' },
   { nom:'Thon',              icon:'🐠' },
+  { nom:'Fraise',            icon:'🍓' },
 ];
 
 // ── COÛTS MATIÈRE — lus depuis Config_Salade dans V10 ────────────────────────
@@ -1212,10 +1212,12 @@ let COUT_MAP = {}; // { 'Avocat': 0.318, ... } — chargé depuis V10
 
 async function chargerCoutsSalade() {
   try {
-    const res = await fetch(`${SCRIPT_URL}?type=config_salade`, { method:'GET' });
+    // Lire depuis Prix_Ingredients (source de vérité)
+    const res = await fetch(`${SCRIPT_URL}?type=prix_ingredients`, { method:'GET' });
     const data = await res.json();
     if (data.ok && data.couts) {
       COUT_MAP = data.couts;
+      console.log('Coûts chargés:', Object.keys(COUT_MAP).length, 'ingrédients');
     }
   } catch(e) {
     console.warn('Coûts salade non chargés:', e);
