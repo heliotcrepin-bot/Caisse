@@ -510,7 +510,7 @@ const RECIPES = [
       {nom:'Citron vert',  qty_per_base:15,  unite:'g',  note:'jus'},
       {nom:'Huile coco',   qty_per_base:10,  unite:'ml', note:'1 c.s.'},
       {nom:'Maca poudre',  qty_per_base:5,   unite:'g',  note:'1 scoop'},
-      {nom:'Whey végétale', qty_per_base:37,  unite:'g',  note:'1 scoop (37g)'},
+      {nom:'Whey végétale', qty_per_base:15,  unite:'g',  note:'1 cuillère à soupe (15g)'},
     ],
     toppings:['Granola 30g','Amandes 15g','Banane en rondelles'],
     steps:[
@@ -572,9 +572,9 @@ const RECIPES = [
       {nom:'Banane',       qty_per_base:180, unite:'g',  note:'congelée — 180-200g'},
       {nom:'Yaourt grec',  qty_per_base:80,  unite:'g',  note:'naturel'},
       {nom:'Myrtilles',    qty_per_base:60,  unite:'g',  note:'congelées'},
-      {nom:'Whey vanille',  qty_per_base:37,  unite:'g',  note:'1 scoop (37g)'},
+      {nom:'Whey vanille',  qty_per_base:37,  unite:'g',  note:'1 scoop — mixer avec les fruits'},
     ],
-    toppings:['Granola sans gluten 30g','Myrtilles 20g','Beurre de cacahuète 15g','Fraise fraîche'],
+    toppings:['Granola sans gluten 30g','Myrtilles 20g','Beurre de cacahuète 15g filet','Fraise fraîche'],
     steps:[
       {action:'Base liquide', detail:'Lait d\'amandes 200ml au fond.'},
       {action:'Banane + yaourt + myrtilles', detail:'Banane congelée 180-200g pour la texture épaisse.'},
@@ -610,6 +610,7 @@ const RECIPES = [
       {nom:'Raisins secs', qty:8,   unite:'g',  note:''},
       {nom:'Maïs',         qty:15,  unite:'g',  note:''},
       {nom:'Petit pois',   qty:20,  unite:'g',  note:''},
+      {nom:'Persil',       qty:5,   unite:'g',  note:'frais ou séché'},
     ],
     steps:[
       {action:'Réchauffer la baguette', detail:"Passer la baguette entière au four 3-4 min."},
@@ -638,6 +639,7 @@ const RECIPES = [
       {nom:'Petit pois',   qty:20,  unite:'g',  note:''},
       {nom:'Raisins secs', qty:8,   unite:'g',  note:''},
       {nom:'Noix',         qty:8,   unite:'g',  note:'concassées'},
+      {nom:'Persil',       qty:5,   unite:'g',  note:'frais ou séché'},
     ],
     steps:[
       {action:'Prendre 2 tartines', detail:'2 tranches de pain.'},
@@ -659,7 +661,8 @@ const RECIPES = [
       {nom:'Carotte',      qty:15,  unite:'g',  note:'râpée'},
       {nom:'Olives coupées',qty:20, unite:'g',  note:''},
       {nom:'Moutarde',     qty:5,   unite:'g',  note:''},
-    ],
+    
+      {nom:'Persil',       qty:5,   unite:'g',  note:'frais ou séché'},],
     steps:[
       {action:'Préparer la pâte sardine', detail:"Égoutter les sardines, écraser à la fourchette. Mélanger avec tomate finement coupée, oignon, carotte râpée, olives, moutarde, ketchup 8g et sauce anglaise 5g. Bien mélanger."},
       {action:'Chauffer la baguette', detail:'Passer la baguette entière au four 3-4 min.'},
@@ -683,7 +686,8 @@ const RECIPES = [
       {nom:'Carotte',      qty:15,  unite:'g',  note:'râpée'},
       {nom:'Olives coupées',qty:20, unite:'g',  note:''},
       {nom:'Moutarde',     qty:5,   unite:'g',  note:''},
-    ],
+    
+      {nom:'Persil',       qty:5,   unite:'g',  note:'frais ou séché'},],
     steps:[
       {action:'Préparer la pâte sardine', detail:"Même préparation que la baguette : sardines écrasées + tomate + oignon + carotte + olives + moutarde + ketchup 8g + sauce anglaise 5g."},
       {action:'Chauffer le pain', detail:'Passer les tranches de pain au grille-pain.'},
@@ -707,11 +711,12 @@ const RECIPES = [
       {nom:'Oignon Rouge', qty:13,  unite:'g',  note:'émincé'},
       {nom:'Tomate',       qty:13,  unite:'g',  note:'en dés + rondelles'},
       {nom:'Cornichon',    qty:11,  unite:'g',  note:'émincé'},
-      {nom:'Citron jaune', qty:5,   unite:'g',  note:'zeste uniquement'},
+      {nom:'Citron jaune', qty:15,  unite:'g',  note:'zeste + jus'},
       {nom:'Roquette',     qty:10,  unite:'g',  note:''},
+      {nom:'Persil',       qty:5,   unite:'g',  note:'frais ou séché'},
     ],
     steps:[
-      {action:'Préparer la pâte thon', detail:"Égoutter le thon. Mélanger avec Philadelphia, moutarde, carotte râpée, oignon, tomate en dés, cornichons émincés et zeste de citron."},
+      {action:'Préparer la pâte thon', detail:"Égoutter le thon. Mélanger avec Philadelphia, moutarde, carotte râpée, oignon, tomate en dés, cornichons émincés, zeste et jus de citron."},
       {action:'Couper la baguette', detail:'Couper en deux dans la longueur.'},
       {action:'Tranche de fromage en base', detail:"Déposer une tranche de fromage fondu sur chaque face — il fondra à la chauffe et liera la garniture."},
       {action:'Tomate en rondelles', detail:'Placer les rondelles de tomate sur le fromage.'},
@@ -735,11 +740,12 @@ const RECIPES = [
       {nom:'Oignon Rouge', qty:13,  unite:'g',  note:'émincé'},
       {nom:'Tomate',       qty:13,  unite:'g',  note:'en dés + rondelles'},
       {nom:'Cornichon',    qty:11,  unite:'g',  note:'émincé'},
-      {nom:'Citron jaune', qty:5,   unite:'g',  note:'zeste uniquement'},
+      {nom:'Citron jaune', qty:15,  unite:'g',  note:'zeste + jus'},
       {nom:'Roquette',     qty:10,  unite:'g',  note:''},
+      {nom:'Persil',       qty:5,   unite:'g',  note:'frais ou séché'},
     ],
     steps:[
-      {action:'Préparer la pâte thon', detail:'Même préparation que la baguette : thon + Philadelphia + moutarde + carotte + oignon + tomate en dés + cornichons + zeste citron.'},
+      {action:'Préparer la pâte thon', detail:'Même préparation que la baguette : thon + Philadelphia + moutarde + carotte + oignon + tomate en dés + cornichons + zeste et jus de citron.'},
       {action:'Prendre les tartines', detail:'2 tranches de pain.'},
       {action:'Tranche de fromage en base', detail:"Déposer une tranche de fromage fondu sur chaque tartine — il fondra à la chauffe."},
       {action:'Tomate en rondelles', detail:'Placer les rondelles de tomate sur le fromage.'},
