@@ -519,7 +519,7 @@ const RECIPES = [
       {action:'Mixer 45 secondes', detail:'Texture épaisse et lisse. Couleur rose intense.'},
       {action:'Topping', detail:'Granola + amandes + rondelles de banane. Ajouter 1 scoop whey végétale.'},
     ],
-    tip:'La pitaya congelée est idéale. La maca apporte énergie et récupération. Whey végétale en topping.'
+    tip:'La pitaya congelée est idéale. La maca apporte énergie et récupération. Mixer la whey avec les fruits.'
   },
   {
     id:'double_choco', type:'smoothie', caisse:'Double Choco Coco Nuts',
@@ -561,7 +561,7 @@ const RECIPES = [
       {action:'Mixer 45 secondes', detail:'Onctueux et tropical.'},
       {action:'Topping', detail:'Granola + mangue en dés + coco râpé + 1 scoop whey vanille.'},
     ],
-    tip:'La mangue congelée donne la texture. Le fruit de la passion est acidulé — ajouter au goût. Whey vanille en topping.'
+    tip:'La mangue congelée donne la texture. Mixer la whey vanille directement avec les fruits.'
   },
   {
     id:'explosao_proteina', type:'smoothie', caisse:'Explosao de Proteina',
@@ -654,17 +654,19 @@ const RECIPES = [
     emoji:'🐟', title:'Sardine Baguette', sub:'Sardine · Légumes · Chaud',
     time:'7 min', kcal:'400 kcal',
     ings:[
-      {nom:'Baguette',     qty:1,   unite:'u',  note:'1 baguette'},
-      {nom:'Sardine',      qty:100, unite:'g',  note:'égouttée'},
-      {nom:'Tomate',       qty:23,  unite:'g',  note:'coupée finement'},
-      {nom:'Oignon Rouge', qty:10,  unite:'g',  note:'émincé'},
-      {nom:'Carotte',      qty:15,  unite:'g',  note:'râpée'},
-      {nom:'Olives coupées',qty:20, unite:'g',  note:''},
-      {nom:'Moutarde',     qty:5,   unite:'g',  note:''},
-    
-      {nom:'Persil',       qty:5,   unite:'g',  note:'frais ou séché'},],
+      {nom:'Baguette',      qty:1,   unite:'u',  note:'1 baguette'},
+      {nom:'Sardine',       qty:100, unite:'g',  note:'égouttée'},
+      {nom:'Tomate',        qty:23,  unite:'g',  note:'coupée finement'},
+      {nom:'Oignon Rouge',  qty:10,  unite:'g',  note:'émincé'},
+      {nom:'Carotte',       qty:15,  unite:'g',  note:'râpée'},
+      {nom:'Olives coupées',qty:20,  unite:'g',  note:''},
+      {nom:'Moutarde',      qty:5,   unite:'g',  note:''},
+      {nom:'Ketchup',       qty:8,   unite:'g',  note:''},
+      {nom:'Sauce anglaise',qty:5,   unite:'g',  note:'Worcestershire'},
+      {nom:'Persil',        qty:5,   unite:'g',  note:'frais ou séché'},
+    ],
     steps:[
-      {action:'Préparer la pâte sardine', detail:"Égoutter les sardines, écraser à la fourchette. Mélanger avec tomate finement coupée, oignon, carotte râpée, olives, moutarde, ketchup 8g et sauce anglaise 5g. Bien mélanger."},
+      {action:'Préparer la pâte sardine', detail:"Égoutter les sardines, écraser à la fourchette. Mélanger avec tomate finement coupée, oignon, carotte râpée, olives, moutarde, ketchup et sauce anglaise. Bien mélanger."},
       {action:'Chauffer la baguette', detail:'Passer la baguette entière au four 3-4 min.'},
       {action:'Couper la baguette', detail:'Couper en deux dans la longueur.'},
       {action:'Feuilles de salade', detail:'Déposer des feuilles de salade sur la face inférieure.'},
@@ -672,31 +674,33 @@ const RECIPES = [
       {action:'La préparation sardine', detail:'Déposer généreusement la pâte sardine par-dessus.'},
       {action:'Fermer et servir', detail:'Refermer la baguette. Couper en diagonale. Servir.'},
     ],
-    tip:"La sauce anglaise (Worcestershire) apporte de la profondeur — ne pas en mettre trop. Chauffer la baguette avant de couper."
+    tip:"La sauce anglaise apporte de la profondeur. Chauffer la baguette avant de couper."
   },
   {
     id:'sardine_t', type:'sandwich', caisse:'Sardine T',
     emoji:'🐠', title:'Sardine Tartine', sub:'Sardine · Légumes · Chaud',
     time:'7 min', kcal:'380 kcal',
     ings:[
-      {nom:'Pain',         qty:2,   unite:'u',  note:'2 tranches'},
-      {nom:'Sardine',      qty:100, unite:'g',  note:'égouttée'},
-      {nom:'Tomate',       qty:23,  unite:'g',  note:'coupée finement'},
-      {nom:'Oignon Rouge', qty:10,  unite:'g',  note:'émincé'},
-      {nom:'Carotte',      qty:15,  unite:'g',  note:'râpée'},
-      {nom:'Olives coupées',qty:20, unite:'g',  note:''},
-      {nom:'Moutarde',     qty:5,   unite:'g',  note:''},
-    
-      {nom:'Persil',       qty:5,   unite:'g',  note:'frais ou séché'},],
+      {nom:'Pain',          qty:2,   unite:'u',  note:'2 tranches'},
+      {nom:'Sardine',       qty:100, unite:'g',  note:'égouttée'},
+      {nom:'Tomate',        qty:23,  unite:'g',  note:'coupée finement'},
+      {nom:'Oignon Rouge',  qty:10,  unite:'g',  note:'émincé'},
+      {nom:'Carotte',       qty:15,  unite:'g',  note:'râpée'},
+      {nom:'Olives coupées',qty:20,  unite:'g',  note:''},
+      {nom:'Moutarde',      qty:5,   unite:'g',  note:''},
+      {nom:'Ketchup',       qty:8,   unite:'g',  note:''},
+      {nom:'Sauce anglaise',qty:5,   unite:'g',  note:'Worcestershire'},
+      {nom:'Persil',        qty:5,   unite:'g',  note:'frais ou séché'},
+    ],
     steps:[
-      {action:'Préparer la pâte sardine', detail:"Même préparation que la baguette : sardines écrasées + tomate + oignon + carotte + olives + moutarde + ketchup 8g + sauce anglaise 5g."},
-      {action:'Chauffer le pain', detail:'Passer les tranches de pain au grille-pain.'},
+      {action:'Préparer la pâte sardine', detail:"Même préparation que la baguette : sardines + tomate + oignon + carotte + olives + moutarde + ketchup + sauce anglaise."},
+      {action:'Chauffer le pain', detail:'Passer les tranches au grille-pain.'},
       {action:'Feuilles de salade', detail:'Déposer des feuilles de salade sur une tranche.'},
       {action:'Tomate en rondelles', detail:'Placer les rondelles de tomate sur la salade.'},
       {action:'La préparation sardine', detail:'Déposer généreusement la pâte sardine par-dessus.'},
-      {action:'Fermer et servir', detail:'Refermer avec la 2ème tranche. Couper en diagonale. Servir.'},
+      {action:'Fermer et servir', detail:"Refermer avec la 2ème tranche. Couper en diagonale. Servir."},
     ],
-    tip:"T = Tartine : même pâte que la baguette. Chauffer le pain avant d\'assembler pour plus de croustillant."
+    tip:"T = Tartine : même pâte que la baguette. Chauffer le pain avant d\'assembler."
   },
   {
         id:'thon_b', type:'sandwich', caisse:'Thon B',
