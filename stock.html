@@ -141,6 +141,20 @@ body{background:var(--bg);color:var(--text);font-family:'DM Mono',monospace;min-
       <button onclick="scToggleComptable()" style="background:var(--bdim);border:1px solid var(--blue);color:var(--blue);font-family:'DM Mono',monospace;font-size:10px;padding:4px 10px;border-radius:20px;cursor:pointer" id="btn-comptable">📁 Tickets (<span id="comptable-count">0</span>)</button>
     </div>
 
+    <!-- MODE SELECTOR -->
+    <div style="display:flex;gap:8px;margin-bottom:12px">
+      <button id="mode-btn-total" onclick="scSetMode('total')"
+        style="flex:1;padding:10px;border-radius:10px;font-size:12px;font-weight:600;cursor:pointer;border:2px solid var(--accent);background:var(--accent);color:#0f0f0f;font-family:'DM Mono',monospace">
+        💶 Total ticket
+      </button>
+      <button id="mode-btn-prix"  onclick="scSetMode('prix')"
+        style="flex:1;padding:10px;border-radius:10px;font-size:12px;font-weight:600;cursor:pointer;border:2px solid var(--border);background:var(--surface);color:var(--muted);font-family:'DM Mono',monospace">
+        🏷️ Prix ingrédients
+      </button>
+    </div>
+    <div id="mode-desc-total" style="font-size:11px;color:var(--muted);margin-bottom:10px">Envoie le total dans Achats_Tickets → Marge Brute</div>
+    <div id="mode-desc-prix"  style="font-size:11px;color:var(--muted);margin-bottom:10px;display:none">Lit chaque article → met à jour Prix_Ingredients → pas de marge brute</div>
+
     <!-- ZONE UPLOAD -->
     <div id="sc-upload">
       <div class="sc-zone" style="position:relative">
@@ -154,7 +168,17 @@ body{background:var(--bg);color:var(--text);font-family:'DM Mono',monospace;min-
       <!-- Magasin + bouton analyser -->
       <div id="sc-after-photo" style="display:none;margin-top:10px">
         <input type="text" id="sc-magasin" placeholder="Magasin (ex: Auchan, Lidl...)" style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'DM Mono',monospace;font-size:13px;padding:10px 12px;outline:none;margin-bottom:8px">
-        <button class="btn-green" id="sc-btn" onclick="scScan()">🔍 Lire le total du ticket</button>
+        <button class="btn-green" id="sc-btn" onclick="scScan()">🔍 Analyser le ticket</button>
+      </div>
+    </div>
+
+    <!-- RÉSULTAT MODE PRIX INGRÉDIENTS -->
+    <div id="sc-prix-zone" style="display:none">
+      <div style="font-size:12px;color:var(--accent);font-weight:600;margin-bottom:8px">📦 Articles détectés — coche ceux à envoyer dans Prix_Ingredients</div>
+      <div id="sc-articles-list"></div>
+      <div style="display:flex;gap:8px;margin-top:12px">
+        <button onclick="scEnvoyerPrix()" class="btn-green" style="flex:1">✅ Mettre à jour les prix</button>
+        <button onclick="scReset()" style="flex:1;background:var(--bdim);border:1px solid var(--border);color:var(--muted);border-radius:var(--radius);padding:12px;font-size:13px;cursor:pointer;font-family:'DM Mono',monospace">↩ Annuler</button>
       </div>
     </div>
 
@@ -240,6 +264,27 @@ body{background:var(--bg);color:var(--text);font-family:'DM Mono',monospace;min-
 <button class="fab" id="fab" onclick="openPanier()">
   🛒 Panier <span class="fab-badge" id="fabCount">0</span>
 </button>
+
+<!-- Bouton date fabrication gâteaux -->
+<div id="fab-gateaux" style="position:fixed;bottom:80px;right:16px;z-index:150;display:none">
+  <button onclick="ouvrirDateFabrication()"
+    style="background:var(--pink,#ec4899);border:none;border-radius:16px;color:#fff;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;padding:10px 16px;cursor:pointer;box-shadow:0 4px 16px rgba(236,72,153,.3)">
+    🎂 Date fabrication
+  </button>
+</div>
+
+<!-- Modale date fabrication -->
+<div id="modal-fabrication" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:300;align-items:flex-end">
+  <div style="background:var(--card);border-radius:20px 20px 0 0;padding:20px;width:100%;max-width:500px;margin:0 auto">
+    <div style="font-size:16px;font-weight:700;color:var(--accent);margin-bottom:16px">🎂 Date de fabrication</div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:12px">Sélectionne les gâteaux fabriqués aujourd'hui — la date de péremption sera calculée automatiquement</div>
+    <div id="fab-gateaux-list"></div>
+    <div style="display:flex;gap:8px;margin-top:16px">
+      <button onclick="validerFabrication()" style="flex:1;background:var(--accent);color:#0f0f0f;border:none;border-radius:12px;padding:14px;font-size:14px;font-weight:700;cursor:pointer">✅ Confirmer</button>
+      <button onclick="fermerFabrication()" style="flex:1;background:var(--surface);border:1px solid var(--border);color:var(--muted);border-radius:12px;padding:14px;font-size:13px;cursor:pointer">Annuler</button>
+    </div>
+  </div>
+</div>
 <div class="toast" id="toast"></div>
 <script>
 const SHEET_URL='https://script.google.com/macros/s/AKfycbwenbhjtHVc1ifb2_y63ZWb8_9ysSrRcgTVYLbu6tt59W85pYDQhAWMprhq2KpH4Fhg/exec';
@@ -321,7 +366,12 @@ const INGS=[
   {nom:"Origan", cat:"Condiments", unite:"g", seuil_al:20, seuil_cr:10, conso_j:0, stock3j:20, duree:365, fragile:false, prix_kg:2.0},
   {nom:"Persil", cat:"Condiments", unite:"g", seuil_al:20, seuil_cr:10, conso_j:0, stock3j:20, duree:7, fragile:true, prix_kg:2.0},
   {nom:"Bouillon légumes", cat:"Condiments", unite:"u", seuil_al:3, seuil_cr:1, conso_j:0, stock3j:3, duree:365, fragile:false, prix_kg:1.0, note:"cube"},
-];
+,
+  // Gâteaux maison
+  {nom:"Brownie",  cat:"Gâteaux", unite:"u", seuil_al:4, seuil_cr:2, conso_j:0, stock3j:4, duree:4, fragile:false, prix_kg:1.0, note:"fait maison"},
+  {nom:"Muffins",  cat:"Gâteaux", unite:"u", seuil_al:4, seuil_cr:2, conso_j:0, stock3j:4, duree:3, fragile:false, prix_kg:1.0, note:"fait maison"},
+  {nom:"Gateau",   cat:"Gâteaux", unite:"u", seuil_al:2, seuil_cr:1, conso_j:0, stock3j:2, duree:3, fragile:false, prix_kg:1.0, note:"fait maison"},
+  {nom:"Overgnith",cat:"Gâteaux", unite:"u", seuil_al:4, seuil_cr:2, conso_j:0, stock3j:4, duree:2, fragile:true,  prix_kg:1.0, note:"boisson maison"}];
 
 let stockData=JSON.parse(localStorage.getItem('bs_stock')||JSON.stringify({
   "Orange":2600,
@@ -396,7 +446,60 @@ let stockData=JSON.parse(localStorage.getItem('bs_stock')||JSON.stringify({
   "Origan":0,
   "Persil":0,
   "Bouillon légumes":5
-}));
+}))
+// Dates d'achat/fabrication par ingrédient → calcul péremption
+let datesAchat = JSON.parse(localStorage.getItem('bs_dates_achat') || '{}');
+
+function saveDateAchat(nom) {
+  datesAchat[nom] = new Date().toISOString().split('T')[0];
+  localStorage.setItem('bs_dates_achat', JSON.stringify(datesAchat));
+}
+
+function getJoursRestants(ing) {
+  const dateAchat = datesAchat[ing.nom];
+  if (!dateAchat) return null;
+  const achat = new Date(dateAchat);
+  const peremption = new Date(achat.getTime() + ing.duree * 24*60*60*1000);
+  const today = new Date(); today.setHours(0,0,0,0);
+  return Math.round((peremption - today) / (24*60*60*1000));
+}
+
+function getAlertePeremption(ing) {
+  const j = getJoursRestants(ing);
+  if (j === null) return null;
+  if (j < 0)  return 'perime';
+  if (j === 0) return 'critique';
+  if (j <= 2)  return 'alerte';
+  return 'ok';
+}
+
+const RECETTES_INGS = {
+  'Banane':        ['Alma Selvagem','Double Choco Coco Nuts','Explosao de Proteina'],
+  'Mangue fraîche':['Energia Tropical'],
+  'Ananas':        ['Alma Selvagem'],
+  'Pitaya':        ['Alma Selvagem'],
+  'Fraise':        ['Explosao de Proteina'],
+  'Myrtilles':     ['Double Choco Coco Nuts','Explosao de Proteina'],
+  'Dattes':        ['Double Choco Coco Nuts'],
+  'Pomme':         ['Raiz Viva','Ginger Zinga','Overgnith'],
+  'Betterave':     ['Suco Rosa'],
+  'Épinard':       ['Ginger Zinga'],
+  'Concombre':     ['Vale Agradavel'],
+  'Pastèque':      ['Vale Agradavel'],
+  'Tomate':        ['Sardine B','Sardine T','Thon B','Thon T'],
+  'Carotte':       ['Sardine B','Sardine T','Thon B','Thon T','Poulet B','Poulet T','Ginger Zinga'],
+  'Poulet':        ['Poulet B','Poulet T'],
+  'Sardine':       ['Sardine B','Sardine T'],
+  'Thon':          ['Thon B','Thon T'],
+  'Lard':          ['Soupe Butternut'],
+  'Yaourt grec':   ['Energia Tropical','Explosao de Proteina'],
+  'Brownie':       ['Brownie'],
+  'Muffins':       ['Muffins'],
+  'Gateau':        ['Gateau'],
+  'Overgnith':     ['Overgnith'],
+};
+
+;
 let prixData=JSON.parse(localStorage.getItem('bs_prix')||'{}');
 let seuilData=JSON.parse(localStorage.getItem('bs_seuils')||'{}');
 let panier=[];
@@ -463,6 +566,38 @@ function kgLabel(qty,unite){if(unite==='u')return`${qty}u`;if(qty>=1000)return`$
 function renderStock(){
   const cats=[...new Set(INGS.map(i=>i.cat))];
   let alertes=0,html='';
+
+  // Section péremption en haut
+  const urgents = INGS.filter(ing => {
+    const j = getJoursRestants(ing);
+    return j !== null && j <= 2;
+  }).sort((a,b)=>(getJoursRestants(a)||99)-(getJoursRestants(b)||99));
+
+  if (urgents.length > 0) {
+    html += `<div class="section" style="border:1px solid var(--red);background:rgba(239,68,68,0.05)">
+      <div class="sec-title" style="color:var(--red)">🚨 À utiliser en priorité</div>
+      <div class="ing-list">`;
+    urgents.forEach(ing => {
+      const j = getJoursRestants(ing);
+      const recettes = RECETTES_INGS[ing.nom] || [];
+      const color = j < 0 ? 'var(--red)' : j === 0 ? 'var(--orange)' : 'var(--orange)';
+      const label = j < 0 ? 'PÉRIMÉ' : j === 0 ? 'Auj. !' : `${j}j restant${j>1?'s':''}`;
+      html += `<div class="ing-card" style="border-color:${color}">
+        <div class="card-row">
+          <div class="card-info">
+            <div class="card-name">${ing.nom}</div>
+            <div style="font-size:11px;margin-top:4px;color:${color};font-weight:600">${label}</div>
+            ${recettes.length ? `<div style="font-size:10px;color:var(--muted);margin-top:2px">→ ${recettes.join(', ')}</div>` : ''}
+          </div>
+          <div class="card-right">
+            <div class="card-days" style="color:${color}">⏱ ${label}</div>
+          </div>
+        </div>
+      </div>`;
+    });
+    html += `</div></div>`;
+  }
+
   cats.forEach(cat=>{
     const ings=INGS.filter(i=>i.cat===cat);
     html+=`<div class="section"><div class="sec-title">${cat}</div><div class="ing-list">`;
@@ -473,6 +608,14 @@ function renderStock(){
       const pct=ing.stock3j>0?Math.min(100,qty/ing.stock3j*100):0;
       const days=daysLeft(qty,ing.conso_j);
       const note=ing.note?` <span style="font-size:9px;color:var(--muted)">(${ing.note})</span>`:'';
+      // Péremption
+      const joursP = getJoursRestants(ing);
+      const alerteP = getAlertePeremption(ing);
+      const peremptionHtml = joursP !== null
+        ? `<span style="color:${alerteP==='perime'||alerteP==='critique'?'var(--red)':alerteP==='alerte'?'var(--orange)':'var(--muted)'}">
+            📅 ${joursP<0?'Périmé':joursP===0?'Auj.':joursP+'j péremption'}
+           </span>`
+        : '';
       html+=`<div class="ing-card ${st}" onclick="openModal('${ing.nom}')">
         <div class="card-row">
           <div class="card-info">
@@ -481,6 +624,7 @@ function renderStock(){
               <span>Stock: <b>${kgLabel(qty,ing.unite)}</b></span>
               <span>Reco 3j: ${kgLabel(ing.stock3j,ing.unite)}</span>
               <span>~${days}j restants</span>
+              ${peremptionHtml}
             </div>
           </div>
           <div class="card-right">
@@ -655,7 +799,11 @@ async function envoyerAchats(){
   const btn=document.getElementById('envoyerBtn');btn.textContent='⏳...';btn.disabled=true;
   const now=new Date();
   const d=`${String(now.getDate()).padStart(2,'0')}/${String(now.getMonth()+1).padStart(2,'0')}/${now.getFullYear()}`;
-  panier.forEach(item=>{stockData[item.nom]=(stockData[item.nom]||0)+item.qty;});
+  panier.forEach(item=>{
+    stockData[item.nom]=(stockData[item.nom]||0)+item.qty;
+    // Sauvegarder date d'achat → calcul péremption automatique
+    saveDateAchat(item.nom);
+  });
   localStorage.setItem('bs_stock',JSON.stringify(stockData));
   historique.unshift({date:d,items:[...panier]});
   if(historique.length>50)historique.pop();
@@ -691,6 +839,7 @@ function renderHisto(){
 }
 
 function switchTab(tab){
+  updateFabGateaux(tab);
   ['stock','courses','tarifs','histo','scanner'].forEach((t,i)=>{
     document.querySelectorAll('.tab')[i].classList.toggle('active',t===tab);
     document.getElementById('tab-'+t).classList.toggle('active',t===tab);
@@ -699,7 +848,40 @@ function switchTab(tab){
 }
 
 // ── SCANNER ──────────────────────────────────────────────────────────────────
-// Flux : photo → Apps Script → Claude API (server-side) → total → V10
+// Flux : photo → Apps Script → Claude API (server-side) → total/articles → V10
+
+let scMode = 'total'; // 'total' ou 'prix'
+let scArticlesDetectes = []; // articles du mode prix
+let INGS_NOMS = []; // liste des noms d'ingrédients V10
+
+// Charger la liste des ingrédients depuis V10 pour les dropdowns
+async function chargerNomsIngs() {
+  try {
+    const res = await fetch(`${SHEET_URL}?type=prix_ingredients`);
+    const data = await res.json();
+    if (data.ok && data.couts) INGS_NOMS = Object.keys(data.couts).sort();
+  } catch(e) {}
+}
+chargerNomsIngs();
+
+function scSetMode(mode) {
+  scMode = mode;
+  const btnTotal = document.getElementById('mode-btn-total');
+  const btnPrix  = document.getElementById('mode-btn-prix');
+  const descTotal = document.getElementById('mode-desc-total');
+  const descPrix  = document.getElementById('mode-desc-prix');
+  if (mode === 'total') {
+    btnTotal.style.background='var(--accent)'; btnTotal.style.color='#0f0f0f'; btnTotal.style.borderColor='var(--accent)';
+    btnPrix.style.background='var(--surface)'; btnPrix.style.color='var(--muted)'; btnPrix.style.borderColor='var(--border)';
+    descTotal.style.display='block'; descPrix.style.display='none';
+  } else {
+    btnPrix.style.background='var(--accent)'; btnPrix.style.color='#0f0f0f'; btnPrix.style.borderColor='var(--accent)';
+    btnTotal.style.background='var(--surface)'; btnTotal.style.color='var(--muted)'; btnTotal.style.borderColor='var(--border)';
+    descPrix.style.display='block'; descTotal.style.display='none';
+  }
+}
+
+// Flux : photo → Apps Script → Claude API (server-side) → total/articles → V10
 // L'appel Claude se fait CÔTÉ SERVEUR (Apps Script) pour éviter le blocage CORS
 // ─────────────────────────────────────────────────────────────────────────────
 let scImg=null, scImgFull=null, scTotalDetecte=0, scMagasin='', scDateTicket='';
@@ -728,10 +910,9 @@ async function scScan(){
   document.getElementById('sc-loading').style.display='block';
 
   try{
-    // ✅ Passe par Apps Script (pas Claude directement — CORS bloqué depuis navigateur)
     const magManuel=document.getElementById('sc-magasin').value.trim();
     const formData=new FormData();
-    formData.append('type','ocr_total');
+    formData.append('type', scMode==='prix' ? 'ocr_articles' : 'ocr_total');
     formData.append('image',scImg);
     formData.append('mimeType','image/jpeg');
     if(magManuel)formData.append('magasin',magManuel);
@@ -741,13 +922,23 @@ async function scScan(){
 
     if(!data.ok)throw new Error(data.error||'Erreur Apps Script');
 
-    scTotalDetecte=parseFloat(data.total)||0;
-    scMagasin=data.magasin||magManuel||'Magasin';
-    scDateTicket=data.date||new Date().toLocaleDateString('fr-FR');
-
     document.getElementById('sc-loading').style.display='none';
-    document.getElementById('sc-total-input').value=scTotalDetecte.toFixed(2);
-    document.getElementById('sc-result-zone').style.display='block';
+
+    if(scMode==='prix'){
+      // Mode prix ingrédients
+      scArticlesDetectes = data.items||[];
+      scMagasin=data.magasin||magManuel||'Magasin';
+      scDateTicket=data.date||new Date().toLocaleDateString('fr-FR');
+      renderArticlesPrix(scArticlesDetectes);
+      document.getElementById('sc-prix-zone').style.display='block';
+    } else {
+      // Mode total
+      scTotalDetecte=parseFloat(data.total)||0;
+      scMagasin=data.magasin||magManuel||'Magasin';
+      scDateTicket=data.date||new Date().toLocaleDateString('fr-FR');
+      document.getElementById('sc-total-input').value=scTotalDetecte.toFixed(2);
+      document.getElementById('sc-result-zone').style.display='block';
+    }
 
   }catch(err){
     document.getElementById('sc-loading').style.display='none';
@@ -755,6 +946,116 @@ async function scScan(){
     document.getElementById('sc-preview').style.display='block';
     showToast('Erreur: '+err.message,true);
     console.error('scScan error:',err);
+  }
+}
+
+// ── GÂTEAUX DATE FABRICATION ──────────────────────────────────────────────────
+const GATEAUX = ['Brownie','Muffins','Gateau','Overgnith'];
+
+function ouvrirDateFabrication() {
+  const list = document.getElementById('fab-gateaux-list');
+  list.innerHTML = GATEAUX.map(g => {
+    const ing = INGS.find(i => i.nom === g);
+    const duree = ing ? ing.duree : 3;
+    const today = new Date();
+    const peremption = new Date(today.getTime() + duree * 24*60*60*1000);
+    const peremStr = `${String(peremption.getDate()).padStart(2,'0')}/${String(peremption.getMonth()+1).padStart(2,'0')}`;
+    return `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)">
+      <div>
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+          <input type="checkbox" id="fab-check-${g}" style="width:16px;height:16px">
+          <span style="font-size:14px">${g}</span>
+        </label>
+        <div style="font-size:10px;color:var(--muted);margin-left:24px">Périme le ${peremStr} (${duree}j)</div>
+      </div>
+      <input type="number" id="fab-qty-${g}" value="0" min="0" max="50"
+        style="width:60px;background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:14px;padding:6px;text-align:center">
+    </div>`;
+  }).join('');
+  document.getElementById('modal-fabrication').style.display='flex';
+}
+
+function fermerFabrication() {
+  document.getElementById('modal-fabrication').style.display='none';
+}
+
+function validerFabrication() {
+  let count = 0;
+  GATEAUX.forEach(g => {
+    const checked = document.getElementById('fab-check-'+g)?.checked;
+    if (!checked) return;
+    const qty = parseInt(document.getElementById('fab-qty-'+g)?.value) || 0;
+    if (qty > 0) {
+      stockData[g] = (stockData[g] || 0) + qty;
+      saveDateAchat(g); // date = aujourd'hui
+      count++;
+    }
+  });
+  if (count > 0) {
+    localStorage.setItem('bs_stock', JSON.stringify(stockData));
+    renderStock();
+    showToast('✅ '+count+' gâteau(x) enregistré(s) !');
+  }
+  fermerFabrication();
+}
+
+// Afficher le bouton fabrication quand on est sur l'onglet stock
+function updateFabGateaux(tab) {
+  const btn = document.getElementById('fab-gateaux');
+  if (btn) btn.style.display = tab === 'stock' ? 'block' : 'none';
+}
+
+function renderArticlesPrix(articles) {
+  const list = document.getElementById('sc-articles-list');
+  if (!articles.length) {
+    list.innerHTML = '<div style="color:var(--muted);font-size:12px;text-align:center;padding:16px">Aucun article détecté</div>';
+    return;
+  }
+  list.innerHTML = articles.map((art, i) => {
+    const nomOptions = INGS_NOMS.length > 0
+      ? INGS_NOMS.map(n => `<option value="${n}" ${n===art.nom?'selected':''}>${n}</option>`).join('')
+      : `<option value="${art.nom}">${art.nom}</option>`;
+    return `
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px;margin-bottom:8px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+        <input type="checkbox" id="art-check-${i}" checked style="width:16px;height:16px;cursor:pointer">
+        <select id="art-nom-${i}"
+          style="flex:1;background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'DM Mono',monospace;font-size:12px;padding:4px 8px">
+          ${nomOptions}
+        </select>
+      </div>
+      <div style="display:flex;gap:8px;font-size:11px;color:var(--muted)">
+        <span>🏷️ ${art.poids_g ? art.poids_g+'g' : art.quantite||'?'}</span>
+        <span>💶 ${art.prix_eur ? art.prix_eur.toFixed(2)+'€' : '?'}</span>
+        <span id="art-prixkg-${i}" style="color:var(--accent)">${art.prix_kg ? art.prix_kg.toFixed(2)+'€/kg' : ''}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function scEnvoyerPrix() {
+  const articles = scArticlesDetectes;
+  const selectionnes = articles.map((art, i) => {
+    const checked = document.getElementById('art-check-'+i)?.checked;
+    if (!checked) return null;
+    const nom = document.getElementById('art-nom-'+i)?.value || art.nom;
+    return { nom, poids_g: art.poids_g, prix_eur: art.prix_eur, prix_kg: art.prix_kg, magasin: scMagasin };
+  }).filter(Boolean);
+
+  if (!selectionnes.length) { showToast('Aucun article sélectionné', true); return; }
+
+  try {
+    const params = new URLSearchParams({
+      type: 'update_prix_ingredients',
+      items: JSON.stringify(selectionnes),
+      magasin: scMagasin,
+      date: scDateTicket,
+    });
+    const res = await fetch(`${SHEET_URL}?${params.toString()}`, { method:'GET', mode:'no-cors' });
+    showToast('✅ '+selectionnes.length+' prix mis à jour dans V10 !');
+    scReset();
+  } catch(e) {
+    showToast('Erreur envoi: '+e.message, true);
   }
 }
 
