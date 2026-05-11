@@ -921,13 +921,27 @@ async function scScan(){
 
   try{
     const magManuel=document.getElementById('sc-magasin').value.trim();
-    const formData=new FormData();
-    formData.append('type', scMode==='prix' ? 'ocr_articles' : 'ocr_total');
-    formData.append('image',scImg);
-    formData.append('mimeType','image/jpeg');
-    if(magManuel)formData.append('magasin',magManuel);
-
-    const res=await fetch(SHEET_URL,{method:'POST',body:formData});
+    let res;
+    if(scMode==='prix'){
+      // Envoyer en JSON pour éviter la limite de taille des paramètres FormData
+      res=await fetch(SHEET_URL,{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({
+          type:'ocr_articles',
+          image:scImg,
+          mimeType:'image/jpeg',
+          magasin:magManuel||''
+        })
+      });
+    } else {
+      const formData=new FormData();
+      formData.append('type','ocr_total');
+      formData.append('image',scImg);
+      formData.append('mimeType','image/jpeg');
+      if(magManuel)formData.append('magasin',magManuel);
+      res=await fetch(SHEET_URL,{method:'POST',body:formData});
+    }
     const data=await res.json();
 
     if(!data.ok)throw new Error(data.error||'Erreur Apps Script');
