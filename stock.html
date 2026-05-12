@@ -141,6 +141,18 @@ body{background:var(--bg);color:var(--text);font-family:'DM Mono',monospace;min-
       <button onclick="scToggleComptable()" style="background:var(--bdim);border:1px solid var(--blue);color:var(--blue);font-family:'DM Mono',monospace;font-size:10px;padding:4px 10px;border-radius:20px;cursor:pointer" id="btn-comptable">📁 Tickets (<span id="comptable-count">0</span>)</button>
     </div>
 
+    <!-- IMPORT JSON TICKET -->
+    <div style="margin-bottom:12px">
+      <label style="display:flex;align-items:center;gap:8px;background:var(--surface);border:1px dashed var(--accent);border-radius:10px;padding:10px 12px;cursor:pointer">
+        <span style="font-size:20px">📥</span>
+        <div>
+          <div style="font-size:13px;font-weight:600;color:var(--accent)">Importer ticket analysé (JSON)</div>
+          <div style="font-size:10px;color:var(--muted)">Fichier généré depuis Claude après analyse</div>
+        </div>
+        <input type="file" id="import-json-file" accept=".json" style="display:none" onchange="importerTicketJSON(this)">
+      </label>
+    </div>
+
     <!-- MODE SELECTOR -->
     <div style="display:flex;gap:8px;margin-bottom:12px">
       <button id="mode-btn-total" onclick="scSetMode('total')"
@@ -175,7 +187,11 @@ body{background:var(--bg);color:var(--text);font-family:'DM Mono',monospace;min-
     <!-- RÉSULTAT MODE PRIX INGRÉDIENTS -->
     <div id="sc-prix-zone" style="display:none">
       <div style="font-size:12px;color:var(--accent);font-weight:600;margin-bottom:8px">📦 Articles détectés — coche ceux à envoyer dans Prix_Ingredients</div>
-      <div id="sc-articles-list"></div>
+      <div style="display:flex;gap:8px;margin-bottom:8px">
+      <button onclick="scCocherTout(true)" style="flex:1;background:var(--surface);border:1px solid var(--border);color:var(--muted);border-radius:8px;padding:6px;font-size:11px;cursor:pointer;font-family:'DM Mono',monospace">☑ Tout cocher</button>
+      <button onclick="scCocherTout(false)" style="flex:1;background:var(--surface);border:1px solid var(--border);color:var(--muted);border-radius:8px;padding:6px;font-size:11px;cursor:pointer;font-family:'DM Mono',monospace">☐ Tout décocher</button>
+    </div>
+    <div id="sc-articles-list"></div>
       <!-- Créer nouvel ingrédient -->
       <div id="sc-new-ing" style="margin-top:8px;padding:10px;background:var(--surface);border:1px dashed var(--border);border-radius:10px">
         <div style="font-size:11px;color:var(--muted);margin-bottom:6px">➕ Ingrédient non trouvé dans la liste ?</div>
@@ -875,6 +891,34 @@ async function chargerNomsIngs() {
 }
 chargerNomsIngs();
 
+// ── IMPORT TICKET JSON (analysé par Claude) ──────────────────────────────────
+function importerTicketJSON(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (!data.items || !data.items.length) { showToast('Fichier JSON invalide', true); return; }
+
+      scArticlesDetectes = data.items;
+      scMagasin = data.magasin || 'Magasin';
+      scDateTicket = data.date || new Date().toLocaleDateString('fr-FR');
+      scTotalDetecte = data.total || 0;
+
+      renderArticlesPrix(data.items);
+      document.getElementById('sc-prix-zone').style.display = 'block';
+      document.getElementById('sc-upload').style.display = 'none';
+
+      showToast('✅ ' + data.items.length + ' articles chargés — ' + scMagasin);
+    } catch(err) {
+      showToast('Erreur lecture JSON: ' + err.message, true);
+    }
+    input.value = '';
+  };
+  reader.readAsText(file);
+}
+
 function scSetMode(mode) {
   scMode = mode;
   const btnTotal = document.getElementById('mode-btn-total');
@@ -1070,6 +1114,14 @@ function renderArticlesPrix(articles) {
       </div>
     </div>`;
   }).join('');
+}
+
+function scCocherTout(val) {
+  const articles = scArticlesDetectes;
+  articles.forEach((_, i) => {
+    const cb = document.getElementById('art-check-'+i);
+    if (cb) cb.checked = val;
+  });
 }
 
 // Créer un nouvel ingrédient dans V10 Prix_Ingredients
