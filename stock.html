@@ -185,11 +185,12 @@ body{background:var(--bg);color:var(--text);font-family:'DM Mono',monospace;min-
           <button onclick="scCreerIngredient()" style="background:var(--accent);color:#0f0f0f;border:none;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer">Créer</button>
         </div>
       </div>
-      <div style="display:flex;gap:8px;margin-top:12px">
-        <button onclick="scEnvoyerPrix()" class="btn-green" style="flex:1">✅ Mettre à jour les prix</button>
-        <button onclick="scEnvoyerTotal()" style="flex:1;background:var(--bdim);border:1px solid var(--blue);color:var(--blue);border-radius:var(--radius);padding:12px;font-size:12px;cursor:pointer;font-family:'DM Mono',monospace">💶 + Comptable</button>
+      <div style="margin-top:12px">
+        <button onclick="scValiderTout()" class="btn-green" style="width:100%;font-size:15px;padding:14px">
+          ✅ Valider — Prix + Ticket + Comptable
+        </button>
+        <button onclick="scReset()" style="width:100%;margin-top:8px;background:var(--bdim);border:1px solid var(--border);color:var(--muted);border-radius:var(--radius);padding:10px;font-size:13px;cursor:pointer;font-family:'DM Mono',monospace">↩ Annuler</button>
       </div>
-      <button onclick="scReset()" style="width:100%;margin-top:8px;background:var(--bdim);border:1px solid var(--border);color:var(--muted);border-radius:var(--radius);padding:10px;font-size:13px;cursor:pointer;font-family:'DM Mono',monospace">↩ Annuler</button>
     </div>
 
     <!-- LOADING -->
@@ -1145,7 +1146,7 @@ async function scEnvoyerTotal() {
   }
 }
 
-async function scEnvoyerPrix() {
+async function scValiderTout() {
   const articles = scArticlesDetectes;
   const selectionnes = articles.map((art, i) => {
     const checked = document.getElementById('art-check-'+i)?.checked;
@@ -1154,22 +1155,50 @@ async function scEnvoyerPrix() {
     return { nom, poids_g: art.poids_g, prix_eur: art.prix_eur, prix_kg: art.prix_kg, magasin: scMagasin };
   }).filter(Boolean);
 
-  if (!selectionnes.length) { showToast('Aucun article sélectionné', true); return; }
+  const date = scDateTicket || new Date().toLocaleDateString('fr-FR');
+  const magasin = scMagasin || 'Magasin';
+
+  // Calculer le total depuis les articles
+  const total = selectionnes.reduce((s, a) => s + (parseFloat(a.prix_eur) || 0), 0);
+
+  showToast('⏳ Envoi en cours...');
 
   try {
-    const params = new URLSearchParams({
-      type: 'update_prix_ingredients',
-      items: JSON.stringify(selectionnes),
-      magasin: scMagasin,
-      date: scDateTicket,
-    });
-    const res = await fetch(`${SHEET_URL}?${params.toString()}`, { method:'GET', mode:'no-cors' });
-    showToast('✅ '+selectionnes.length+' prix mis à jour dans V10 !');
-    scReset();
+    // 1. Mettre à jour Prix_Ingredients
+    if (selectionnes.length > 0) {
+      const params = new URLSearchParams({
+        type: 'update_prix_ingredients',
+        items: JSON.stringify(selectionnes),
+        magasin: magasin,
+        date: date,
+      });
+      await fetch(`${SHEET_URL}?${params.toString()}`, { method:'GET', mode:'no-cors' });
+    }
+
+    // 2. Envoyer total dans Achats_Tickets via Apps Script
+    if (total > 0) {
+      const paramsTotal = new URLSearchParams({
+        type: 'ticket',
+        total: total.toFixed(2),
+        magasin: magasin,
+        date: date,
+      });
+      await fetch(`${SHEET_URL}?${paramsTotal.toString()}`, { method:'GET', mode:'no-cors' });
+    }
+
+    // 3. Sauvegarder pour comptable
+    await scSauvegarderTicket(total, date, magasin);
+
+    showToast('✅ Prix mis à jour · Ticket envoyé · Comptable sauvegardé !');
+    setTimeout(() => scReset(), 1500);
+
   } catch(e) {
-    showToast('Erreur envoi: '+e.message, true);
+    showToast('Erreur: ' + e.message, true);
   }
 }
+
+// Garder scEnvoyerPrix comme alias pour compatibilité
+async function scEnvoyerPrix() { await scValiderTout(); }
 
 async function scEnvoyer(partagerAussi=false){
   const total=parseFloat(document.getElementById('sc-total-input').value)||0;
