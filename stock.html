@@ -1095,8 +1095,11 @@ function renderArticlesPrix(articles) {
     return;
   }
   list.innerHTML = articles.map((art, i) => {
+    // Chercher correspondance exacte d'abord, puis afficher le nom du ticket en premier
+    const nomMatch = INGS_NOMS.find(n => n.toLowerCase() === art.nom.toLowerCase());
     const nomOptions = INGS_NOMS.length > 0
-      ? INGS_NOMS.map(n => `<option value="${n}" ${n===art.nom?'selected':''}>${n}</option>`).join('')
+      ? `<option value="${art.nom}" ${!nomMatch?'selected':''}>📋 ${art.nom_ticket||art.nom} (ticket)</option>` +
+        INGS_NOMS.map(n => `<option value="${n}" ${n===nomMatch?'selected':''}>${n}</option>`).join('')
       : `<option value="${art.nom}">${art.nom}</option>`;
     return `
     <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px;margin-bottom:8px">
