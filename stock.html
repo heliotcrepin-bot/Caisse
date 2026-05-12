@@ -1230,7 +1230,23 @@ async function scValiderTout() {
       await fetch(`${SHEET_URL}?${params.toString()}`, { method:'GET', mode:'no-cors' });
     }
 
-    // 2. Envoyer total dans Achats_Tickets via Apps Script
+    // 2. Envoyer chaque article → stock + courses
+    for (const art of selectionnes) {
+      if (art.poids_g > 0) {
+        const paramsAchat = new URLSearchParams({
+          type: 'achat',
+          nom: art.nom,
+          qty: art.poids_g,
+          unite: 'g',
+          fourn: magasin,
+          prix: art.prix_eur || 0,
+          date: date,
+        });
+        await fetch(`${SHEET_URL}?${paramsAchat.toString()}`, { method:'GET', mode:'no-cors' });
+      }
+    }
+
+    // 3. Envoyer total dans Achats_Tickets
     if (total > 0) {
       const paramsTotal = new URLSearchParams({
         type: 'ticket',
@@ -1241,7 +1257,7 @@ async function scValiderTout() {
       await fetch(`${SHEET_URL}?${paramsTotal.toString()}`, { method:'GET', mode:'no-cors' });
     }
 
-    // 3. Sauvegarder pour comptable
+    // 4. Sauvegarder pour comptable
     await scSauvegarderTicket(total, date, magasin);
 
     showToast('✅ Prix mis à jour · Ticket envoyé · Comptable sauvegardé !');
