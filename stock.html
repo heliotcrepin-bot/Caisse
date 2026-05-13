@@ -1093,19 +1093,21 @@ function validerFabrication() {
   let count = 0;
   GATEAUX.forEach(g => {
     const key = g.nom.replace(/ /g,'_');
-    const checked = document.getElementById('fab-check-'+key)?.checked;
-    if (!checked) return;
-    const qty = parseInt(document.getElementById('fab-qty-'+key)?.value) || 0;
-    if (qty > 0) {
-      stockData[g.nom] = (stockData[g.nom] || 0) + qty;
-      saveDateAchat(g.nom);
-      count++;
-    }
+    const checkEl = document.getElementById('fab-check-'+key);
+    const qtyEl   = document.getElementById('fab-qty-'+key);
+    if (!checkEl || !checkEl.checked) return;
+    const qty = parseInt(qtyEl?.value) || 0;
+    if (qty <= 0) { showToast('Saisis une quantité > 0 pour '+g.nom, true); return; }
+    stockData[g.nom] = (stockData[g.nom] || 0) + qty;
+    saveDateAchat(g.nom);
+    count++;
   });
   if (count > 0) {
     localStorage.setItem('bs_stock', JSON.stringify(stockData));
     renderStock();
-    showToast('✅ '+count+' gâteau(x) enregistré(s) !');
+    showToast('✅ '+count+' préparation(s) enregistrée(s) !');
+  } else {
+    showToast('Coche au moins un produit avec une quantité', true);
   }
   fermerFabrication();
 }
