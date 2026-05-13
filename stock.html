@@ -537,6 +537,7 @@ INGS.forEach(i=>{if(prixData[i.nom]===undefined)prixData[i.nom]=i.prix_kg;});
 
 document.addEventListener('DOMContentLoaded',()=>{
   renderStock();renderCourses();renderHisto();refreshStock();
+  updateFabGateaux('stock'); // afficher bouton dès le départ
 });
 
 function resetCache(){
@@ -1033,28 +1034,44 @@ async function scScan(){
 }
 
 // ── GÂTEAUX DATE FABRICATION ──────────────────────────────────────────────────
-const GATEAUX = ['Brownie','Muffins','Gateau','Overgnith'];
+const GATEAUX = [
+  {nom:'Brownie',   duree:4, cat:'Gâteaux', unite:'u'},
+  {nom:'Muffins',   duree:3, cat:'Gâteaux', unite:'u'},
+  {nom:'Gateau',    duree:3, cat:'Gâteaux', unite:'u'},
+  {nom:'Overgnith', duree:2, cat:'Gâteaux', unite:'u'},
+  {nom:'Suco Rosa',       duree:2, cat:'Jus maison', unite:'u'},
+  {nom:'Vale Agradavel',  duree:2, cat:'Jus maison', unite:'u'},
+  {nom:'Raiz Viva',       duree:2, cat:'Jus maison', unite:'u'},
+  {nom:'Ginger Zinga',    duree:2, cat:'Jus maison', unite:'u'},
+];
 
 function ouvrirDateFabrication() {
   const list = document.getElementById('fab-gateaux-list');
-  list.innerHTML = GATEAUX.map(g => {
-    const ing = INGS.find(i => i.nom === g);
-    const duree = ing ? ing.duree : 3;
-    const today = new Date();
-    const peremption = new Date(today.getTime() + duree * 24*60*60*1000);
-    const peremStr = `${String(peremption.getDate()).padStart(2,'0')}/${String(peremption.getMonth()+1).padStart(2,'0')}`;
-    return `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)">
-      <div>
-        <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
-          <input type="checkbox" id="fab-check-${g}" style="width:16px;height:16px">
-          <span style="font-size:14px">${g}</span>
-        </label>
-        <div style="font-size:10px;color:var(--muted);margin-left:24px">Périme le ${peremStr} (${duree}j)</div>
-      </div>
-      <input type="number" id="fab-qty-${g}" value="0" min="0" max="50"
-        style="width:60px;background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:14px;padding:6px;text-align:center">
-    </div>`;
-  }).join('');
+
+  // Grouper par catégorie
+  const cats = [...new Set(GATEAUX.map(g => g.cat))];
+  let html = '';
+  cats.forEach(cat => {
+    html += `<div style="font-size:10px;color:var(--accent);font-weight:600;margin:10px 0 4px;text-transform:uppercase">${cat}</div>`;
+    GATEAUX.filter(g => g.cat === cat).forEach(g => {
+      const today = new Date();
+      const peremption = new Date(today.getTime() + g.duree * 24*60*60*1000);
+      const peremStr = `${String(peremption.getDate()).padStart(2,'0')}/${String(peremption.getMonth()+1).padStart(2,'0')}`;
+      html += `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)">
+        <div>
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+            <input type="checkbox" id="fab-check-${g.nom.replace(/ /g,'_')}" style="width:16px;height:16px">
+            <span style="font-size:13px">${g.nom}</span>
+          </label>
+          <div style="font-size:10px;color:var(--muted);margin-left:24px">Périme le ${peremStr} (${g.duree}j)</div>
+        </div>
+        <input type="number" id="fab-qty-${g.nom.replace(/ /g,'_')}" value="0" min="0" max="99"
+          style="width:55px;background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:14px;padding:6px;text-align:center">
+      </div>`;
+    });
+  });
+
+  list.innerHTML = html;
   document.getElementById('modal-fabrication').style.display='flex';
 }
 
@@ -1065,12 +1082,13 @@ function fermerFabrication() {
 function validerFabrication() {
   let count = 0;
   GATEAUX.forEach(g => {
-    const checked = document.getElementById('fab-check-'+g)?.checked;
+    const key = g.nom.replace(/ /g,'_');
+    const checked = document.getElementById('fab-check-'+key)?.checked;
     if (!checked) return;
-    const qty = parseInt(document.getElementById('fab-qty-'+g)?.value) || 0;
+    const qty = parseInt(document.getElementById('fab-qty-'+key)?.value) || 0;
     if (qty > 0) {
-      stockData[g] = (stockData[g] || 0) + qty;
-      saveDateAchat(g); // date = aujourd'hui
+      stockData[g.nom] = (stockData[g.nom] || 0) + qty;
+      saveDateAchat(g.nom);
       count++;
     }
   });
