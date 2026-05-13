@@ -398,7 +398,17 @@ const INGS=[
   {nom:"Brownie",  cat:"Gâteaux", unite:"u", seuil_al:4, seuil_cr:2, conso_j:0, stock3j:4, duree:4, fragile:false, prix_kg:1.0, note:"fait maison"},
   {nom:"Muffins",  cat:"Gâteaux", unite:"u", seuil_al:4, seuil_cr:2, conso_j:0, stock3j:4, duree:3, fragile:false, prix_kg:1.0, note:"fait maison"},
   {nom:"Gateau",   cat:"Gâteaux", unite:"u", seuil_al:2, seuil_cr:1, conso_j:0, stock3j:2, duree:3, fragile:false, prix_kg:1.0, note:"fait maison"},
-  {nom:"Overgnith",cat:"Gâteaux", unite:"u", seuil_al:4, seuil_cr:2, conso_j:0, stock3j:4, duree:2, fragile:true,  prix_kg:1.0, note:"boisson maison"}];
+  {nom:"Overgnith",cat:"Gâteaux", unite:"u", seuil_al:4, seuil_cr:2, conso_j:0, stock3j:4, duree:2, fragile:true,  prix_kg:1.0, note:"boisson maison"},
+  // Gâteaux maison
+  {nom:"Brownie",        cat:"Gâteaux", unite:"u", seuil_al:0, seuil_cr:0, conso_j:0, stock3j:0, duree:4, fragile:false, prix_kg:1.0},
+  {nom:"Muffins",        cat:"Gâteaux", unite:"u", seuil_al:0, seuil_cr:0, conso_j:0, stock3j:0, duree:3, fragile:false, prix_kg:1.0},
+  {nom:"Gateau",         cat:"Gâteaux", unite:"u", seuil_al:0, seuil_cr:0, conso_j:0, stock3j:0, duree:3, fragile:false, prix_kg:1.0},
+  {nom:"Overgnith",      cat:"Gâteaux", unite:"u", seuil_al:0, seuil_cr:0, conso_j:0, stock3j:0, duree:2, fragile:false, prix_kg:1.0},
+  // Jus maison
+  {nom:"Suco Rosa",      cat:"Jus maison", unite:"u", seuil_al:0, seuil_cr:0, conso_j:0, stock3j:0, duree:2, fragile:true,  prix_kg:1.0},
+  {nom:"Vale Agradavel", cat:"Jus maison", unite:"u", seuil_al:0, seuil_cr:0, conso_j:0, stock3j:0, duree:2, fragile:true,  prix_kg:1.0},
+  {nom:"Raiz Viva",      cat:"Jus maison", unite:"u", seuil_al:0, seuil_cr:0, conso_j:0, stock3j:0, duree:2, fragile:true,  prix_kg:1.0},
+  {nom:"Ginger Zinga",   cat:"Jus maison", unite:"u", seuil_al:0, seuil_cr:0, conso_j:0, stock3j:0, duree:2, fragile:true,  prix_kg:1.0}];
 
 let stockData=JSON.parse(localStorage.getItem('bs_stock')||JSON.stringify({
   "Orange":2600,
