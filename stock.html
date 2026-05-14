@@ -928,44 +928,31 @@ function renderHisto(){
 
 
 // ── ONGLET PÉREMPTION ─────────────────────────────────────────────────────────
-async function renderPeremption() {
+function renderPeremption() {
   const el = document.getElementById('tab-peremption');
-  el.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted)">⏳ Chargement des achats...</div>';
 
   try {
-    // Lire les achats depuis V10 Courses
-    const res = await fetch(`${SHEET_URL}?type=courses`);
-    const data = await res.json();
-
-    if (!data.ok || !data.rows || data.rows.length < 2) {
-      el.innerHTML = '<div class="section"><div style="color:var(--muted);text-align:center;padding:20px">Aucun achat trouvé dans Courses</div></div>';
-      return;
-    }
-
     const today = new Date(); today.setHours(0,0,0,0);
     const achats = {};
 
-    // Grouper par ingrédient — garder le dernier achat
-    data.rows.slice(1).forEach(row => {
-      const date    = row[0];
-      const ing     = String(row[2]||'').trim();
-      const qty     = parseFloat(row[3]) || 0;
-      if (!ing || !date) return;
+    // Lire depuis localStorage bs_dates_achat (rempli à chaque achat validé)
+    const datesAchatLocal = JSON.parse(localStorage.getItem('bs_dates_achat') || '{}');
 
-      let dateAchat;
-      if (date instanceof Date || (typeof date === 'object' && date.getTime)) {
-        dateAchat = new Date(date);
-      } else {
-        const parts = String(date).split('/');
-        if (parts.length === 3) dateAchat = new Date(parseInt(parts[2]), parseInt(parts[1])-1, parseInt(parts[0]));
-      }
-      if (!dateAchat || isNaN(dateAchat)) return;
+    // Aussi lire depuis stockData pour avoir les ingrédients en stock
+    Object.keys(datesAchatLocal).forEach(ing => {
+      const dateStr = datesAchatLocal[ing]; // format YYYY-MM-DD
+      if (!dateStr) return;
+      const dateAchat = new Date(dateStr);
       dateAchat.setHours(0,0,0,0);
-
-      if (!achats[ing] || dateAchat > achats[ing].dateAchat) {
-        achats[ing] = { dateAchat, qty, ing };
+      if (!isNaN(dateAchat)) {
+        achats[ing] = { dateAchat, ing };
       }
     });
+
+    if (Object.keys(achats).length === 0) {
+      el.innerHTML = '<div class="section"><div style="color:var(--muted);text-align:center;padding:20px">Aucune date d\'achat enregistrée.<br><br>Les dates sont sauvegardées automatiquement quand tu valides un achat dans l\'onglet Courses.</div></div>';
+      return;
+    }
 
     // Calculer péremption pour chaque ingrédient
     const items = Object.values(achats).map(a => {
@@ -1046,7 +1033,7 @@ async function renderPeremption() {
     el.innerHTML = html || '<div class="section"><div style="color:var(--muted);text-align:center;padding:20px">Aucun ingrédient trouvé</div></div>';
 
   } catch(err) {
-    el.innerHTML = `<div class="section"><div style="color:var(--red);padding:20px">Erreur: ${err.message}</div></div>`;
+    el.innerHTML = '<div class="section"><div style="color:var(--red);padding:20px">Erreur: ' + err.message + '</div></div>';
   }
 }
 
