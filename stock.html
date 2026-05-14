@@ -1056,7 +1056,7 @@ function modifierDuree(ing) {
 
 function switchTab(tab){
   updateFabGateaux(tab);
-  if (tab === 'peremption') renderPeremption();
+  if (tab === 'peremption') { setTimeout(renderPeremption, 50); }
   ['stock','courses','tarifs','histo','scanner','peremption'].forEach((t,i)=>{
     document.querySelectorAll('.tab')[i].classList.toggle('active',t===tab);
     document.getElementById('tab-'+t).classList.toggle('active',t===tab);
