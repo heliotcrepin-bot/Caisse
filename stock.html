@@ -1269,20 +1269,20 @@ function validerFabrication() {
     const checkEl = document.getElementById('fab-check-'+key);
     const qtyEl   = document.getElementById('fab-qty-'+key);
     if (!checkEl || !checkEl.checked) return;
-    const qty = parseInt(qtyEl?.value) || 0;
-    if (qty <= 0) { showToast('Saisis une quantité > 0 pour '+g.nom, true); return; }
+    const qty = parseInt(qtyEl ? qtyEl.value : '0') || 0;
+    if (qty <= 0) return; // ignorer silencieusement si quantité = 0
     stockData[g.nom] = (stockData[g.nom] || 0) + qty;
     saveDateAchat(g.nom);
     count++;
   });
+  fermerFabrication();
   if (count > 0) {
     localStorage.setItem('bs_stock', JSON.stringify(stockData));
     renderStock();
     showToast('✅ '+count+' préparation(s) enregistrée(s) !');
   } else {
-    showToast('Coche au moins un produit avec une quantité', true);
+    showToast('Coche un produit et saisis une quantité > 0', true);
   }
-  fermerFabrication();
 }
 
 // Afficher le bouton fabrication quand on est sur l'onglet stock
