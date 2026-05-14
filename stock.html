@@ -644,13 +644,26 @@ const RECETTES_PAR_ING = {
 
 // Durées de vie par défaut (jours) — modifiable par l'utilisateur
 let dureesVie = JSON.parse(localStorage.getItem('bs_durees_vie') || JSON.stringify({
+  // Fruits
   'Orange':7,'Banane':5,'Mangue fraîche':4,'Pastèque':7,'Ananas':5,
-  'Pitaya':4,'Fraise':3,'Myrtilles':4,'Dattes':30,'Pomme':14,
-  'Kiwi':7,'Avocat':4,'Roquette':4,'Salade':4,'Tomate':5,
-  'Concombre':7,'Feta':14,'Carotte':14,'Épinard':4,'Betterave':7,
-  'Patate douce':14,'Butternut':30,'Gingembre':14,'Poulet':3,
-  'Sardine':1095,'Thon':1095,'Saumon':2,'Lard':5,'Yaourt grec':14,
-  'Philadelphia':14,'Avoine':180,'Oignon Rouge':30,'Banane':5,
+  'Pitaya':4,'Fraise':3,'Myrtilles':3,'Dattes':30,'Pomme':14,
+  'Kiwi':7,'Avocat':3,'Citron jaune':14,'Citron vert':14,
+  // Légumes
+  'Roquette':3,'Salade':3,'Tomate':5,'Concombre':5,'Carotte':14,
+  'Épinard':3,'Betterave':7,'Patate douce':14,'Butternut':30,
+  'Oignon Rouge':30,'Oignon':30,'Echalotte':30,'Gingembre':14,
+  'Poivron jaune':5,'Poivron vert':5,
+  // Protéines
+  'Poulet':2,'Sardine':1095,'Thon':1095,'Saumon':2,'Lard':5,
+  'Feta':7,'Philadelphia':7,'Yaourt grec':14,'Oeuf':21,
+  // Épicerie
+  'Lait amandes':5,'Lait coco':5,'Avoine':180,'Granola':90,
+  'Amandes':90,'Noix':90,'Coco râpé':90,'Raisins secs':90,
+  'Moutarde':180,'Beurre de cacahuète':90,'Huile olive':365,
+  // Gâteaux maison
+  'Brownie':4,'Muffins':3,'Gateau':3,'Overgnith':2,
+  // Jus maison
+  'Suco Rosa':2,'Vale Agradavel':2,'Raiz Viva':2,'Ginger Zinga':2,
 }));
 
 function saveDureesVie() {
