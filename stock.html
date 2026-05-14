@@ -1463,7 +1463,12 @@ async function scValiderTout() {
       await fetch(`${SHEET_URL}?${paramsTotal.toString()}`, { method:'GET', mode:'no-cors' });
     }
 
-    // 4. Sauvegarder pour comptable
+    // 4. Sauvegarder dates d'achat dans localStorage pour l'onglet Péremption
+    selectionnes.forEach(art => {
+      if (art.nom && art.poids_g > 0) saveDateAchat(art.nom);
+    });
+
+    // 5. Sauvegarder pour comptable
     await scSauvegarderTicket(total, date, magasin);
 
     showToast('✅ Prix mis à jour · Ticket envoyé · Comptable sauvegardé !');
