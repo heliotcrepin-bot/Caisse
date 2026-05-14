@@ -207,6 +207,9 @@ body{background:var(--bg);color:var(--text);font-family:'DM Mono',monospace;min-
         <button onclick="scValiderTout()" class="btn-green" style="width:100%;font-size:15px;padding:14px">
           ✅ Valider — Prix + Ticket + Comptable
         </button>
+        <button onclick="scDatesSeulementBtn()" style="width:100%;margin-top:8px;background:var(--bdim);border:1px solid var(--accent);color:var(--accent);border-radius:var(--radius);padding:12px;font-size:13px;cursor:pointer;font-family:'DM Mono',monospace">
+          📅 Dates seulement — sans envoyer vers V10
+        </button>
         <button onclick="scReset()" style="width:100%;margin-top:8px;background:var(--bdim);border:1px solid var(--border);color:var(--muted);border-radius:var(--radius);padding:10px;font-size:13px;cursor:pointer;font-family:'DM Mono',monospace">↩ Annuler</button>
       </div>
     </div>
@@ -1477,6 +1480,28 @@ async function scValiderTout() {
   } catch(e) {
     showToast('Erreur: ' + e.message, true);
   }
+}
+
+// Sauvegarder uniquement les dates d'achat sans envoyer vers V10
+function scDatesSeulementBtn() {
+  const articles = scArticlesDetectes;
+  const selectionnes = articles.map((art, i) => {
+    const checked = document.getElementById('art-check-'+i)?.checked;
+    if (!checked) return null;
+    const nom = document.getElementById('art-nom-'+i)?.value || art.nom;
+    return { nom, poids_g: art.poids_g };
+  }).filter(Boolean);
+
+  let count = 0;
+  selectionnes.forEach(art => {
+    if (art.nom && art.poids_g > 0) {
+      saveDateAchat(art.nom);
+      count++;
+    }
+  });
+
+  showToast('📅 ' + count + ' dates enregistrées — onglet Péremption mis à jour !');
+  setTimeout(() => scReset(), 1500);
 }
 
 // Garder scEnvoyerPrix comme alias pour compatibilité
