@@ -799,7 +799,34 @@ const RECIPES = [
     tip:"Toujours fermer avant de chauffer. Le fromage en tranche en base fond et lie la garniture."
   },
   {
-        id:'soupe_butternut', type:'soupe', caisse:'Soupe Butternut',
+    id:'soupe_carotte', type:'soupe', caisse:'Soupe Carotte',
+    emoji:'🥕', title:'Soupe Carotte Coco', sub:'Carotte · Lait coco · Gingembre',
+    time:'35 min', kcal:'180 kcal', baseVol:300,
+    ings:[
+      {nom:'Carotte',          qty:900, unite:'g',  note:'pelees, en rondelles'},
+      {nom:'Echalotte',        qty:110, unite:'g',  note:'emincee'},
+      {nom:'Lait coco',        qty:300, unite:'ml', note:'1 boite'},
+      {nom:'Huile olive',      qty:30,  unite:'ml', note:'2 cuilleres a soupe'},
+      {nom:'Gingembre poudre', qty:5,   unite:'g',  note:'1 cuillere a cafe'},
+      {nom:'Thym',             qty:2,   unite:'g',  note:'2 pincees deshydrate'},
+      {nom:'Poivre',           qty:3,   unite:'g',  note:'3 pincees'},
+      {nom:'Sel',              qty:5,   unite:'g',  note:'1 cuillere a cafe'},
+      {nom:'Eau',              qty:850, unite:'ml', note:''},
+      {nom:'Persil',           qty:5,   unite:'g',  note:'3 brins deco'},
+    ],
+    steps:[
+      {action:'Faire revenir', detail:'Chauffer huile olive. Faire revenir echalotte 3-4 min.'},
+      {action:'Carottes', detail:'Ajouter carottes en rondelles. Melanger 2 min.'},
+      {action:'Assaisonner', detail:'Ajouter gingembre, thym, sel, poivre.'},
+      {action:'Cuire', detail:'Ajouter 850ml eau. Porter a ebullition. Cuire 20 min a feu doux.'},
+      {action:'Mixer', detail:'Mixer jusqu\'a texture lisse et veloutee.'},
+      {action:'Lait coco', detail:'Hors du feu, ajouter 300ml lait coco. Melanger.'},
+      {action:'Servir', detail:'Chaud avec persil frais en decoration.'},
+    ],
+    tip:'5 portions par preparation. Conservation 3 jours au frigo.'
+  },
+  {
+    id:'soupe_butternut', type:'soupe', caisse:'Soupe Butternut',
     emoji:'🍲', title:'Soupe Butternut', sub:'Réconfortant · Crémeux · Automne',
     time:'35 min', kcal:'280 kcal', portions:'5',
     ings:[
