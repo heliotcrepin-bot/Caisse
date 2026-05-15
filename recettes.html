@@ -799,6 +799,43 @@ const RECIPES = [
     tip:"Toujours fermer avant de chauffer. Le fromage en tranche en base fond et lie la garniture."
   },
   {
+    id:'overgnith', type:'gateau', caisse:'Overgnith',
+    emoji:'🌿', title:'Overgnith', sub:'Chia · Avoine · Lait',
+    time:'5 min + 1 nuit', kcal:'220 kcal', baseVol:200,
+    ings:[
+      {nom:'Chia',        qty:10,  unite:'g',  note:''},
+      {nom:'Avoine',      qty:15,  unite:'g',  note:'flocons'},
+      {nom:'Sirop agave', qty:5,   unite:'g',  note:'1 cuillere a cafe'},
+      {nom:'Lait vache',  qty:150, unite:'ml', note:''},
+    ],
+    steps:[
+      {action:'Melanger', detail:'Mettre chia, avoine et sirop agave dans un pot ou verre.'},
+      {action:'Ajouter le lait', detail:'Verser 150ml de lait. Bien melanger.'},
+      {action:'Refrigerer', detail:'Couvrir et laisser au frigo toute la nuit (minimum 4h).'},
+      {action:'Servir', detail:'Remuer avant de servir. Texture epaisse et onctueuse.'},
+    ],
+    tip:'Preparer la veille au soir pour le lendemain matin. Le chia absorbe le lait et gonfle.'
+  },
+  {
+    id:'overgnith_fraise', type:'gateau', caisse:'Overgnith Fraise',
+    emoji:'🍓', title:'Overgnith Fraise', sub:'Chia · Avoine · Fraise',
+    time:'5 min + 1 nuit', kcal:'240 kcal', baseVol:200,
+    ings:[
+      {nom:'Chia',        qty:10,  unite:'g',  note:''},
+      {nom:'Avoine',      qty:15,  unite:'g',  note:'flocons'},
+      {nom:'Sirop agave', qty:5,   unite:'g',  note:'1 cuillere a cafe'},
+      {nom:'Lait vache',  qty:150, unite:'ml', note:''},
+      {nom:'Fraise',      qty:20,  unite:'g',  note:'fraiche coupee en des'},
+    ],
+    steps:[
+      {action:'Melanger', detail:'Mettre chia, avoine et sirop agave dans un pot.'},
+      {action:'Ajouter le lait', detail:'Verser 150ml de lait. Bien melanger.'},
+      {action:'Refrigerer', detail:'Couvrir et laisser au frigo toute la nuit.'},
+      {action:'Servir', detail:'Ajouter les fraises fraiches coupees en des juste avant de servir.'},
+    ],
+    tip:'Les fraises se mettent toujours au moment du service pour garder leur fraicheur.'
+  },
+  {
     id:'soupe_carotte', type:'soupe', caisse:'Soupe Carotte',
     emoji:'🥕', title:'Soupe Carotte Coco', sub:'Carotte · Lait coco · Gingembre',
     time:'35 min', kcal:'180 kcal', baseVol:300,
