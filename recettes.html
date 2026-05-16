@@ -404,7 +404,7 @@ const RECIPES = [
 
   /* ── JUS ── */
   {
-    id:'suco_rosa', type:'jus', caisse:'Suco Rosa',
+    id:'suco_rosa', type:'jus', caisse:'Suco Rosa', baseVol:300,
     emoji:'🔴', title:'Suco Rosa', sub:'Orange · Betterave · Gingembre',
     time:'5 min', kcal:'90 kcal', baseVol:300,
     ings:[
@@ -420,7 +420,7 @@ const RECIPES = [
     tip:'La betterave tache — travailler avec soin. Consommer vite pour garder les nutriments.'
   },
   {
-    id:'vale_agradavel', type:'jus', caisse:'Vale Agradavel',
+    id:'vale_agradavel', type:'jus', caisse:'Vale Agradavel', baseVol:300,
     emoji:'🍉', title:'Vale Agradável', sub:'Pastèque · Concombre · Citron · Gingembre',
     time:'5 min', kcal:'80 kcal', baseVol:300,
     ings:[
@@ -437,7 +437,7 @@ const RECIPES = [
     tip:'Hydratant et léger. Idéal pour l\'été.'
   },
   {
-    id:'raiz_viva', type:'jus', caisse:'Raiz Viva',
+    id:'raiz_viva', type:'jus', caisse:'Raiz Viva', baseVol:300,
     emoji:'🍏', title:'Raiz Viva', sub:'Pomme · Citron · Cannelle · Lin',
     time:'5 min', kcal:'100 kcal', baseVol:300,
     ings:[
@@ -455,7 +455,7 @@ const RECIPES = [
     tip:'Les graines de lin gonflent — servir et boire rapidement. La cannelle stabilise la glycémie.'
   },
   {
-    id:'ginger_zinga', type:'jus', caisse:'Ginger Zinga',
+    id:'ginger_zinga', type:'jus', caisse:'Ginger Zinga', baseVol:300,
     emoji:'🫚', title:'Ginger Zinga', sub:'Gingembre · Pomme · Épinard · Carotte · Citron',
     time:'5 min', kcal:'85 kcal', baseVol:300,
     ings:[
@@ -473,7 +473,7 @@ const RECIPES = [
     tip:'Jus vert détox. Le gingembre est prononcé — ajuster la quantité selon les goûts.'
   },
   {
-    id:'jus_jour', type:'jus', caisse:'Jus du Jour',
+    id:'jus_jour', type:'jus', caisse:'Jus du Jour', baseVol:300,
     emoji:'🥤', title:'Jus du Jour', sub:'Saisonnier · Créatif · Variable',
     time:'5 min', kcal:'—', baseVol:300,
     ings:[],
@@ -484,7 +484,7 @@ const RECIPES = [
     tip:'Pas de recette fixe — utilise ce produit pour les jus improvisés. Les ingrédients varient chaque jour.'
   },
   {
-    id:'jus_orange', type:'jus', caisse:'Jus Orange',
+    id:'jus_orange', type:'jus', caisse:'Jus Orange', baseVol:300,
     emoji:'🍊', title:'Jus d\'Orange', sub:'Pure Orange · Frais · 3€',
     time:'3 min', kcal:'110 kcal', baseVol:300,
     ings:[
@@ -499,7 +499,7 @@ const RECIPES = [
 
     /* ── SMOOTHIES ── */
   {
-    id:'alma_selvagem', type:'smoothie', caisse:'Alma Selvagem',
+    id:'alma_selvagem', type:'smoothie', caisse:'Alma Selvagem', baseVol:500,
     emoji:'🍍', title:'Alma Selvagem', sub:'Ananas · Pitaya · Coco · Whey',
     time:'4 min', kcal:'340 kcal', baseVol:500,
     ings:[
@@ -522,7 +522,7 @@ const RECIPES = [
     tip:'La pitaya congelée est idéale. La maca apporte énergie et récupération. Mixer la whey avec les fruits.'
   },
   {
-    id:'double_choco', type:'smoothie', caisse:'Double Choco Coco Nuts',
+    id:'double_choco', type:'smoothie', caisse:'Double Choco Coco Nuts', baseVol:500,
     emoji:'🍫', title:'Double Choco Coco Nuts', sub:'Cacao · Dattes · Coco · Whey Cacao',
     time:'5 min', kcal:'420 kcal', baseVol:500,
     ings:[
@@ -544,7 +544,7 @@ const RECIPES = [
     tip:'Double choco = cacao dans le blender + nibs en topping. Les myrtilles apportent les antioxydants.'
   },
   {
-    id:'energia_tropical', type:'smoothie', caisse:'Energia Tropical',
+    id:'energia_tropical', type:'smoothie', caisse:'Energia Tropical', baseVol:500,
     emoji:'🥭', title:'Energia Tropical', sub:'Mangue · Fruit de la passion · Chia · Whey',
     time:'4 min', kcal:'380 kcal', baseVol:500,
     ings:[
@@ -564,7 +564,7 @@ const RECIPES = [
     tip:'La mangue congelée donne la texture. Mixer la whey vanille directement avec les fruits.'
   },
   {
-    id:'explosao_proteina', type:'smoothie', caisse:'Explosao de Proteina',
+    id:'explosao_proteina', type:'smoothie', caisse:'Explosao de Proteina', baseVol:500,
     emoji:'💥', title:'Explosão de Proteína', sub:'Banane · Myrtilles · Yaourt · Whey Vanille',
     time:'4 min', kcal:'380 kcal', baseVol:500,
     ings:[
@@ -588,10 +588,10 @@ const RECIPES = [
     emoji:'🍓', title:'Batido Fraise', sub:'Lait amandes · Whey · Fraise',
     time:'3 min', kcal:'280 kcal', baseVol:300,
     ings:[
-      {nom:'Lait amandes', qty:150, unite:'ml', note:'base liquide'},
-      {nom:'Avoine',       qty:20,  unite:'g',  note:'flocons'},
-      {nom:'Whey vanille', qty:37,  unite:'g',  note:'1 scoop'},
-      {nom:'Fraise',       qty:100, unite:'g',  note:'fraiche ou congelee'},
+      {nom:'Lait amandes', qty_per_base:150, unite:'ml', note:'base liquide'},
+      {nom:'Avoine',       qty_per_base:20,  unite:'g',  note:'flocons'},
+      {nom:'Whey vanille', qty_per_base:37,  unite:'g',  note:'1 scoop'},
+      {nom:'Fraise',       qty_per_base:100, unite:'g',  note:'fraiche ou congelee'},
     ],
     steps:[
       {action:'Verser le lait', detail:'Lait amandes 150ml au fond du blender.'},
@@ -606,12 +606,12 @@ const RECIPES = [
     emoji:'🍌', title:'Batido Banane', sub:'Lait amandes · Cannelle · Beurre cacahuete',
     time:'3 min', kcal:'320 kcal', baseVol:300,
     ings:[
-      {nom:'Lait amandes',       qty:150, unite:'ml', note:'base liquide'},
-      {nom:'Avoine',             qty:20,  unite:'g',  note:'flocons'},
-      {nom:'Whey vanille',       qty:37,  unite:'g',  note:'1 scoop'},
-      {nom:'Banane',             qty:100, unite:'g',  note:'mure'},
-      {nom:'Cannelle',           qty:10,  unite:'g',  note:''},
-      {nom:'Beurre de cacahuete',qty:10,  unite:'g',  note:''},
+      {nom:'Lait amandes',       qty_per_base:150, unite:'ml', note:'base liquide'},
+      {nom:'Avoine',             qty_per_base:20,  unite:'g',  note:'flocons'},
+      {nom:'Whey vanille',       qty_per_base:37,  unite:'g',  note:'1 scoop'},
+      {nom:'Banane',             qty_per_base:100, unite:'g',  note:'mure'},
+      {nom:'Cannelle',           qty_per_base:10,  unite:'g',  note:''},
+      {nom:'Beurre de cacahuete',qty_per_base:10,  unite:'g',  note:''},
     ],
     steps:[
       {action:'Verser le lait', detail:'Lait amandes 150ml au fond du blender.'},
@@ -622,7 +622,7 @@ const RECIPES = [
     tip:'La cannelle et le beurre de cacahuete donnent un gout de cookie. Banane bien mure pour plus de douceur.'
   },
   {
-    id:'nouveau_smoothie', type:'smoothie', caisse:'Nouveau Smoothie',
+    id:'nouveau_smoothie', type:'smoothie', caisse:'Nouveau Smoothie', baseVol:500,
     emoji:'🆕', title:'Nouveau Smoothie', sub:'Création du jour',
     time:'4 min', kcal:'—', baseVol:500,
     ings:[],
@@ -633,7 +633,7 @@ const RECIPES = [
 
     /* ── SANDWICHS ── */
   {
-    id:'poulet_b', type:'sandwich', caisse:'Poulet B',
+    id:'poulet_b', type:'sandwich', caisse:'Poulet B', baseVol:1,
     emoji:'🥖', title:'Poulet Baguette', sub:'Poulet · Philadelphia · Crudités',
     time:'8 min', kcal:'520 kcal',
     ings:[
@@ -661,7 +661,7 @@ const RECIPES = [
     tip:"La baguette chaude est essentielle. La salade en premier protège le pain. Servir immédiatement."
   },
   {
-        id:'poulet_t', type:'sandwich', caisse:'Poulet T',
+        id:'poulet_t', type:'sandwich', caisse:'Poulet T', baseVol:1,
     emoji:'🐓', title:'Poulet Tartine', sub:'Léger · Frais · Classique',
     time:'7 min', kcal:'440 kcal',
     ings:[
@@ -688,7 +688,7 @@ const RECIPES = [
     ],
     tip:"T = Tartine : même pâte que la baguette mais avec pain tranché. La salade en premier empêche le pain de devenir mou."
   },
-  {    id:'sardine_b', type:'sandwich', caisse:'Sardine B',
+  {    id:'sardine_b', type:'sandwich', caisse:'Sardine B', baseVol:1,
     emoji:'🐟', title:'Sardine Baguette', sub:'Sardine · Légumes · Chaud',
     time:'7 min', kcal:'400 kcal',
     ings:[
@@ -715,7 +715,7 @@ const RECIPES = [
     tip:"La sauce anglaise apporte de la profondeur. Chauffer la baguette avant de couper."
   },
   {
-    id:'sardine_t', type:'sandwich', caisse:'Sardine T',
+    id:'sardine_t', type:'sandwich', caisse:'Sardine T', baseVol:1,
     emoji:'🐠', title:'Sardine Tartine', sub:'Sardine · Légumes · Chaud',
     time:'7 min', kcal:'380 kcal',
     ings:[
@@ -741,7 +741,7 @@ const RECIPES = [
     tip:"T = Tartine : même pâte que la baguette. Chauffer le pain avant d\'assembler."
   },
   {
-        id:'thon_b', type:'sandwich', caisse:'Thon B',
+        id:'thon_b', type:'sandwich', caisse:'Thon B', baseVol:1,
     emoji:'🎣', title:'Thon Baguette', sub:'Thon · Philadelphia · Chaud',
     time:'7 min', kcal:'420 kcal',
     ings:[
@@ -770,7 +770,7 @@ const RECIPES = [
     tip:"Le fromage en tranche en base est la clé — il fond à la chauffe et lie tous les ingrédients. Toujours fermer avant de chauffer."
   },
   {
-    id:'thon_t', type:'sandwich', caisse:'Thon T',
+    id:'thon_t', type:'sandwich', caisse:'Thon T', baseVol:1,
     emoji:'🐡', title:'Thon Tartine', sub:'Thon · Philadelphia · Chaud',
     time:'7 min', kcal:'390 kcal',
     ings:[
@@ -799,14 +799,14 @@ const RECIPES = [
     tip:"Toujours fermer avant de chauffer. Le fromage en tranche en base fond et lie la garniture."
   },
   {
-    id:'overgnith', type:'gateau', caisse:'Overgnith',
+    id:'overgnith', type:'gateau', caisse:'Overgnith', baseVol:200,
     emoji:'🌿', title:'Overgnith', sub:'Chia · Avoine · Lait',
     time:'5 min + 1 nuit', kcal:'220 kcal', baseVol:200,
     ings:[
-      {nom:'Chia',        qty:10,  unite:'g',  note:''},
-      {nom:'Avoine',      qty:15,  unite:'g',  note:'flocons'},
-      {nom:'Sirop agave', qty:5,   unite:'g',  note:'1 cuillere a cafe'},
-      {nom:'Lait vache',  qty:150, unite:'ml', note:''},
+      {nom:'Chia',        qty_per_base:10,  unite:'g',  note:''},
+      {nom:'Avoine',      qty_per_base:15,  unite:'g',  note:'flocons'},
+      {nom:'Sirop agave', qty_per_base:5,   unite:'g',  note:'1 cuillere a cafe'},
+      {nom:'Lait vache',  qty_per_base:150, unite:'ml', note:''},
     ],
     steps:[
       {action:'Melanger', detail:'Mettre chia, avoine et sirop agave dans un pot ou verre.'},
@@ -817,15 +817,15 @@ const RECIPES = [
     tip:'Preparer la veille au soir pour le lendemain matin. Le chia absorbe le lait et gonfle.'
   },
   {
-    id:'overgnith_fraise', type:'gateau', caisse:'Overgnith Fraise',
+    id:'overgnith_fraise', type:'gateau', caisse:'Overgnith Fraise', baseVol:200,
     emoji:'🍓', title:'Overgnith Fraise', sub:'Chia · Avoine · Fraise',
     time:'5 min + 1 nuit', kcal:'240 kcal', baseVol:200,
     ings:[
-      {nom:'Chia',        qty:10,  unite:'g',  note:''},
-      {nom:'Avoine',      qty:15,  unite:'g',  note:'flocons'},
-      {nom:'Sirop agave', qty:5,   unite:'g',  note:'1 cuillere a cafe'},
-      {nom:'Lait vache',  qty:150, unite:'ml', note:''},
-      {nom:'Fraise',      qty:20,  unite:'g',  note:'fraiche coupee en des'},
+      {nom:'Chia',        qty_per_base:10,  unite:'g',  note:''},
+      {nom:'Avoine',      qty_per_base:15,  unite:'g',  note:'flocons'},
+      {nom:'Sirop agave', qty_per_base:5,   unite:'g',  note:'1 cuillere a cafe'},
+      {nom:'Lait vache',  qty_per_base:150, unite:'ml', note:''},
+      {nom:'Fraise',      qty_per_base:20,  unite:'g',  note:'fraiche coupee en des'},
     ],
     steps:[
       {action:'Melanger', detail:'Mettre chia, avoine et sirop agave dans un pot.'},
@@ -836,20 +836,20 @@ const RECIPES = [
     tip:'Les fraises se mettent toujours au moment du service pour garder leur fraicheur.'
   },
   {
-    id:'soupe_carotte', type:'soupe', caisse:'Soupe Carotte',
+    id:'soupe_carotte', type:'soupe', caisse:'Soupe Carotte', baseVol:300,
     emoji:'🥕', title:'Soupe Carotte Coco', sub:'Carotte · Lait coco · Gingembre',
     time:'35 min', kcal:'180 kcal', baseVol:300,
     ings:[
-      {nom:'Carotte',          qty:900, unite:'g',  note:'pelees, en rondelles'},
-      {nom:'Echalotte',        qty:110, unite:'g',  note:'emincee'},
-      {nom:'Lait coco',        qty:300, unite:'ml', note:'1 boite'},
-      {nom:'Huile olive',      qty:30,  unite:'ml', note:'2 cuilleres a soupe'},
-      {nom:'Gingembre poudre', qty:5,   unite:'g',  note:'1 cuillere a cafe'},
-      {nom:'Thym',             qty:2,   unite:'g',  note:'2 pincees deshydrate'},
-      {nom:'Poivre',           qty:3,   unite:'g',  note:'3 pincees'},
-      {nom:'Sel',              qty:5,   unite:'g',  note:'1 cuillere a cafe'},
-      {nom:'Eau',              qty:850, unite:'ml', note:''},
-      {nom:'Persil',           qty:5,   unite:'g',  note:'3 brins deco'},
+      {nom:'Carotte',          qty_per_base:900, unite:'g',  note:'pelees, en rondelles'},
+      {nom:'Echalotte',        qty_per_base:110, unite:'g',  note:'emincee'},
+      {nom:'Lait coco',        qty_per_base:300, unite:'ml', note:'1 boite'},
+      {nom:'Huile olive',      qty_per_base:30,  unite:'ml', note:'2 cuilleres a soupe'},
+      {nom:'Gingembre poudre', qty_per_base:5,   unite:'g',  note:'1 cuillere a cafe'},
+      {nom:'Thym',             qty_per_base:2,   unite:'g',  note:'2 pincees deshydrate'},
+      {nom:'Poivre',           qty_per_base:3,   unite:'g',  note:'3 pincees'},
+      {nom:'Sel',              qty_per_base:5,   unite:'g',  note:'1 cuillere a cafe'},
+      {nom:'Eau',              qty_per_base:850, unite:'ml', note:''},
+      {nom:'Persil',           qty_per_base:5,   unite:'g',  note:'3 brins deco'},
     ],
     steps:[
       {action:'Faire revenir', detail:'Chauffer huile olive. Faire revenir echalotte 3-4 min.'},
@@ -863,7 +863,7 @@ const RECIPES = [
     tip:'5 portions par preparation. Conservation 3 jours au frigo.'
   },
   {
-    id:'soupe_butternut', type:'soupe', caisse:'Soupe Butternut',
+    id:'soupe_butternut', type:'soupe', caisse:'Soupe Butternut', baseVol:300,
     emoji:'🍲', title:'Soupe Butternut', sub:'Réconfortant · Crémeux · Automne',
     time:'35 min', kcal:'280 kcal', portions:'5',
     ings:[
@@ -887,7 +887,7 @@ const RECIPES = [
   },
 
   {
-    id:'soupe_tomate', type:'soupe', caisse:'Soupe Tomate',
+    id:'soupe_tomate', type:'soupe', caisse:'Soupe Tomate', baseVol:300,
     emoji:'🍅', title:'Soupe Tomate', sub:'Maison · Veloutée · Facile',
     time:'30 min', kcal:'220 kcal', portions:'5',
     ings:[
