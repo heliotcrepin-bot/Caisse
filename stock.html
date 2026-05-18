@@ -122,6 +122,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Mono',monospace;min-
     <button class="tab" onclick="switchTab('histo')">📋 Histo</button>
     <button class="tab" onclick="switchTab('scanner')">📷 Scanner</button>
     <button class="tab" onclick="switchTab('peremption')">⏰ Péremption</button>
+    <button class="tab" onclick="switchTab('saladette')">🥗 Saladette</button>
   </div>
 </div>
 <div class="banner hidden" id="banner" onclick="switchTab('courses')">
@@ -136,6 +137,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Mono',monospace;min-
   <div id="histoContent"><div class="empty">Aucun achat enregistré</div></div></div>
 </div>
 <div class="tab-content" id="tab-peremption"></div>
+<div class="tab-content" id="tab-saladette"></div>
 <div class="tab-content" id="tab-scanner">
   <div class="section">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
@@ -1069,10 +1071,214 @@ function modifierDuree(ing) {
   }
 }
 
+
+// ── SALADETTE ─────────────────────────────────────────────────────────────────
+const SALADETTE_ITEMS = [
+  // Grands bacs
+  {nom:'Salade',           bac:'grand',  duree:3,  categorie:'Base'},
+  {nom:'Pâtes intégrales', bac:'grand',  duree:3,  categorie:'Base'},
+  {nom:'Quinoa',           bac:'grand',  duree:4,  categorie:'Base'},
+  // Petits bacs
+  {nom:'Maïs',             bac:'petit',  duree:3,  categorie:'Légumes'},
+  {nom:'Concombre',        bac:'petit',  duree:3,  categorie:'Légumes'},
+  {nom:'Chou-fleur cuit',  bac:'petit',  duree:3,  categorie:'Légumes'},
+  {nom:'Patate douce',     bac:'petit',  duree:3,  categorie:'Légumes'},
+  {nom:'Haricots blancs',  bac:'petit',  duree:3,  categorie:'Légumes'},
+  {nom:'Cœurs de palmier', bac:'petit',  duree:3,  categorie:'Légumes'},
+  {nom:'Mangue',           bac:'petit',  duree:2,  categorie:'Fruits'},
+  {nom:'Avocat',           bac:'petit',  duree:1,  categorie:'Fruits'},
+  {nom:'Tomate confite',   bac:'petit',  duree:7,  categorie:'Condiments'},
+  {nom:'Olives coupées',   bac:'petit',  duree:7,  categorie:'Condiments'},
+  {nom:'Olives noires',    bac:'petit',  duree:7,  categorie:'Condiments'},
+  {nom:'Bille Mozzarella', bac:'petit',  duree:3,  categorie:'Fromages'},
+  {nom:'Feta',             bac:'petit',  duree:7,  categorie:'Fromages'},
+  {nom:'Poulet coupé',     bac:'petit',  duree:3,  categorie:'Protéines'},
+  {nom:'Thon effiloché',   bac:'petit',  duree:3,  categorie:'Protéines'},
+  {nom:'Crevettes',        bac:'petit',  duree:1,  categorie:'Protéines'},
+];
+
+let saladetteDurees = JSON.parse(localStorage.getItem('bs_saladette_durees') || JSON.stringify(
+  Object.fromEntries(SALADETTE_ITEMS.map(i => [i.nom, i.duree]))
+));
+let saladetteDates = JSON.parse(localStorage.getItem('bs_saladette_dates') || '{}');
+
+function saveSaladetteDurees() {
+  localStorage.setItem('bs_saladette_durees', JSON.stringify(saladetteDurees));
+}
+function saveSaladetteDates() {
+  localStorage.setItem('bs_saladette_dates', JSON.stringify(saladetteDates));
+}
+
+function renderSaladette() {
+  const el = document.getElementById('tab-saladette');
+  const today = new Date(); today.setHours(0,0,0,0);
+
+  // Bouton "Mise en place aujourd'hui"
+  let html = '<div class="section">';
+  html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">';
+  html += '<div class="sec-title" style="margin-bottom:0">🥗 Saladette</div>';
+  html += '<button onclick="miseEnPlaceAujourdhui()" style="background:var(--accent);border:none;border-radius:10px;color:#0f0f0f;font-family:'DM Mono',monospace;font-size:12px;font-weight:700;padding:8px 14px;cursor:pointer">📅 Mise en place</button>';
+  html += '</div>';
+  html += '<div style="font-size:11px;color:var(--muted);margin-bottom:12px">Clique "Mise en place" pour enregistrer la date d'aujourd'hui sur tous les bacs cochés</div>';
+  html += '</div>';
+
+  // Grouper par catégorie
+  const cats = [...new Set(SALADETTE_ITEMS.map(i => i.categorie))];
+
+  // Section urgents
+  const urgents = SALADETTE_ITEMS.filter(item => {
+    const d = saladetteDates[item.nom];
+    if (!d) return false;
+    const dateM = new Date(d); dateM.setHours(0,0,0,0);
+    const duree = saladetteDurees[item.nom] || item.duree;
+    const peremption = new Date(dateM.getTime() + duree*86400000);
+    const jours = Math.round((peremption - today)/86400000);
+    return jours <= 1;
+  });
+
+  if (urgents.length > 0) {
+    html += '<div class="section" style="border:1px solid var(--red);background:rgba(239,68,68,0.05)">';
+    html += '<div class="sec-title" style="color:var(--red)">🚨 À utiliser aujourd'hui</div>';
+    urgents.forEach(item => {
+      const d = saladetteDates[item.nom];
+      const dateM = new Date(d); dateM.setHours(0,0,0,0);
+      const duree = saladetteDurees[item.nom] || item.duree;
+      const peremption = new Date(dateM.getTime() + duree*86400000);
+      const jours = Math.round((peremption - today)/86400000);
+      const label = jours < 0 ? 'PÉRIMÉ' : jours === 0 ? 'Dernier jour' : 'Demain';
+      const color = jours < 0 ? 'var(--red)' : 'var(--orange,#f97316)';
+      html += `<div class="ing-card" style="border-color:${color}">
+        <div class="card-row">
+          <div class="card-info">
+            <div class="card-name" style="color:${color}">${item.nom}</div>
+            <div style="font-size:10px;color:var(--muted)">Mis en place le ${new Date(d).toLocaleDateString('fr-FR')}</div>
+          </div>
+          <div class="card-right">
+            <div style="color:${color};font-weight:700;font-size:13px">${label}</div>
+          </div>
+        </div>
+      </div>`;
+    });
+    html += '</div>';
+  }
+
+  // Tableau par catégorie
+  cats.forEach(cat => {
+    const items = SALADETTE_ITEMS.filter(i => i.categorie === cat);
+    html += `<div class="section"><div class="sec-title">${cat}</div><div class="ing-list">`;
+
+    items.forEach(item => {
+      const d = saladetteDates[item.nom];
+      const duree = saladetteDurees[item.nom] || item.duree;
+      let joursRestants = null;
+      let dateStr = '—';
+      let peremStr = '—';
+
+      if (d) {
+        const dateM = new Date(d); dateM.setHours(0,0,0,0);
+        const peremption = new Date(dateM.getTime() + duree*86400000);
+        joursRestants = Math.round((peremption - today)/86400000);
+        dateStr = dateM.toLocaleDateString('fr-FR');
+        peremStr = peremption.toLocaleDateString('fr-FR');
+      }
+
+      const color = joursRestants === null ? 'var(--muted)' :
+        joursRestants < 0 ? 'var(--red)' :
+        joursRestants <= 1 ? 'var(--red)' :
+        joursRestants <= 2 ? 'var(--orange,#f97316)' : 'var(--muted)';
+
+      const bacLabel = item.bac === 'grand' ? '🔵 Grand bac' : '⚪ Petit bac';
+
+      html += `<div class="ing-card ok">
+        <div class="card-row">
+          <div class="card-info">
+            <div class="card-name">${item.nom} <span style="font-size:9px;color:var(--muted)">${bacLabel}</span></div>
+            <div style="font-size:11px;margin-top:3px">
+              <span style="color:var(--muted)">Mis en place: ${dateStr}</span>
+              <span style="color:${color};margin-left:8px">Périme: ${peremStr}</span>
+              ${joursRestants !== null ? `<span style="color:${color};margin-left:8px;font-weight:600">${joursRestants < 0 ? 'PÉRIMÉ' : joursRestants+'j restants'}</span>` : ''}
+            </div>
+          </div>
+          <div class="card-right" style="gap:4px">
+            <button onclick="majDateBac('${item.nom}')" style="background:var(--accent);border:none;border-radius:6px;color:#0f0f0f;font-size:10px;font-weight:700;padding:4px 8px;cursor:pointer">📅 Mise en place</button>
+            <button onclick="modifierDureeBac('${item.nom}')" style="background:var(--surface);border:1px solid var(--border);border-radius:6px;color:var(--muted);font-size:10px;padding:4px 8px;cursor:pointer">✏️ ${duree}j</button>
+          </div>
+        </div>
+      </div>`;
+    });
+    html += '</div></div>';
+  });
+
+  el.innerHTML = html;
+}
+
+function majDateBac(nom) {
+  saladetteDates[nom] = new Date().toISOString().split('T')[0];
+  saveSaladetteDates();
+  renderSaladette();
+  showToast('📅 ' + nom + ' mis en place aujourd'hui');
+}
+
+function modifierDureeBac(nom) {
+  const actuelle = saladetteDurees[nom] || SALADETTE_ITEMS.find(i=>i.nom===nom)?.duree || 3;
+  const nouvelle = prompt('Durée HACCP pour ' + nom + ' (jours):', actuelle);
+  if (nouvelle !== null && !isNaN(parseInt(nouvelle))) {
+    saladetteDurees[nom] = parseInt(nouvelle);
+    saveSaladetteDurees();
+    renderSaladette();
+    showToast('✅ ' + nom + ' → ' + parseInt(nouvelle) + 'j');
+  }
+}
+
+function miseEnPlaceAujourdhui() {
+  // Modale pour cocher les bacs mis en place aujourd'hui
+  const modal = document.createElement('div');
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:400;display:flex;align-items:flex-end';
+  const today = new Date().toISOString().split('T')[0];
+
+  let itemsHtml = SALADETTE_ITEMS.map(item => `
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)">
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+        <input type="checkbox" id="bac-check-${item.nom.replace(/ /g,'_')}" style="width:16px;height:16px">
+        <span style="font-size:13px">${item.nom}</span>
+      </label>
+      <span style="font-size:10px;color:var(--muted)">${item.duree}j HACCP</span>
+    </div>`).join('');
+
+  modal.innerHTML = `<div style="background:var(--card);border-radius:20px 20px 0 0;padding:20px;width:100%;max-width:500px;margin:0 auto;max-height:80vh;overflow-y:auto">
+    <div style="font-size:16px;font-weight:700;color:var(--accent);margin-bottom:4px">📅 Mise en place — ${new Date().toLocaleDateString('fr-FR')}</div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:12px">Coche les bacs mis en place aujourd'hui</div>
+    <div style="margin-bottom:16px">${itemsHtml}</div>
+    <div style="display:flex;gap:8px">
+      <button onclick="validerMiseEnPlace(this.closest('[style*=fixed]'), '${today}')" style="flex:1;background:var(--accent);color:#0f0f0f;border:none;border-radius:12px;padding:14px;font-size:14px;font-weight:700;cursor:pointer">✅ Confirmer</button>
+      <button onclick="this.closest('[style*=fixed]').remove()" style="flex:1;background:var(--surface);border:1px solid var(--border);color:var(--muted);border-radius:12px;padding:14px;font-size:13px;cursor:pointer">Annuler</button>
+    </div>
+  </div>`;
+
+  document.body.appendChild(modal);
+}
+
+function validerMiseEnPlace(modal, today) {
+  let count = 0;
+  SALADETTE_ITEMS.forEach(item => {
+    const key = item.nom.replace(/ /g,'_');
+    const cb = document.getElementById('bac-check-'+key);
+    if (cb && cb.checked) {
+      saladetteDates[item.nom] = today;
+      count++;
+    }
+  });
+  saveSaladetteDates();
+  modal.remove();
+  renderSaladette();
+  showToast('✅ ' + count + ' bac(s) enregistré(s) !');
+}
+
 function switchTab(tab){
   updateFabGateaux(tab);
   if (tab === 'peremption') { setTimeout(renderPeremption, 50); }
-  ['stock','courses','tarifs','histo','scanner','peremption'].forEach((t,i)=>{
+  if (tab === 'saladette') { setTimeout(renderSaladette, 50); }
+  ['stock','courses','tarifs','histo','scanner','peremption','saladette'].forEach((t,i)=>{
     document.querySelectorAll('.tab')[i].classList.toggle('active',t===tab);
     document.getElementById('tab-'+t).classList.toggle('active',t===tab);
   });
@@ -1567,15 +1773,20 @@ async function scPartager(){
 }
 
 async function scSauvegarderTicket(total, date, magasin){
-  if(!scImgFull)return;
   try{
-    const img=new Image();img.src=scImgFull;
-    await new Promise(r=>img.onload=r);
-    const canvas=document.createElement('canvas');
-    const ratio=Math.min(600/img.width,1);
-    canvas.width=img.width*ratio;canvas.height=img.height*ratio;
-    canvas.getContext('2d').drawImage(img,0,0,canvas.width,canvas.height);
-    const thumb=canvas.toDataURL('image/jpeg',0.5);
+    let thumb = '';
+    // Sauvegarder la photo si disponible
+    if(scImgFull){
+      try{
+        const img=new Image();img.src=scImgFull;
+        await new Promise(r=>img.onload=r);
+        const canvas=document.createElement('canvas');
+        const ratio=Math.min(600/img.width,1);
+        canvas.width=img.width*ratio;canvas.height=img.height*ratio;
+        canvas.getContext('2d').drawImage(img,0,0,canvas.width,canvas.height);
+        thumb=canvas.toDataURL('image/jpeg',0.5);
+      }catch(e){console.warn('Miniature ticket:',e);}
+    }
     ticketsComptable.unshift({
       date,
       heure:new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}),
