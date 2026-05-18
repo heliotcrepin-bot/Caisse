@@ -1633,6 +1633,7 @@ async function scEnvoyerTotal() {
 }
 
 async function scValiderTout() {
+  const savedImg = scImg; // Sauvegarder avant tout reset possible
   const articles = scArticlesDetectes;
   const selectionnes = articles.map((art, i) => {
     const checked = document.getElementById('art-check-'+i)?.checked;
@@ -1694,6 +1695,7 @@ async function scValiderTout() {
     });
 
     // 5. Sauvegarder pour comptable
+    scImg = scImg || savedImg; // Restaurer si effacé
     await scSauvegarderTicket(total, date, magasin);
 
     showToast('✅ Prix mis à jour · Ticket envoyé · Comptable sauvegardé !');
@@ -1774,19 +1776,8 @@ async function scPartager(){
 
 async function scSauvegarderTicket(total, date, magasin){
   try{
-    let thumb = '';
-    // Sauvegarder la photo si disponible
-    if(scImgFull){
-      try{
-        const img=new Image();img.src=scImgFull;
-        await new Promise(r=>img.onload=r);
-        const canvas=document.createElement('canvas');
-        const ratio=Math.min(600/img.width,1);
-        canvas.width=img.width*ratio;canvas.height=img.height*ratio;
-        canvas.getContext('2d').drawImage(img,0,0,canvas.width,canvas.height);
-        thumb=canvas.toDataURL('image/jpeg',0.5);
-      }catch(e){console.warn('Miniature ticket:',e);}
-    }
+    // Utiliser scImg (déjà compressé) directement comme miniature
+    const thumb = scImg ? 'data:image/jpeg;base64,'+scImg : (typeof savedImg !== 'undefined' && savedImg ? 'data:image/jpeg;base64,'+savedImg : '');
     ticketsComptable.unshift({
       date,
       heure:new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}),
