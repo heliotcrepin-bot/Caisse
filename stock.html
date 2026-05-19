@@ -1073,7 +1073,7 @@ function modifierDuree(ing) {
 
 
 // ── SALADETTE ─────────────────────────────────────────────────────────────────
-const SALADETTE_ITEMS = [
+const SALADETTE_DEFAULT = [
   // Grands bacs
   {nom:'Salade',           bac:'grand',  duree:3,  categorie:'Base'},
   {nom:'Pâtes intégrales', bac:'grand',  duree:3,  categorie:'Base'},
@@ -1097,8 +1097,28 @@ const SALADETTE_ITEMS = [
   {nom:'Crevettes',        bac:'petit',  duree:1,  categorie:'Protéines'},
 ];
 
+// Ingrédients personnalisés ajoutés par l'utilisateur (persistés)
+let saladetteCustom = JSON.parse(localStorage.getItem('bs_saladette_custom') || '[]');
+// Noms d'ingrédients désactivés (cachés de la vue normale, réactivables)
+let saladetteDisabled = JSON.parse(localStorage.getItem('bs_saladette_disabled') || '[]');
+
+function saveSaladetteCustom()   { localStorage.setItem('bs_saladette_custom',   JSON.stringify(saladetteCustom)); }
+function saveSaladetteDisabled() { localStorage.setItem('bs_saladette_disabled', JSON.stringify(saladetteDisabled)); }
+
+// Liste complète (défaut + custom) — utilisée partout sauf vue principale
+function getAllSaladetteItems() {
+  return [...SALADETTE_DEFAULT, ...saladetteCustom];
+}
+// Liste active = tout sauf désactivés
+function getSaladetteItems() {
+  return getAllSaladetteItems().filter(i => !saladetteDisabled.includes(i.nom));
+}
+
+// Variable dynamique pour compatibilité avec le reste du code
+let SALADETTE_ITEMS = getSaladetteItems();
+
 let saladetteDurees = JSON.parse(localStorage.getItem('bs_saladette_durees') || JSON.stringify(
-  Object.fromEntries(SALADETTE_ITEMS.map(i => [i.nom, i.duree]))
+  Object.fromEntries(SALADETTE_DEFAULT.map(i => [i.nom, i.duree]))
 ));
 let saladetteDates = JSON.parse(localStorage.getItem('bs_saladette_dates') || '{}');
 
@@ -1110,14 +1130,23 @@ function saveSaladetteDates() {
 }
 
 function renderSaladette() {
+  // Rafraîchir la liste à chaque rendu
+  SALADETTE_ITEMS = getSaladetteItems();
+
   const el = document.getElementById('tab-saladette');
   const today = new Date(); today.setHours(0,0,0,0);
 
-  // Bouton Mise en place
+  // Boutons d'action
   let html = '<div class="section">';
-  html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">';
+  html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:6px">';
   html += '<div class="sec-title" style="margin-bottom:0">🥗 Saladette</div>';
-  html += '<button onclick="miseEnPlaceAujourdhui()" style="background:var(--accent);border:none;border-radius:10px;color:#0f0f0f;font-family:monospace;font-size:12px;font-weight:700;padding:8px 14px;cursor:pointer">📅 Mise en place</button>';
+  html += '<div style="display:flex;gap:6px;flex-wrap:wrap">';
+  html += '<button onclick="ouvrirAjouterIngredient()" style="background:var(--gdim);border:1px solid var(--green);border-radius:10px;color:var(--green);font-family:monospace;font-size:11px;font-weight:700;padding:8px 11px;cursor:pointer">➕ Ajouter</button>';
+  if (saladetteDisabled.length > 0) {
+    html += `<button onclick="ouvrirDesactives()" style="background:var(--surface);border:1px solid var(--border);border-radius:10px;color:var(--muted);font-family:monospace;font-size:11px;font-weight:700;padding:8px 11px;cursor:pointer">👁 Désactivés (${saladetteDisabled.length})</button>`;
+  }
+  html += '<button onclick="miseEnPlaceAujourdhui()" style="background:var(--accent);border:none;border-radius:10px;color:#0f0f0f;font-family:monospace;font-size:11px;font-weight:700;padding:8px 11px;cursor:pointer">📅 Mise en place</button>';
+  html += '</div>';
   html += '</div>';
   html += '<div style="font-size:11px;color:var(--muted);margin-bottom:12px">Clique Mise en place pour enregistrer la date d\'aujourd-hui sur tous les bacs cochés</div>';
   html += '</div>';
@@ -1202,6 +1231,7 @@ function renderSaladette() {
           <div class="card-right" style="gap:4px">
             <button onclick="majDateBac('${item.nom}')" style="background:var(--accent);border:none;border-radius:6px;color:#0f0f0f;font-size:10px;font-weight:700;padding:4px 8px;cursor:pointer">📅 Mise en place</button>
             <button onclick="modifierDureeBac('${item.nom}')" style="background:var(--surface);border:1px solid var(--border);border-radius:6px;color:var(--muted);font-size:10px;padding:4px 8px;cursor:pointer">✏️ ${duree}j</button>
+            <button onclick="desactiverIngredient('${item.nom.replace(/'/g,"\\'")}')" style="background:var(--surface);border:1px solid var(--border);border-radius:6px;color:var(--muted);font-size:10px;padding:4px 8px;cursor:pointer">👁 Désactiver</button>
           </div>
         </div>
       </div>`;
@@ -1228,6 +1258,155 @@ function modifierDureeBac(nom) {
     renderSaladette();
     showToast('✅ ' + nom + ' → ' + parseInt(nouvelle) + 'j');
   }
+}
+
+// ── DÉSACTIVER UN INGRÉDIENT (réversible) ─────────────────────────────────────
+function desactiverIngredient(nom) {
+  if (!saladetteDisabled.includes(nom)) {
+    saladetteDisabled.push(nom);
+    saveSaladetteDisabled();
+  }
+  renderSaladette();
+  showToast('👁 ' + nom + ' désactivé');
+}
+
+// ── RÉACTIVER UN INGRÉDIENT ───────────────────────────────────────────────────
+function reactiverIngredient(nom) {
+  saladetteDisabled = saladetteDisabled.filter(n => n !== nom);
+  saveSaladetteDisabled();
+  // Si la modale des désactivés est ouverte, on la rafraîchit ou ferme
+  const modal = document.getElementById('modal-desactives');
+  if (modal) {
+    if (saladetteDisabled.length === 0) {
+      modal.remove();
+    } else {
+      modal.remove();
+      ouvrirDesactives();
+    }
+  }
+  renderSaladette();
+  showToast('✅ ' + nom + ' réactivé');
+}
+
+// ── MODALE LISTE DES DÉSACTIVÉS ────────────────────────────────────────────────
+function ouvrirDesactives() {
+  const modal = document.createElement('div');
+  modal.id = 'modal-desactives';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:400;display:flex;align-items:flex-end';
+
+  const all = getAllSaladetteItems();
+  const disabledItems = all.filter(i => saladetteDisabled.includes(i.nom));
+
+  let itemsHtml = '';
+  if (disabledItems.length === 0) {
+    itemsHtml = '<div style="text-align:center;color:var(--muted);padding:20px 0;font-size:12px">Aucun ingrédient désactivé</div>';
+  } else {
+    itemsHtml = disabledItems.map(item => `
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)">
+        <div>
+          <div style="font-size:13px;color:var(--text)">${item.nom}</div>
+          <div style="font-size:10px;color:var(--muted)">${item.categorie} · ${item.bac === 'grand' ? 'Grand bac' : 'Petit bac'} · ${item.duree}j HACCP</div>
+        </div>
+        <button onclick="reactiverIngredient('${item.nom.replace(/'/g,"\\'")}')" style="background:var(--gdim);border:1px solid var(--green);border-radius:8px;color:var(--green);font-family:monospace;font-size:11px;font-weight:700;padding:6px 12px;cursor:pointer">✅ Réactiver</button>
+      </div>`).join('');
+  }
+
+  modal.innerHTML = `<div style="background:var(--card);border-radius:20px 20px 0 0;padding:20px;width:100%;max-width:500px;margin:0 auto;max-height:80vh;overflow-y:auto">
+    <div style="font-size:16px;font-weight:700;color:var(--accent);margin-bottom:4px">👁 Ingrédients désactivés</div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:14px">Clique Réactiver pour remettre dans la saladette</div>
+    <div style="margin-bottom:16px">${itemsHtml}</div>
+    <button onclick="document.getElementById('modal-desactives').remove()" style="width:100%;background:var(--surface);border:1px solid var(--border);color:var(--muted);border-radius:12px;padding:14px;font-size:13px;cursor:pointer">Fermer</button>
+  </div>`;
+
+  document.body.appendChild(modal);
+}
+
+// ── MODALE AJOUTER UN INGRÉDIENT ──────────────────────────────────────────────
+function ouvrirAjouterIngredient() {
+  const modal = document.createElement('div');
+  modal.id = 'modal-ajout-ing';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:400;display:flex;align-items:flex-end';
+
+  const cats = [...new Set(getAllSaladetteItems().map(i => i.categorie))];
+  const catOptions = cats.map(c => `<option value="${c}">${c}</option>`).join('');
+
+  modal.innerHTML = `<div style="background:var(--card);border-radius:20px 20px 0 0;padding:20px;width:100%;max-width:500px;margin:0 auto;max-height:85vh;overflow-y:auto">
+    <div style="font-size:16px;font-weight:700;color:var(--accent);margin-bottom:4px">➕ Ajouter un ingrédient</div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:14px">Nouvel ingrédient pour ta saladette</div>
+
+    <div style="margin-bottom:12px">
+      <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px">Nom *</label>
+      <input id="new-ing-nom" type="text" placeholder="Ex: Radis, Lentilles..." style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:monospace;font-size:14px;padding:10px 12px;box-sizing:border-box">
+    </div>
+
+    <div style="margin-bottom:12px">
+      <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px">Catégorie</label>
+      <select id="new-ing-cat" onchange="document.getElementById('new-ing-cat-nouvelle').style.display=this.value==='__new__'?'block':'none'" style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:monospace;font-size:14px;padding:10px 12px;box-sizing:border-box">
+        ${catOptions}
+        <option value="__new__">+ Nouvelle catégorie...</option>
+      </select>
+      <input id="new-ing-cat-nouvelle" type="text" placeholder="Nom de la nouvelle catégorie" style="display:none;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:monospace;font-size:14px;padding:10px 12px;margin-top:6px;box-sizing:border-box">
+    </div>
+
+    <div style="margin-bottom:12px">
+      <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px">Type de bac</label>
+      <div style="display:flex;gap:8px">
+        <label style="flex:1;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px;cursor:pointer;display:flex;align-items:center;gap:8px"><input type="radio" name="new-ing-bac" value="petit" checked><span style="font-size:13px">⚪ Petit bac</span></label>
+        <label style="flex:1;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px;cursor:pointer;display:flex;align-items:center;gap:8px"><input type="radio" name="new-ing-bac" value="grand"><span style="font-size:13px">🔵 Grand bac</span></label>
+      </div>
+    </div>
+
+    <div style="margin-bottom:16px">
+      <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px">Durée HACCP (jours)</label>
+      <input id="new-ing-duree" type="number" value="3" min="1" max="30" style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:monospace;font-size:14px;padding:10px 12px;box-sizing:border-box">
+    </div>
+
+    <div style="display:flex;gap:8px">
+      <button onclick="validerAjoutIngredient()" style="flex:1;background:var(--accent);color:#0f0f0f;border:none;border-radius:12px;padding:14px;font-size:14px;font-weight:700;cursor:pointer">✅ Ajouter</button>
+      <button onclick="document.getElementById('modal-ajout-ing').remove()" style="flex:1;background:var(--surface);border:1px solid var(--border);color:var(--muted);border-radius:12px;padding:14px;font-size:13px;cursor:pointer">Annuler</button>
+    </div>
+  </div>`;
+
+  document.body.appendChild(modal);
+  setTimeout(() => document.getElementById('new-ing-nom').focus(), 100);
+}
+
+function validerAjoutIngredient() {
+  const nom = document.getElementById('new-ing-nom').value.trim();
+  let cat = document.getElementById('new-ing-cat').value;
+  if (cat === '__new__') {
+    cat = document.getElementById('new-ing-cat-nouvelle').value.trim();
+  }
+  const bac = document.querySelector('input[name="new-ing-bac"]:checked').value;
+  const duree = parseInt(document.getElementById('new-ing-duree').value) || 3;
+
+  if (!nom) { showToast('Saisis un nom', true); return; }
+  if (!cat) { showToast('Choisis ou saisis une catégorie', true); return; }
+
+  // Vérifier doublon
+  const existing = getAllSaladetteItems().find(i => i.nom.toLowerCase() === nom.toLowerCase());
+  if (existing) {
+    // Si désactivé, le réactiver
+    if (saladetteDisabled.includes(existing.nom)) {
+      saladetteDisabled = saladetteDisabled.filter(n => n !== existing.nom);
+      saveSaladetteDisabled();
+      document.getElementById('modal-ajout-ing').remove();
+      renderSaladette();
+      showToast('✅ ' + existing.nom + ' réactivé');
+      return;
+    }
+    showToast('Cet ingrédient existe déjà', true);
+    return;
+  }
+
+  saladetteCustom.push({nom, bac, duree, categorie: cat});
+  saveSaladetteCustom();
+  saladetteDurees[nom] = duree;
+  saveSaladetteDurees();
+
+  document.getElementById('modal-ajout-ing').remove();
+  renderSaladette();
+  showToast('✅ ' + nom + ' ajouté !');
 }
 
 function miseEnPlaceAujourdhui() {
