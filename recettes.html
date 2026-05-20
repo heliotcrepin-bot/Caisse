@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>BS Recettes</title>
+<title>BS Recettes v12 — Salada Carioca</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@600;700;800&display=swap');
 :root{
@@ -13,12 +13,13 @@
   --green:#4ade80;--gdim:#1a4028;--orange:#fb923c;--odim:#3d2010;
   --red:#f87171;--rdim:#3d1010;--blue:#60a5fa;--bdim:#1e2d4a;
   --purple:#c084fc;--pdim:#2d1a4a;--teal:#2dd4bf;--tdim:#0f2e2b;
+  --pink:#f472b6;--pinkdim:#3d1a2d;
+  --gold:#fbbf24;--golddim:#3d2d10;
   --text:#e8f5e9;--muted:#6b8f72;--accent:#86efac;
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 body{background:var(--bg);color:var(--text);font-family:'DM Mono',monospace;min-height:100vh;padding-bottom:20px}
 
-/* ── HEADER ── */
 .header{background:var(--surface);border-bottom:1px solid var(--border);padding:14px 16px 10px;position:sticky;top:0;z-index:100}
 .header-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
 .logo{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--accent)}
@@ -28,18 +29,20 @@ body{background:var(--bg);color:var(--text);font-family:'DM Mono',monospace;min-
 .tab{flex:1;background:transparent;border:1px solid var(--border);color:var(--muted);font-family:'DM Mono',monospace;font-size:10px;padding:7px 4px;border-radius:8px;cursor:pointer;text-align:center;transition:all .15s}
 .tab.active{background:var(--gdim);border-color:var(--green);color:var(--green)}
 
-/* ── SECTIONS ── */
 .section{padding:0 14px;margin-top:14px}
 .sec-title{font-family:'Syne',sans-serif;font-size:10px;font-weight:700;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;padding-left:2px}
 .tab-content{display:none}.tab-content.active{display:block}
 
-/* ── RECETTE CARDS ── */
 .recipe-grid{display:flex;flex-direction:column;gap:7px}
 .recipe-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px;cursor:pointer;transition:transform .15s;position:relative;overflow:hidden}
 .recipe-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:2px 0 0 2px}
-.type-jus .recipe-card::before,.rc-jus::before{background:var(--blue)}
-.type-smoothie .recipe-card::before,.rc-smoothie::before{background:var(--purple)}
-.type-sandwich .recipe-card::before,.rc-sandwich::before{background:var(--orange)}
+.rc-jus::before{background:var(--blue)}
+.rc-smoothie::before{background:var(--purple)}
+.rc-batido::before{background:#ec4899}
+.rc-sandwich::before{background:var(--orange)}
+.rc-soupe::before{background:var(--teal)}
+.rc-shot::before{background:var(--gold)}
+.rc-gateau::before{background:var(--pink)}
 .recipe-card:active{transform:scale(.98)}
 .rc-head{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
 .rc-title{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--text)}
@@ -47,12 +50,22 @@ body{background:var(--bg);color:var(--text);font-family:'DM Mono',monospace;min-
 .rc-pill{font-size:10px;padding:3px 9px;border-radius:20px;white-space:nowrap;flex-shrink:0}
 .pill-jus{background:var(--bdim);color:var(--blue);border:1px solid var(--blue)}
 .pill-smoothie{background:var(--pdim);color:var(--purple);border:1px solid var(--purple)}
+.pill-batido{background:#3d1a2d;color:#ec4899;border:1px solid #ec4899}
 .pill-sandwich{background:var(--odim);color:var(--orange);border:1px solid var(--orange)}
+.pill-soupe{background:var(--tdim);color:var(--teal);border:1px solid var(--teal)}
+.pill-shot{background:var(--golddim);color:var(--gold);border:1px solid var(--gold)}
+.pill-gateau{background:var(--pinkdim);color:var(--pink);border:1px solid var(--pink)}
+
 .rc-tags{display:flex;gap:5px;flex-wrap:wrap;margin-top:8px}
 .tag{font-size:10px;background:var(--surface);border:1px solid var(--border);color:var(--muted);padding:2px 7px;border-radius:20px}
+.tag-sport{background:var(--rdim);color:var(--red);border-color:var(--red)}
+.tag-sante{background:var(--gdim);color:var(--green);border-color:var(--green)}
+.tag-vegan{background:var(--pdim);color:var(--purple);border-color:var(--purple)}
+.tag-immunite{background:var(--golddim);color:var(--gold);border-color:var(--gold)}
+.tag-nouveau{background:var(--odim);color:var(--orange);border-color:var(--orange);font-weight:600}
 .rc-caisse-link{font-size:10px;color:var(--green);margin-top:4px;opacity:.7}
+.rc-price{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--accent);margin-top:6px}
 
-/* ── MODAL ── */
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:200;display:flex;align-items:flex-end;opacity:0;pointer-events:none;transition:opacity .25s}
 .overlay.open{opacity:1;pointer-events:all}
 .modal{background:var(--card);border:1px solid var(--border);border-radius:22px 22px 0 0;width:100%;padding:20px 16px 48px;transform:translateY(100%);transition:transform .3s cubic-bezier(.34,1.56,.64,1);max-height:92vh;overflow-y:auto}
@@ -66,8 +79,11 @@ body{background:var(--bg);color:var(--text);font-family:'DM Mono',monospace;min-
 .badge-bl{background:var(--bdim);color:var(--blue);border-color:var(--blue)}
 .badge-or{background:var(--odim);color:var(--orange);border-color:var(--orange)}
 .badge-pu{background:var(--pdim);color:var(--purple);border-color:var(--purple)}
+.badge-tl{background:var(--tdim);color:var(--teal);border-color:var(--teal)}
+.badge-go{background:var(--golddim);color:var(--gold);border-color:var(--gold)}
+.badge-pk{background:var(--pinkdim);color:var(--pink);border-color:var(--pink)}
+.badge-bt{background:#3d1a2d;color:#ec4899;border-color:#ec4899}
 
-/* ── VOLUME SELECTOR ── */
 .vol-block{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:14px}
 .vol-title{font-family:'Syne',sans-serif;font-size:10px;font-weight:700;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:10px}
 .vol-btns{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
@@ -79,7 +95,6 @@ body{background:var(--bg);color:var(--text);font-family:'DM Mono',monospace;min-
 .vol-unit{font-size:11px;color:var(--muted)}
 .vol-portions{font-size:11px;color:var(--accent);margin-top:8px}
 
-/* ── INGREDIENTS ── */
 .ing-label{font-family:'Syne',sans-serif;font-size:10px;font-weight:700;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px}
 .ing-row{display:flex;align-items:center;gap:8px;padding:7px 10px;background:var(--surface);border-radius:8px;margin-bottom:4px;font-size:12px}
 .ing-amt{color:var(--green);font-weight:500;min-width:68px;font-size:13px}
@@ -90,7 +105,6 @@ body{background:var(--bg);color:var(--text);font-family:'DM Mono',monospace;min-
 .stock-low{background:var(--odim);color:var(--orange)}
 .stock-none{background:var(--rdim);color:var(--red)}
 
-/* ── STEPS ── */
 .step-label{font-family:'Syne',sans-serif;font-size:10px;font-weight:700;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin:14px 0 10px}
 .step{display:flex;gap:12px;margin-bottom:10px}
 .step-num{width:28px;height:28px;min-width:28px;background:var(--gdim);border:1px solid var(--green);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:12px;font-weight:800;color:var(--green)}
@@ -100,7 +114,10 @@ body{background:var(--bg);color:var(--text);font-family:'DM Mono',monospace;min-
 .tip-box{background:var(--gdim);border:1px solid var(--border);border-radius:10px;padding:10px 12px;font-size:11px;color:var(--accent);margin-top:14px;line-height:1.5}
 .tip-box b{color:var(--green)}
 
-/* ── STOCK DEDUCT BLOCK ── */
+.price-box{background:linear-gradient(135deg,var(--gdim),var(--bdim));border:1px solid var(--green);border-radius:12px;padding:12px 14px;margin:12px 0;display:flex;justify-content:space-between;align-items:center}
+.price-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
+.price-value{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--accent)}
+
 .deduct-block{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-top:14px}
 .deduct-title{font-family:'Syne',sans-serif;font-size:10px;font-weight:700;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:10px}
 .deduct-row{display:flex;justify-content:space-between;align-items:center;font-size:12px;padding:4px 0;border-bottom:1px solid var(--border)}
@@ -112,7 +129,6 @@ body{background:var(--bg);color:var(--text);font-family:'DM Mono',monospace;min-
 .btn-deduct:disabled{opacity:.4;cursor:not-allowed}
 .btn-cancel{width:100%;background:transparent;border:1px solid var(--border);border-radius:12px;color:var(--muted);font-family:'DM Mono',monospace;font-size:13px;padding:12px;cursor:pointer;margin-top:8px}
 
-/* ── BATCH MODE ── */
 .batch-block{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:12px}
 .batch-title{font-family:'Syne',sans-serif;font-size:10px;font-weight:700;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:10px}
 .batch-row{display:flex;align-items:center;gap:10px;margin-bottom:8px}
@@ -123,40 +139,44 @@ body{background:var(--bg);color:var(--text);font-family:'DM Mono',monospace;min-
 .btn-batch{width:100%;background:var(--orange);border:none;border-radius:12px;color:var(--bg);font-family:'Syne',sans-serif;font-size:14px;font-weight:700;padding:14px;cursor:pointer;transition:all .2s;margin-top:10px}
 .btn-batch:active{transform:scale(.97)}
 
-/* ── TOAST ── */
 .toast{position:fixed;top:18px;left:50%;transform:translateX(-50%) translateY(-80px);background:var(--green);color:var(--bg);font-family:'Syne',sans-serif;font-weight:700;font-size:13px;padding:11px 18px;border-radius:18px;z-index:999;transition:transform .3s cubic-bezier(.34,1.56,.64,1);white-space:nowrap}
 .toast.err{background:var(--red)}.toast.warn{background:var(--orange)}
 .toast.show{transform:translateX(-50%) translateY(0)}
 
-/* ── STOCK DASHBOARD ── */
 .stock-dash{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
 .stat-box{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px 12px}
 .stat-label{font-size:10px;color:var(--muted);margin-bottom:3px}
 .stat-val{font-size:17px;font-weight:500;color:var(--green)}
 .stat-val.orange{color:var(--orange)}.stat-val.red{color:var(--red)}
 
-/* ── FILTER PILLS ── */
 .filter-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
 .filter-pill{background:transparent;border:1px solid var(--border);color:var(--muted);font-family:'DM Mono',monospace;font-size:11px;padding:5px 12px;border-radius:20px;cursor:pointer;transition:all .15s}
+.filter-pill.f-all.active{background:var(--gdim);border-color:var(--green);color:var(--green)}
 .filter-pill.f-jus.active{background:var(--bdim);border-color:var(--blue);color:var(--blue)}
 .filter-pill.f-smoothie.active{background:var(--pdim);border-color:var(--purple);color:var(--purple)}
+.filter-pill.f-batido.active{background:#3d1a2d;border-color:#ec4899;color:#ec4899}
 .filter-pill.f-soupe.active{background:var(--tdim);border-color:var(--teal);color:var(--teal)}
-.pill-soupe{background:var(--tdim);color:var(--teal);border:1px solid var(--teal)}
-.rc-soupe::before{background:var(--teal)}
-.filter-pill.f-all.active{background:var(--gdim);border-color:var(--green);color:var(--green)}
+.filter-pill.f-sandwich.active{background:var(--odim);border-color:var(--orange);color:var(--orange)}
+.filter-pill.f-shot.active{background:var(--golddim);border-color:var(--gold);color:var(--gold)}
+.filter-pill.f-sport.active{background:var(--rdim);border-color:var(--red);color:var(--red)}
+.filter-pill.f-sante.active{background:var(--gdim);border-color:var(--green);color:var(--green)}
+.filter-pill.f-nouveau.active{background:var(--odim);border-color:var(--orange);color:var(--orange)}
 
-/* ── CAISSE LINK BAR ── */
 .caisse-bar{background:var(--tdim);border:1px solid var(--teal);border-radius:10px;padding:10px 12px;margin:10px 14px 0;display:flex;align-items:center;justify-content:space-between;font-size:12px;color:var(--teal);cursor:pointer}
 .caisse-bar:active{opacity:.8}
 
 .empty{text-align:center;padding:36px 16px;color:var(--muted);font-size:13px}
+
+.search-bar{margin-bottom:10px}
+.search-input{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'DM Mono',monospace;font-size:13px;padding:10px 12px;outline:none}
+.search-input:focus{border-color:var(--green)}
 </style>
 </head>
 <body>
 
 <div class="header">
   <div class="header-top">
-    <div class="logo">🥗 BS <span>Recettes</span></div>
+    <div class="logo">🥗 BS <span>Recettes v12</span></div>
     <span class="sync-info" id="syncInfo">Stock: non chargé</span>
   </div>
   <div class="tabs">
@@ -172,137 +192,108 @@ body{background:var(--bg);color:var(--text);font-family:'DM Mono',monospace;min-
   <span style="font-size:10px;opacity:.7">Décrémente auto à la vente →</span>
 </div>
 
-<!-- TAB RECETTES -->
 <div class="tab-content active" id="tab-recettes">
   <div class="section">
+    <div class="search-bar">
+      <input type="text" class="search-input" id="searchInput" placeholder="🔍 Rechercher (nom ou ingrédient)..." oninput="renderRecipes()">
+    </div>
     <div class="filter-row" id="filterRow">
       <button class="filter-pill f-all active" onclick="setFilter('all',this)">Tous</button>
       <button class="filter-pill f-jus" onclick="setFilter('jus',this)">🍊 Jus</button>
-      <button class="filter-pill f-smoothie" onclick="setFilter('smoothie',this)">🥤 Smoothies</button>
+      <button class="filter-pill f-batido" onclick="setFilter('batido',this)">🥤 Batidos</button>
+      <button class="filter-pill f-smoothie" onclick="setFilter('smoothie',this)">🥣 Smoothies Bowls</button>
       <button class="filter-pill f-sandwich" onclick="setFilter('sandwich',this)">🥪 Sandwichs</button>
       <button class="filter-pill f-soupe" onclick="setFilter('soupe',this)">🍲 Soupes</button>
+      <button class="filter-pill f-shot" onclick="setFilter('shot',this)">🔥 Shots</button>
+    </div>
+    <div class="filter-row" style="margin-top:-8px">
+      <button class="filter-pill f-sport" onclick="setFilter('tag:sport',this)">💪 Sport</button>
+      <button class="filter-pill f-sante" onclick="setFilter('tag:sante',this)">🌿 Santé</button>
+      <button class="filter-pill f-nouveau" onclick="setFilter('tag:nouveau',this)">🆕 Nouveautés</button>
     </div>
     <div class="recipe-grid" id="recipeGrid"></div>
   </div>
 </div>
 
-<!-- TAB BATCH / PRODUCTION -->
 <div class="tab-content" id="tab-batch">
   <div class="section">
     <div class="sec-title">Production du matin</div>
     <div style="font-size:12px;color:var(--muted);margin-bottom:14px;line-height:1.6">
-      Prépare tes jus en bouteille. Le stock ingrédients est déduit immédiatement. Les ventes au verre (340ml) seront décomptées du stock bouteille.
+      Prépare tes jus en bouteille. Le stock ingrédients est déduit immédiatement. Les ventes au verre seront décomptées du stock bouteille.
     </div>
-
-    <!-- Stock bouteilles en cours -->
     <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:14px">
       <div class="sec-title" style="margin-bottom:8px">🧴 Stock bouteilles disponibles</div>
       <div id="stockBouteillesDisplay">
         <div class="empty" style="padding:12px">Aucune bouteille en production</div>
       </div>
     </div>
-
-    <!-- Lancer une production -->
     <div class="sec-title">Lancer une production</div>
     <div id="batchGrid"></div>
   </div>
 </div>
 
-<!-- TAB CRÉER -->
 <div class="tab-content" id="tab-creer">
   <div class="section">
     <div class="sec-title">Nouvelle recette</div>
-
-    <!-- Type de recette -->
     <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:12px">
       <div style="font-size:11px;color:var(--muted);margin-bottom:10px">TYPE DE RECETTE</div>
       <div style="display:flex;gap:8px;flex-wrap:wrap" id="typeSelector">
         <button class="vol-btn active" onclick="selectType('jus',this)">🍊 Jus</button>
-        <button class="vol-btn" onclick="selectType('smoothie',this)">🥤 Smoothie</button>
+        <button class="vol-btn" onclick="selectType('batido',this)">🥤 Batido</button>
+        <button class="vol-btn" onclick="selectType('smoothie',this)">🥣 Smoothie Bowl</button>
         <button class="vol-btn" onclick="selectType('soupe',this)">🍲 Soupe</button>
         <button class="vol-btn" onclick="selectType('sandwich',this)">🥪 Sandwich</button>
+        <button class="vol-btn" onclick="selectType('shot',this)">🔥 Shot</button>
       </div>
     </div>
-
-    <!-- Infos de base -->
     <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:12px">
       <div style="font-size:11px;color:var(--muted);margin-bottom:8px">INFORMATIONS</div>
-      <input type="text" id="newRecetteName" placeholder="Nom de la recette (ex: Soupe Carotte-Gingembre)"
-        style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'DM Mono',monospace;font-size:13px;padding:10px 12px;outline:none;margin-bottom:8px">
-      <input type="text" id="newRecetteSub" placeholder="Description (ex: Chaud · Réconfortant · Hiver)"
-        style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'DM Mono',monospace;font-size:13px;padding:10px 12px;outline:none;margin-bottom:8px">
-      <div style="display:flex;gap:8px">
+      <input type="text" id="newRecetteName" placeholder="Nom de la recette" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'DM Mono',monospace;font-size:13px;padding:10px 12px;outline:none;margin-bottom:8px">
+      <input type="text" id="newRecetteSub" placeholder="Description courte" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'DM Mono',monospace;font-size:13px;padding:10px 12px;outline:none;margin-bottom:8px">
+      <div style="display:flex;gap:8px;margin-bottom:8px">
         <div style="flex:1">
-          <div style="font-size:10px;color:var(--muted);margin-bottom:4px">Volume de base (ml) ou portions</div>
-          <input type="number" id="newRecetteVol" placeholder="ex: 950" value="950"
-            style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'DM Mono',monospace;font-size:15px;padding:9px 10px;outline:none;text-align:center">
+          <div style="font-size:10px;color:var(--muted);margin-bottom:4px">Volume de base (ml)</div>
+          <input type="number" id="newRecetteVol" value="300" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'DM Mono',monospace;font-size:15px;padding:9px 10px;outline:none;text-align:center">
         </div>
         <div style="flex:1">
-          <div style="font-size:10px;color:var(--muted);margin-bottom:4px">Temps préparation</div>
-          <input type="text" id="newRecetteTime" placeholder="ex: 10 min"
-            style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'DM Mono',monospace;font-size:13px;padding:10px 10px;outline:none">
+          <div style="font-size:10px;color:var(--muted);margin-bottom:4px">Prix vente (€)</div>
+          <input type="number" id="newRecettePrice" step="0.10" value="5.90" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'DM Mono',monospace;font-size:15px;padding:9px 10px;outline:none;text-align:center">
+        </div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <div style="flex:1">
+          <div style="font-size:10px;color:var(--muted);margin-bottom:4px">Temps</div>
+          <input type="text" id="newRecetteTime" placeholder="ex: 5 min" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'DM Mono',monospace;font-size:13px;padding:10px 10px;outline:none">
+        </div>
+        <div style="flex:1">
+          <div style="font-size:10px;color:var(--muted);margin-bottom:4px">Tags (séparés ,)</div>
+          <input type="text" id="newRecetteTags" placeholder="sport,sante" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'DM Mono',monospace;font-size:13px;padding:10px 10px;outline:none">
         </div>
       </div>
     </div>
-
-    <!-- Ingrédients -->
     <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:12px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
         <div style="font-size:11px;color:var(--muted)">INGRÉDIENTS</div>
         <button onclick="addIngredientRow()" style="background:var(--gdim);border:1px solid var(--green);color:var(--green);font-family:'DM Mono',monospace;font-size:11px;padding:4px 10px;border-radius:20px;cursor:pointer">+ Ajouter</button>
       </div>
-      <div id="newIngsList">
-        <div class="ing-new-row" data-idx="0">
-          <div style="display:flex;gap:6px;margin-bottom:6px;align-items:center">
-            <select class="ing-select" style="flex:2;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'DM Mono',monospace;font-size:12px;padding:8px 6px;outline:none">
-              <option value="">-- Choisir ingrédient --</option>
-            </select>
-            <input type="number" class="ing-qty" placeholder="Qté" min="0" step="1"
-              style="width:70px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'DM Mono',monospace;font-size:13px;padding:8px 6px;outline:none;text-align:center">
-            <select class="ing-unite" style="width:60px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'DM Mono',monospace;font-size:12px;padding:8px 4px;outline:none">
-              <option value="g">g</option>
-              <option value="ml">ml</option>
-              <option value="u">u</option>
-            </select>
-            <button onclick="removeIngRow(this)" style="background:var(--rdim);border:none;color:var(--red);border-radius:6px;width:28px;height:28px;cursor:pointer;font-size:14px;flex-shrink:0">×</button>
-          </div>
-        </div>
-      </div>
+      <div id="newIngsList"></div>
     </div>
-
-    <!-- Étapes -->
     <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:12px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
         <div style="font-size:11px;color:var(--muted)">ÉTAPES DE PRÉPARATION</div>
         <button onclick="addEtapeRow()" style="background:var(--gdim);border:1px solid var(--green);color:var(--green);font-family:'DM Mono',monospace;font-size:11px;padding:4px 10px;border-radius:20px;cursor:pointer">+ Étape</button>
       </div>
-      <div id="newEtapesList">
-        <div class="etape-row" style="display:flex;gap:8px;margin-bottom:8px">
-          <div style="width:24px;height:24px;min-width:24px;background:var(--gdim);border:1px solid var(--green);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:var(--green);margin-top:8px">1</div>
-          <div style="flex:1">
-            <input type="text" class="etape-action" placeholder="Action (ex: Éplucher et couper les carottes)"
-              style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'DM Mono',monospace;font-size:12px;padding:8px 10px;outline:none;margin-bottom:4px">
-            <input type="text" class="etape-detail" placeholder="Détail (ex: Tronçons de 3cm)"
-              style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--muted);font-family:'DM Mono',monospace;font-size:11px;padding:6px 10px;outline:none">
-          </div>
-          <button onclick="removeEtapeRow(this)" style="background:var(--rdim);border:none;color:var(--red);border-radius:6px;width:28px;height:28px;cursor:pointer;font-size:14px;flex-shrink:0;margin-top:4px">×</button>
-        </div>
-      </div>
+      <div id="newEtapesList"></div>
     </div>
-
-    <!-- Conseil -->
     <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:14px">
       <div style="font-size:11px;color:var(--muted);margin-bottom:6px">CONSEIL / ASTUCE</div>
-      <textarea id="newRecetteTip" placeholder="Conseil pratique pour cette recette..." rows="2"
-        style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'DM Mono',monospace;font-size:12px;padding:10px 12px;outline:none;resize:none;line-height:1.5"></textarea>
+      <textarea id="newRecetteTip" placeholder="Conseil pratique..." rows="2" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'DM Mono',monospace;font-size:12px;padding:10px 12px;outline:none;resize:none;line-height:1.5"></textarea>
     </div>
-
     <button class="btn-deduct" onclick="sauvegarderRecette()">💾 Sauvegarder la recette</button>
     <button class="btn-cancel" onclick="resetNouvelleRecette()">↩ Effacer</button>
   </div>
 </div>
 
-<!-- TAB STOCK -->
 <div class="tab-content" id="tab-stock">
   <div class="section">
     <div class="sec-title">Stock en temps réel</div>
@@ -314,13 +305,13 @@ body{background:var(--bg);color:var(--text);font-family:'DM Mono',monospace;min-
   </div>
 </div>
 
-<!-- MODAL -->
 <div class="overlay" id="modalOv" onclick="closeModal(event)">
   <div class="modal">
     <div class="m-handle"></div>
     <div class="m-title" id="mTitle"></div>
     <div class="m-sub" id="mSub"></div>
     <div class="m-badges" id="mBadges"></div>
+    <div id="mPrice"></div>
     <div id="mVolBlock"></div>
     <div class="ing-label">Ingrédients</div>
     <div id="mIngs"></div>
@@ -336,15 +327,29 @@ body{background:var(--bg);color:var(--text);font-family:'DM Mono',monospace;min-
 
 <script>
 /* ════════════════════════════════════════════════
-   CONFIGURATION
+   BS RECETTES v11 — Salada Carioca
+   PATCH COMPLET du 19/05/2026
+   
+   CHANGELOG :
+   ✓ Alignement avec carte officielle Salada Carioca
+   ✓ Volume défaut 300ml batidos / 500ml bowls
+   ✓ Ajout 7 nouvelles recettes Cosechas + Shot Imunidade
+   ✓ Catégorie SHOT créée
+   ✓ Prix de vente intégrés
+   ✓ Tags sport/santé/vegan/immunité/nouveau
+   ✓ INGS_REF complété (~30 ingrédients)
+   ✓ Recherche par nom ou ingrédient
+   ✓ Verde Vital + Guaraná réintégrés
+   ✓ Filtre soupe/sandwich/shot corrigés
+   ✓ Strawberry conservé en 2 versions
 ════════════════════════════════════════════════ */
+
 const STOCK_SHEET_ID = '1Y5R_HPCWOgcwXq0blKw1xTrWROoDTqy7IwSTYAfUPcw';
 const STOCK_URL = 'https://script.google.com/macros/s/AKfycbwenbhjtHVc1ifb2_y63ZWb8_9ysSrRcgTVYLbu6tt59W85pYDQhAWMprhq2KpH4Fhg/exec';
 
-/* ════════════════════════════════════════════════
-   DONNÉES STOCK (miroir de index.html)
-════════════════════════════════════════════════ */
+// === INGRÉDIENTS DE RÉFÉRENCE (complété v11) ===
 const INGS_REF = {
+  // Fruits frais
   'Orange':       {unite:'g', seuil_al:500, seuil_cr:200},
   'Banane':       {unite:'g', seuil_al:400, seuil_cr:200},
   'Mangue':       {unite:'g', seuil_al:300, seuil_cr:150},
@@ -356,560 +361,840 @@ const INGS_REF = {
   'Kiwi':         {unite:'u', seuil_al:6,   seuil_cr:3},
   'Pomme':        {unite:'g', seuil_al:600, seuil_cr:300},
   'Dattes':       {unite:'g', seuil_al:150, seuil_cr:80},
+  'Avocat':       {unite:'g', seuil_al:300, seuil_cr:150},
+  'Papaye':       {unite:'g', seuil_al:300, seuil_cr:150},
+  'Maracuja':     {unite:'g', seuil_al:100, seuil_cr:50},
+  'Mix fruits rouges': {unite:'g', seuil_al:500, seuil_cr:200},
+  
+  // Légumes
   'Carotte':      {unite:'g', seuil_al:400, seuil_cr:200},
   'Tomate':       {unite:'g', seuil_al:300, seuil_cr:150},
   'Concombre':    {unite:'g', seuil_al:250, seuil_cr:120},
   'Épinard':      {unite:'g', seuil_al:200, seuil_cr:100},
   'Roquette':     {unite:'u', seuil_al:4,   seuil_cr:2},
   'Salade':       {unite:'u', seuil_al:4,   seuil_cr:2},
-  'Avocat':       {unite:'u', seuil_al:4,   seuil_cr:2},
+  'Betterave':    {unite:'g', seuil_al:400, seuil_cr:200},
+  'Oignon Rouge': {unite:'g', seuil_al:150, seuil_cr:80},
+  'Oignon':       {unite:'u', seuil_al:5,   seuil_cr:2},
+  'Echalotte':    {unite:'g', seuil_al:200, seuil_cr:100},
+  'Ail':          {unite:'u', seuil_al:5,   seuil_cr:2},
+  'Butternut':    {unite:'u', seuil_al:3,   seuil_cr:1},
+  
+  // Protéines
   'Feta':         {unite:'g', seuil_al:100, seuil_cr:50},
   'Philadelphia': {unite:'g', seuil_al:150, seuil_cr:80},
   'Mozzarella':   {unite:'g', seuil_al:150, seuil_cr:80},
   'Poulet':       {unite:'g', seuil_al:300, seuil_cr:150},
   'Sardine':      {unite:'u', seuil_al:4,   seuil_cr:2},
   'Thon':         {unite:'u', seuil_al:4,   seuil_cr:2},
+  'Lard':         {unite:'g', seuil_al:100, seuil_cr:50},
+  'Tête de moine':{unite:'g', seuil_al:100, seuil_cr:50},
+  
+  // Aromates / Épices
   'Gingembre':    {unite:'g', seuil_al:150, seuil_cr:80},
+  'Curcuma':      {unite:'g', seuil_al:80,  seuil_cr:40},
+  'Curcuma frais':{unite:'g', seuil_al:80,  seuil_cr:40},
   'Citron jaune': {unite:'g', seuil_al:150, seuil_cr:80},
   'Citron vert':  {unite:'g', seuil_al:100, seuil_cr:50},
-  'Amandes':      {unite:'g', seuil_al:100, seuil_cr:50},
-  'Maca poudre':  {unite:'g', seuil_al:50,  seuil_cr:25},
-  'Chia':         {unite:'g', seuil_al:80,  seuil_cr:40},
-  'Cacao poudre': {unite:'g', seuil_al:60,  seuil_cr:30},
-  'Huile coco':   {unite:'ml',seuil_al:80,  seuil_cr:40},
-  'Lait amandes': {unite:'ml',seuil_al:400, seuil_cr:200},
-  'Lait végétal': {unite:'u', seuil_al:4,   seuil_cr:2},
-  'Lait':         {unite:'u', seuil_al:4,   seuil_cr:2},
-  'Yaourt grec':  {unite:'u', seuil_al:2,   seuil_cr:1},
-  'Granola':      {unite:'g', seuil_al:250, seuil_cr:120},
-  'Betterave':    {unite:'g', seuil_al:400, seuil_cr:200},
-  'Oignon Rouge': {unite:'g', seuil_al:150, seuil_cr:80},
-  'Pain':         {unite:'u', seuil_al:8,   seuil_cr:4},
-  'Moutarde':     {unite:'g', seuil_al:80,  seuil_cr:40},
+  'Hortela':      {unite:'g', seuil_al:30,  seuil_cr:15},
+  'Persil':       {unite:'g', seuil_al:30,  seuil_cr:15},
+  'Thym':         {unite:'g', seuil_al:20,  seuil_cr:10},
   'Origan':       {unite:'g', seuil_al:20,  seuil_cr:10},
   'Cannelle':     {unite:'g', seuil_al:30,  seuil_cr:15},
-  'Lard':         {unite:'g', seuil_al:100, seuil_cr:50},
+  'Poivre':       {unite:'g', seuil_al:30,  seuil_cr:15},
+  'Poivre noir':  {unite:'g', seuil_al:30,  seuil_cr:15},
+  'Sel':          {unite:'g', seuil_al:100, seuil_cr:50},
+  
+  // Superaliments / poudres
+  'Amandes':      {unite:'g', seuil_al:100, seuil_cr:50},
+  'Maca poudre':  {unite:'g', seuil_al:50,  seuil_cr:25},
+  'Acai poudre':  {unite:'g', seuil_al:50,  seuil_cr:25},
+  'Chia':         {unite:'g', seuil_al:80,  seuil_cr:40},
+  'Lin':          {unite:'g', seuil_al:50,  seuil_cr:25},
+  'Cacao poudre': {unite:'g', seuil_al:60,  seuil_cr:30},
+  'Cacao nibs':   {unite:'g', seuil_al:50,  seuil_cr:25},
+  'Guarana poudre': {unite:'g', seuil_al:30, seuil_cr:15},
+  'Espirulina':   {unite:'g', seuil_al:30,  seuil_cr:15},
+  'Whey vanille': {unite:'g', seuil_al:200, seuil_cr:100},
+  'Whey cacao':   {unite:'g', seuil_al:200, seuil_cr:100},
+  'Whey vegetale':{unite:'g', seuil_al:200, seuil_cr:100},
+  'Proteine ervilha': {unite:'g', seuil_al:200, seuil_cr:100},
+  'Noix':         {unite:'g', seuil_al:100, seuil_cr:50},
+  'Avoine':       {unite:'g', seuil_al:300, seuil_cr:150},
+  'Granola':      {unite:'g', seuil_al:250, seuil_cr:120},
+  'Coco rape':    {unite:'g', seuil_al:80,  seuil_cr:40},
+  
+  // Liquides / laits
+  'Huile coco':   {unite:'ml',seuil_al:80,  seuil_cr:40},
+  'Huile olive':  {unite:'ml',seuil_al:200, seuil_cr:100},
+  'Lait amandes': {unite:'ml',seuil_al:400, seuil_cr:200},
+  'Lait coco':    {unite:'ml',seuil_al:400, seuil_cr:200},
+  'Lait avoine':  {unite:'ml',seuil_al:400, seuil_cr:200},
+  'Lait vache':   {unite:'ml',seuil_al:1000,seuil_cr:500},
+  'Yaourt grec':  {unite:'g', seuil_al:300, seuil_cr:150},
+  'Creme fraiche':{unite:'g', seuil_al:200, seuil_cr:100},
+  'Beurre':       {unite:'g', seuil_al:200, seuil_cr:100},
+  'Beurre cacahuete': {unite:'g', seuil_al:150, seuil_cr:80},
+  'Eau':          {unite:'ml',seuil_al:5000,seuil_cr:2000},
+  
+  // Pain / base
+  'Baguette':     {unite:'u', seuil_al:8,   seuil_cr:4},
+  'Pain':         {unite:'u', seuil_al:10,  seuil_cr:4},
+  
+  // Sauces / condiments
+  'Moutarde':     {unite:'g', seuil_al:80,  seuil_cr:40},
+  'Ketchup':      {unite:'g', seuil_al:100, seuil_cr:50},
+  'Sauce anglaise':{unite:'g',seuil_al:50,  seuil_cr:25},
+  'Cornichon':    {unite:'g', seuil_al:100, seuil_cr:50},
+  'Olives':       {unite:'g', seuil_al:150, seuil_cr:80},
+  'Maïs':         {unite:'g', seuil_al:150, seuil_cr:80},
+  'Petit pois':   {unite:'g', seuil_al:150, seuil_cr:80},
+  'Raisins secs': {unite:'g', seuil_al:80,  seuil_cr:40},
+  'Mel':          {unite:'g', seuil_al:200, seuil_cr:100},
+  'Miel':         {unite:'g', seuil_al:200, seuil_cr:100},
+  'Sirop agave':  {unite:'ml',seuil_al:200, seuil_cr:100},
+  'Concentré tomate': {unite:'g', seuil_al:200, seuil_cr:100},
+  'Bouillon legumes': {unite:'u', seuil_al:5, seuil_cr:2},
 };
 
 let stockData = JSON.parse(localStorage.getItem('bs_stock') || '{}');
+let unitesData = JSON.parse(localStorage.getItem('bs_unites') || '{}');
+let seuilsData = JSON.parse(localStorage.getItem('bs_seuils2') || '{}');
+let stockBouteilles = JSON.parse(localStorage.getItem('bs_stock_bouteilles') || '{}');
+let customRecettes = JSON.parse(localStorage.getItem('bs_custom_recettes') || '[]');
 
-/* ════════════════════════════════════════════════
-   RECETTES
-   Chaque recette liquide a :
-     baseVol : volume de référence en ml
-     ings[].qty_per_base : quantité pour baseVol
-   Recettes solides ont qty directement
-════════════════════════════════════════════════ */
+// ════════════════════════════════════════════════
+// RECETTES v11 — Liste complète
+// ════════════════════════════════════════════════
 const RECIPES = [
 
-  /* ── JUS ── */
+  /* ════════ JUS (4,90 €) ════════ */
   {
-    id:'suco_rosa', type:'jus', caisse:'Suco Rosa', baseVol:300,
+    id:'suco_rosa', type:'jus', caisse:'Suco Rosa', baseVol:300, price:4.90,
     emoji:'🔴', title:'Suco Rosa', sub:'Orange · Betterave · Gingembre',
-    time:'5 min', kcal:'90 kcal', baseVol:300,
+    time:'5 min', kcal:'90 kcal', tags:['sante'],
     ings:[
       {nom:'Orange',    qty_per_base:150, unite:'g', note:'pressée'},
       {nom:'Betterave', qty_per_base:80,  unite:'g', note:'crue avec casca'},
       {nom:'Gingembre', qty_per_base:15,  unite:'g', note:'frais'},
     ],
     steps:[
-      {action:'Préparer', detail:'Betterave crue avec la peau (casca), orange pelée, gingembre.'},
+      {action:'Préparer', detail:'Betterave crue avec la peau, orange pelée, gingembre.'},
       {action:'Centrifuger', detail:'Betterave → Orange → Gingembre.'},
       {action:'Servir', detail:'Immédiatement. Couleur rouge profond.'},
     ],
-    tip:'La betterave tache — travailler avec soin. Consommer vite pour garder les nutriments.'
+    tip:'Détox + circulation. Riche en nitrates pour oxygénation.'
   },
   {
-    id:'vale_agradavel', type:'jus', caisse:'Vale Agradavel', baseVol:300,
+    id:'vale_agradavel', type:'jus', caisse:'Vale Agradavel', baseVol:300, price:4.90,
     emoji:'🍉', title:'Vale Agradável', sub:'Pastèque · Concombre · Citron · Gingembre',
-    time:'5 min', kcal:'80 kcal', baseVol:300,
+    time:'5 min', kcal:'80 kcal', tags:['sante'],
     ings:[
-      {nom:'Pastèque',  qty_per_base:200, unite:'g', note:'sans pépins'},
-      {nom:'Concombre', qty_per_base:80,  unite:'g', note:'frais'},
-      {nom:'Citron jaune', qty_per_base:20, unite:'g', note:'jus'},
-      {nom:'Gingembre', qty_per_base:10,  unite:'g', note:'frais'},
+      {nom:'Pastèque',     qty_per_base:200, unite:'g', note:'sans pépins'},
+      {nom:'Concombre',    qty_per_base:80,  unite:'g'},
+      {nom:'Citron jaune', qty_per_base:20,  unite:'g', note:'jus'},
+      {nom:'Gingembre',    qty_per_base:10,  unite:'g'},
     ],
     steps:[
       {action:'Centrifuger', detail:'Pastèque → Concombre → Gingembre.'},
       {action:'Ajouter citron', detail:'Presser le citron dans le jus.'},
       {action:'Servir frais', detail:'Avec glaçons. Très désaltérant.'},
     ],
-    tip:'Hydratant et léger. Idéal pour l\'été.'
+    tip:'Hydratant et léger. Idéal pour l\'été Algarve.'
   },
   {
-    id:'raiz_viva', type:'jus', caisse:'Raiz Viva', baseVol:300,
+    id:'raiz_viva', type:'jus', caisse:'Raiz Viva', baseVol:300, price:4.90,
     emoji:'🍏', title:'Raiz Viva', sub:'Pomme · Citron · Cannelle · Lin',
-    time:'5 min', kcal:'100 kcal', baseVol:300,
+    time:'5 min', kcal:'100 kcal', tags:['sante'],
     ings:[
-      {nom:'Pomme',     qty_per_base:200, unite:'g', note:'avec casca (peau)'},
-      {nom:'Citron jaune', qty_per_base:30, unite:'g', note:'jus'},
-      {nom:'Cannelle',  qty_per_base:1,   unite:'g', note:'en poudre'},
-      {nom:'Lin',       qty_per_base:5,   unite:'g', note:'graines de linhaça'},
+      {nom:'Pomme',        qty_per_base:200, unite:'g', note:'avec peau'},
+      {nom:'Citron jaune', qty_per_base:30,  unite:'g', note:'jus'},
+      {nom:'Cannelle',     qty_per_base:1,   unite:'g', note:'en poudre'},
+      {nom:'Lin',          qty_per_base:5,   unite:'g', note:'graines'},
     ],
     steps:[
-      {action:'Centrifuger la pomme', detail:'Pomme entière avec la peau pour plus de fibres.'},
+      {action:'Centrifuger la pomme', detail:'Pomme entière avec la peau pour les fibres.'},
       {action:'Ajouter citron', detail:'Presser directement dans le jus.'},
-      {action:'Cannelle + lin', detail:'Saupoudrer et mélanger avant de servir.'},
+      {action:'Cannelle + lin', detail:'Saupoudrer et mélanger.'},
       {action:'Servir', detail:'Dans un verre froid.'},
     ],
-    tip:'Les graines de lin gonflent — servir et boire rapidement. La cannelle stabilise la glycémie.'
+    tip:'Le lin gonfle vite — boire rapidement. Cannelle = stabilité glycémie.'
   },
   {
-    id:'ginger_zinga', type:'jus', caisse:'Ginger Zinga', baseVol:300,
+    id:'ginger_zinga', type:'jus', caisse:'Ginger Zinga', baseVol:300, price:4.90,
     emoji:'🫚', title:'Ginger Zinga', sub:'Gingembre · Pomme · Épinard · Carotte · Citron',
-    time:'5 min', kcal:'85 kcal', baseVol:300,
+    time:'5 min', kcal:'85 kcal', tags:['sante','immunite'],
     ings:[
-      {nom:'Gingembre', qty_per_base:20,  unite:'g', note:'frais, râpé'},
-      {nom:'Pomme',     qty_per_base:120, unite:'g', note:''},
-      {nom:'Épinard',   qty_per_base:50,  unite:'g', note:'feuilles fraîches'},
-      {nom:'Carotte',   qty_per_base:80,  unite:'g', note:'épluchée'},
-      {nom:'Citron jaune', qty_per_base:20, unite:'g', note:'jus'},
+      {nom:'Gingembre',    qty_per_base:20,  unite:'g', note:'frais, râpé'},
+      {nom:'Pomme',        qty_per_base:120, unite:'g'},
+      {nom:'Épinard',      qty_per_base:50,  unite:'g'},
+      {nom:'Carotte',      qty_per_base:80,  unite:'g', note:'épluchée'},
+      {nom:'Citron jaune', qty_per_base:20,  unite:'g', note:'jus'},
     ],
     steps:[
       {action:'Centrifuger', detail:'Carotte → Pomme → Épinard → Gingembre.'},
-      {action:'Ajouter citron', detail:'Presser le citron dans le jus obtenu.'},
-      {action:'Servir', detail:'Couleur verte intense. Boire immédiatement.'},
+      {action:'Ajouter citron', detail:'Presser le citron dans le jus.'},
+      {action:'Servir', detail:'Couleur verte intense. Boire vite.'},
     ],
-    tip:'Jus vert détox. Le gingembre est prononcé — ajuster la quantité selon les goûts.'
+    tip:'Détox vert. Immunité + fer végétal.'
   },
   {
-    id:'jus_jour', type:'jus', caisse:'Jus du Jour', baseVol:300,
-    emoji:'🥤', title:'Jus du Jour', sub:'Saisonnier · Créatif · Variable',
-    time:'5 min', kcal:'—', baseVol:300,
-    ings:[],
-    steps:[
-      {action:'Jus du moment', detail:'Ce jus change chaque jour selon les arrivages et l\'inspiration du moment.'},
-      {action:'Créer depuis zéro', detail:'Utilise le bouton + pour créer une nouvelle recette personnalisée.'},
-    ],
-    tip:'Pas de recette fixe — utilise ce produit pour les jus improvisés. Les ingrédients varient chaque jour.'
-  },
-  {
-    id:'jus_orange', type:'jus', caisse:'Jus Orange', baseVol:300,
-    emoji:'🍊', title:'Jus d\'Orange', sub:'Pure Orange · Frais · 3€',
-    time:'3 min', kcal:'110 kcal', baseVol:300,
+    id:'jus_orange', type:'jus', caisse:'Jus Orange', baseVol:300, price:3.00,
+    emoji:'🍊', title:'Jus d\'Orange', sub:'Pure Orange · Frais',
+    time:'3 min', kcal:'110 kcal', tags:[],
     ings:[
-      {nom:'Orange', qty_per_base:300, unite:'g', note:'3 grosses oranges pressées'},
+      {nom:'Orange', qty_per_base:300, unite:'g', note:'3 grosses pressées'},
     ],
     steps:[
-      {action:'Presser les oranges', detail:'À la presse-agrumes. Filtrer si désiré.'},
+      {action:'Presser les oranges', detail:'À la presse-agrumes.'},
       {action:'Servir', detail:'Dans un verre froid. Consommer immédiatement.'},
     ],
-    tip:'Simple et pur. Aucun ajout — juste l\'orange fraîche pressée.'
+    tip:'Simple et pur. Juste l\'orange fraîche pressée.'
   },
 
-    /* ── SMOOTHIES ── */
+  /* ★★★ NOUVEAU : Suco Praia (été) ★★★ */
   {
-    id:'alma_selvagem', type:'smoothie', caisse:'Alma Selvagem', baseVol:500,
-    emoji:'🍍', title:'Alma Selvagem', sub:'Ananas · Pitaya · Coco · Whey',
-    time:'4 min', kcal:'340 kcal', baseVol:500,
+    id:'suco_praia', type:'jus', caisse:'Suco Praia', baseVol:300, price:4.90,
+    emoji:'🌊', title:'Suco Praia', sub:'Pastèque · Ananas · Menthe · Lime', 
+    time:'5 min', kcal:'85 kcal', tags:['sante','nouveau'],
     ings:[
-      {nom:'Lait amandes', qty_per_base:200, unite:'ml', note:'base liquide'},
-      {nom:'Ananas',       qty_per_base:150, unite:'g',  note:'frais ou congelé'},
-      {nom:'Pitaya',       qty_per_base:80,  unite:'g',  note:'pitaya rouge'},
-      {nom:'Banane',       qty_per_base:80,  unite:'g',  note:''},
-      {nom:'Citron vert',  qty_per_base:15,  unite:'g',  note:'jus'},
-      {nom:'Huile coco',   qty_per_base:10,  unite:'ml', note:'1 c.s.'},
-      {nom:'Maca poudre',  qty_per_base:5,   unite:'g',  note:'1 scoop'},
-      {nom:'Whey végétale', qty_per_base:15,  unite:'g',  note:'1 cuillère à soupe (15g)'},
+      {nom:'Pastèque',    qty_per_base:200, unite:'g', note:'sans pépins'},
+      {nom:'Ananas',      qty_per_base:100, unite:'g', note:'frais'},
+      {nom:'Hortela',     qty_per_base:5,   unite:'g', note:'5 feuilles'},
+      {nom:'Citron vert', qty_per_base:5,   unite:'g', note:'1 c. à café jus'},
+    ],
+    steps:[
+      {action:'Cubes', detail:'Couper pastèque et ananas en cubes.'},
+      {action:'Mixer', detail:'Pastèque + ananas + menthe + jus de lime, 30 sec.'},
+      {action:'Tamiser (option)', detail:'Pour texture lisse, passer au tamis fin.'},
+      {action:'Servir', detail:'Avec glaçons. Couleur corail.'},
+    ],
+    tip:'Édition été Algarve. Hydratation pure, sans sucre.'
+  },
+
+  /* ════════ BATIDOS — 300 ml (5,90 €) ════════ */
+  {
+    id:'batido_banana_canela', type:'batido', caisse:'Banana-Canela', baseVol:300, price:5.90,
+    emoji:'🍌', title:'Batido Banana-Canela', sub:'Banane · Cannelle · Whey',
+    time:'3 min', kcal:'320 kcal', tags:['sport'],
+    ings:[
+      {nom:'Banane',           qty_per_base:100, unite:'g', note:'mûre'},
+      {nom:'Cannelle',         qty_per_base:1,   unite:'g'},
+      {nom:'Beurre cacahuete', qty_per_base:15,  unite:'g'},
+      {nom:'Lait vache',       qty_per_base:200, unite:'ml'},
+      {nom:'Whey vanille',     qty_per_base:15,  unite:'g', note:'½ scoop'},
+      {nom:'Avoine',           qty_per_base:20,  unite:'g'},
+    ],
+    steps:[
+      {action:'Lait', detail:'Verser le lait dans le blender.'},
+      {action:'Ajouter', detail:'Banane, beurre de cacahuète, avoine, whey, cannelle.'},
+      {action:'Mixer', detail:'45 secondes, texture crémeuse.'},
+      {action:'Servir', detail:'Verre 300 ml immédiatement.'},
+    ],
+    tip:'Banane très mûre = max cremoso. Idéal post-training.'
+  },
+  {
+    id:'batido_guarana', type:'batido', caisse:'Batido Guaraná', baseVol:300, price:5.90,
+    emoji:'⚡', title:'Batido Guaraná', sub:'Cacao · Dattes · Guaraná',
+    time:'3 min', kcal:'290 kcal', tags:['sport'],
+    ings:[
+      {nom:'Lait avoine',     qty_per_base:200, unite:'ml'},
+      {nom:'Banane',          qty_per_base:80,  unite:'g'},
+      {nom:'Dattes',          qty_per_base:20,  unite:'g', note:'2 dénoyautées'},
+      {nom:'Cacao poudre',    qty_per_base:5,   unite:'g'},
+      {nom:'Guarana poudre',  qty_per_base:1,   unite:'g', note:'½ c. à café'},
+      {nom:'Cannelle',        qty_per_base:1,   unite:'g'},
+    ],
+    steps:[
+      {action:'Tremper dattes', detail:'5 min eau chaude, égoutter.'},
+      {action:'Mixer', detail:'Tout dans le blender, 60 secondes.'},
+      {action:'Servir', detail:'Bien frais.'},
+    ],
+    tip:'Énergie limpa sans cafeína industrielle. Avant le sport.'
+  },
+  {
+    id:'batido_coco_tropical', type:'batido', caisse:'Coco Tropical', baseVol:300, price:5.90,
+    emoji:'🥥', title:'Batido Coco Tropical', sub:'Coco · Ananas · Lime',
+    time:'3 min', kcal:'180 kcal', tags:[],
+    ings:[
+      {nom:'Lait coco',    qty_per_base:200, unite:'ml'},
+      {nom:'Banane',       qty_per_base:80,  unite:'g'},
+      {nom:'Ananas',       qty_per_base:100, unite:'g', note:'frais'},
+      {nom:'Citron vert',  qty_per_base:5,   unite:'g', note:'jus'},
+      {nom:'Sirop agave',  qty_per_base:5,   unite:'ml'},
+    ],
+    steps:[
+      {action:'Cubes', detail:'Ananas en cubes.'},
+      {action:'Mixer', detail:'Tout dans le blender, 45 sec.'},
+      {action:'Servir', detail:'Avec gelo si désiré.'},
+    ],
+    tip:'Piña colada sem álcool. Saupoudrer coco si désiré.'
+  },
+  {
+    id:'batido_sunrise', type:'batido', caisse:'Sunrise', baseVol:300, price:5.90,
+    emoji:'🌅', title:'Batido Sunrise', sub:'Mangue · Curcuma · Gingembre',
+    time:'3 min', kcal:'200 kcal', tags:['sante','immunite'],
+    ings:[
+      {nom:'Lait coco',     qty_per_base:180, unite:'ml'},
+      {nom:'Mangue',        qty_per_base:100, unite:'g'},
+      {nom:'Curcuma frais', qty_per_base:5,   unite:'g', note:'râpé'},
+      {nom:'Gingembre',     qty_per_base:5,   unite:'g', note:'râpé'},
+      {nom:'Citron vert',   qty_per_base:5,   unite:'g', note:'jus'},
+      {nom:'Sirop agave',   qty_per_base:5,   unite:'ml'},
+    ],
+    steps:[
+      {action:'Râper', detail:'Curcuma et gengibre frais.'},
+      {action:'Mixer', detail:'Tout au blender, 60 sec (curcuma bien intégré).'},
+      {action:'Servir', detail:'Immédiatement.'},
+    ],
+    tip:'Anti-inflammatoire. Curcuma tache — luvas recommandées.'
+  },
+  {
+    id:'batido_strawberry', type:'batido', caisse:'Strawberry', baseVol:300, price:5.90,
+    emoji:'🍓', title:'Batido Strawberry', sub:'Fraise · Whey · Mel (carte officielle)',
+    time:'3 min', kcal:'260 kcal', tags:['sport'],
+    ings:[
+      {nom:'Lait amandes', qty_per_base:200, unite:'ml'},
+      {nom:'Fraise',       qty_per_base:120, unite:'g', note:'fraîche ou congelée'},
+      {nom:'Whey vanille', qty_per_base:15,  unite:'g', note:'½ scoop'},
+      {nom:'Mel',          qty_per_base:5,   unite:'g'},
+    ],
+    steps:[
+      {action:'Lait', detail:'Lait d\'amandes au blender.'},
+      {action:'Ajouter', detail:'Fraises (idéalement congelées) + whey + mel.'},
+      {action:'Mixer', detail:'45 sec.'},
+      {action:'Servir', detail:'Bien frais.'},
+    ],
+    tip:'Recette officielle carte. Fraises congelées = texture cremosa sem gelo.'
+  },
+  /* Strawberry v2 — avec avoine (recette atelier) */
+  {
+    id:'batido_strawberry_v2', type:'batido', caisse:'Strawberry Plus', baseVol:300, price:5.90,
+    emoji:'🍓', title:'Batido Strawberry Plus', sub:'Fraise · Avoine · Whey (version atelier)',
+    time:'3 min', kcal:'310 kcal', tags:['sport'],
+    ings:[
+      {nom:'Lait amandes', qty_per_base:150, unite:'ml'},
+      {nom:'Avoine',       qty_per_base:20,  unite:'g', note:'flocons'},
+      {nom:'Whey vanille', qty_per_base:37,  unite:'g', note:'1 scoop'},
+      {nom:'Fraise',       qty_per_base:100, unite:'g'},
+    ],
+    steps:[
+      {action:'Lait', detail:'Lait amandes 150ml au blender.'},
+      {action:'Ajouter', detail:'Avoine + whey + fraises.'},
+      {action:'Mixer', detail:'30 sec, texture buvable.'},
+      {action:'Servir', detail:'Verre 300ml, pas de topping.'},
+    ],
+    tip:'Version atelier plus rassasiante (avec avoine). Recovery musculaire +.'
+  },
+  {
+    id:'batido_verde_vital', type:'batido', caisse:'Verde Vital', baseVol:300, price:5.90,
+    emoji:'💚', title:'Batido Verde Vital', sub:'Spiruline · Ananas · Mangue · Banane',
+    time:'4 min', kcal:'220 kcal', tags:['sante'],
+    ings:[
+      {nom:'Lait amandes', qty_per_base:200, unite:'ml'},
+      {nom:'Banane',       qty_per_base:60,  unite:'g'},
+      {nom:'Ananas',       qty_per_base:60,  unite:'g'},
+      {nom:'Mangue',       qty_per_base:50,  unite:'g'},
+      {nom:'Espirulina',   qty_per_base:2,   unite:'g', note:'½ c. à café'},
+      {nom:'Citron vert',  qty_per_base:5,   unite:'g'},
+      {nom:'Sirop agave',  qty_per_base:5,   unite:'ml'},
+    ],
+    steps:[
+      {action:'Mixer', detail:'Tous au blender, 60 sec (spiruline bien dissoute).'},
+      {action:'Servir', detail:'Immédiatement.'},
+    ],
+    tip:'⚠ Pas pendant grossesse, autoimmune ou anticoagulant. Energia sem cafeína.'
+  },
+
+  /* ★★★ NOUVEAUX BATIDOS ★★★ */
+  {
+    id:'batido_frutos_vermelhos', type:'batido', caisse:'Frutos Vermelhos', baseVol:300, price:5.90,
+    emoji:'🫐', title:'Batido Frutos Vermelhos', sub:'Baies rouges · Whey · Antioxydants',
+    time:'3 min', kcal:'250 kcal', tags:['sport','sante','nouveau'],
+    ings:[
+      {nom:'Mix fruits rouges', qty_per_base:120, unite:'g', note:'surgelés'},
+      {nom:'Banane',            qty_per_base:60,  unite:'g'},
+      {nom:'Lait amandes',      qty_per_base:180, unite:'ml'},
+      {nom:'Whey vanille',      qty_per_base:15,  unite:'g', note:'½ scoop'},
+      {nom:'Mel',               qty_per_base:5,   unite:'g'},
+    ],
+    steps:[
+      {action:'Lait', detail:'Verser lait d\'amandes au blender.'},
+      {action:'Fruits congelés', detail:'Ajouter le mix sans décongeler.'},
+      {action:'Compléter', detail:'Banane + whey + mel.'},
+      {action:'Mixer', detail:'60 sec, texture violette cremosa.'},
+      {action:'Servir', detail:'Immédiatement.'},
+    ],
+    tip:'🆕 Anthocyanes + 20g protéines. Récupération + antioxydants.'
+  },
+  {
+    id:'batido_abacate_tropical', type:'batido', caisse:'Abacate Tropical', baseVol:300, price:5.90,
+    emoji:'🥑', title:'Batido Abacate Tropical', sub:'Avocat · Ananas · Banane',
+    time:'3 min', kcal:'270 kcal', tags:['sante','nouveau'],
+    ings:[
+      {nom:'Avocat',       qty_per_base:60,  unite:'g', note:'chair, ~½ pequeno'},
+      {nom:'Ananas',       qty_per_base:80,  unite:'g'},
+      {nom:'Banane',       qty_per_base:60,  unite:'g'},
+      {nom:'Lait amandes', qty_per_base:180, unite:'ml'},
+      {nom:'Citron vert',  qty_per_base:5,   unite:'g'},
+      {nom:'Sirop agave',  qty_per_base:5,   unite:'ml'},
+    ],
+    steps:[
+      {action:'Lait', detail:'Lait amandes au blender.'},
+      {action:'Fruits', detail:'Abacate + ananas + banane.'},
+      {action:'Compléter', detail:'Citron vert + agave.'},
+      {action:'Mixer', detail:'60 sec, texture veludosa.'},
+    ],
+    tip:'🆕 Cremoso sans lactose. Ómega-9 + fibras. Idéal matin.'
+  },
+  {
+    id:'batido_acai_power', type:'batido', caisse:'Açaí Power', baseVol:300, price:5.90,
+    emoji:'🟣', title:'Batido Açaí Power', sub:'Açaí · Myrtille · Banane',
+    time:'3 min', kcal:'230 kcal', tags:['sante','nouveau'],
+    ings:[
+      {nom:'Acai poudre',  qty_per_base:6,   unite:'g', note:'1 c. à café'},
+      {nom:'Banane',       qty_per_base:100, unite:'g', note:'mûre'},
+      {nom:'Myrtilles',    qty_per_base:60,  unite:'g', note:'congelées'},
+      {nom:'Lait amandes', qty_per_base:180, unite:'ml'},
+      {nom:'Mel',          qty_per_base:5,   unite:'g'},
+    ],
+    steps:[
+      {action:'Lait', detail:'Lait amandes au blender.'},
+      {action:'Ajouter', detail:'Banane + myrtilles congelées + açaí em pó.'},
+      {action:'Mel', detail:'Ajouter le mel.'},
+      {action:'Mixer', detail:'60 sec.'},
+    ],
+    tip:'🆕 Version poudre. Myrtille = couleur violet. Banane mûre = crémeux.'
+  },
+  {
+    id:'batido_mamao_carioca', type:'batido', caisse:'Mamão Carioca', baseVol:300, price:5.90,
+    emoji:'🥭', title:'Batido Mamão Carioca', sub:'Papaye · Chia · Lime',
+    time:'4 min', kcal:'210 kcal', tags:['sante','nouveau'],
+    ings:[
+      {nom:'Papaye',       qty_per_base:120, unite:'g', note:'mûre, chair'},
+      {nom:'Banane',       qty_per_base:60,  unite:'g'},
+      {nom:'Lait amandes', qty_per_base:180, unite:'ml'},
+      {nom:'Citron vert',  qty_per_base:5,   unite:'g'},
+      {nom:'Chia',         qty_per_base:5,   unite:'g', note:'1 c. à café'},
+      {nom:'Mel',          qty_per_base:5,   unite:'g', note:'optionnel'},
+    ],
+    steps:[
+      {action:'Mixer base', detail:'Lait + mamão + banana au blender.'},
+      {action:'Compléter', detail:'Lime + chia + mel.'},
+      {action:'Mixer', detail:'45 sec.'},
+      {action:'Repos', detail:'Laisser reposer 1 min (chia gonfle).'},
+      {action:'Servir', detail:'Frais.'},
+    ],
+    tip:'🆕 Papaïne = digestão fácil. Très brésilien.'
+  },
+  {
+    id:'batido_athleta_plant', type:'batido', caisse:'Athleta Plant', baseVol:300, price:6.50,
+    emoji:'🌱', title:'Batido Athleta Plant', sub:'Protéine de pois · Cacao · Maca',
+    time:'4 min', kcal:'380 kcal', tags:['sport','vegan','nouveau'],
+    ings:[
+      {nom:'Proteine ervilha',  qty_per_base:20,  unite:'g'},
+      {nom:'Banane',            qty_per_base:100, unite:'g', note:'mûre'},
+      {nom:'Lait amandes',      qty_per_base:200, unite:'ml'},
+      {nom:'Cacao poudre',      qty_per_base:10,  unite:'g'},
+      {nom:'Beurre cacahuete',  qty_per_base:15,  unite:'g'},
+      {nom:'Maca poudre',       qty_per_base:5,   unite:'g'},
+    ],
+    steps:[
+      {action:'Lait', detail:'Lait amandes au blender.'},
+      {action:'Base', detail:'Banane + beurre de cacahuète + cacao + maca.'},
+      {action:'Protéine', detail:'Ajouter en dernier pour éviter les grumos.'},
+      {action:'Mixer', detail:'60 sec.'},
+    ],
+    tip:'🆕 Vegan ~22g protéines complètes. Post-training sem lactose.'
+  },
+
+  /* ════════ SMOOTHIES BOWLS — 500 ml (7,90 €) ════════ */
+  {
+    id:'alma_selvagem', type:'smoothie', caisse:'Alma Selvagem', baseVol:500, price:7.90,
+    emoji:'🍍', title:'Alma Selvagem', sub:'Ananas · Pitaya · Coco · Whey',
+    time:'4 min', kcal:'340 kcal', tags:['sport','sante'],
+    ings:[
+      {nom:'Lait amandes',    qty_per_base:200, unite:'ml'},
+      {nom:'Ananas',          qty_per_base:150, unite:'g'},
+      {nom:'Pitaya',          qty_per_base:80,  unite:'g'},
+      {nom:'Banane',          qty_per_base:80,  unite:'g'},
+      {nom:'Citron vert',     qty_per_base:15,  unite:'g'},
+      {nom:'Huile coco',      qty_per_base:10,  unite:'ml'},
+      {nom:'Maca poudre',     qty_per_base:5,   unite:'g'},
+      {nom:'Whey vegetale',   qty_per_base:15,  unite:'g'},
     ],
     toppings:['Granola 30g','Amandes 15g','Banane en rondelles'],
     steps:[
-      {action:'Liquide en premier', detail:'Lait d\'amandes au fond du blender.'},
-      {action:'Fruits + huile coco + maca', detail:'Ananas, pitaya, banane, citron, huile coco, maca.'},
-      {action:'Mixer 45 secondes', detail:'Texture épaisse et lisse. Couleur rose intense.'},
-      {action:'Topping', detail:'Granola + amandes + rondelles de banane.'},
+      {action:'Liquide', detail:'Lait amandes au blender.'},
+      {action:'Fruits + adaptógenos', detail:'Ananas, pitaya, banane, citron, huile coco, maca.'},
+      {action:'Mixer', detail:'45 sec, texture épaisse et lisse.'},
+      {action:'Topping', detail:'Granola + amandes + banane.'},
     ],
-    tip:'La pitaya congelée est idéale. La maca apporte énergie et récupération. Mixer la whey avec les fruits.'
+    tip:'Pitaya congelée idéale. Maca = energia.'
   },
   {
-    id:'double_choco', type:'smoothie', caisse:'Double Choco Coco Nuts', baseVol:500,
-    emoji:'🍫', title:'Double Choco Coco Nuts', sub:'Cacao · Dattes · Coco · Whey Cacao',
-    time:'5 min', kcal:'420 kcal', baseVol:500,
+    id:'double_choco', type:'smoothie', caisse:'Double Choco Coco Nuts', baseVol:500, price:7.90,
+    emoji:'🍫', title:'Double Choco Coco Nuts', sub:'Cacao · Dattes · Coco · Whey',
+    time:'5 min', kcal:'420 kcal', tags:['sport'],
     ings:[
-      {nom:'Lait amandes', qty_per_base:200, unite:'ml', note:'base'},
-      {nom:'Dattes',       qty_per_base:40,  unite:'g',  note:'3-4 dénoyautées'},
-      {nom:'Banane',       qty_per_base:100, unite:'g',  note:'congelée'},
-      {nom:'Cacao poudre', qty_per_base:15,  unite:'g',  note:'non sucré'},
-      {nom:'Cacao nibs',   qty_per_base:10,  unite:'g',  note:'dans le blender'},
-      {nom:'Whey cacao',    qty_per_base:37,  unite:'g',  note:'1 scoop (37g)'},
+      {nom:'Lait amandes', qty_per_base:200, unite:'ml'},
+      {nom:'Dattes',       qty_per_base:40,  unite:'g'},
+      {nom:'Banane',       qty_per_base:100, unite:'g', note:'congelée'},
+      {nom:'Cacao poudre', qty_per_base:15,  unite:'g'},
+      {nom:'Cacao nibs',   qty_per_base:10,  unite:'g'},
+      {nom:'Whey cacao',   qty_per_base:37,  unite:'g'},
     ],
     toppings:['Granola 30g','Cacao nibs 10g','Coco râpé 15g','Myrtilles 30g'],
     steps:[
-      {action:'Tremper les dattes', detail:'5 min dans eau chaude. Égoutter.'},
-      {action:'Lait + dattes', detail:'Mixer 15s pour crémer les dattes.'},
-      {action:'Ajouter banane + cacao + nibs', detail:'Banane congelée + cacao poudre + nibs.'},
-      {action:'Mixer 45 secondes', detail:'Texture chocolatée onctueuse.'},
-      {action:'Topping', detail:'Granola + cacao nibs + coco râpé + myrtilles.'},
+      {action:'Tremper dattes', detail:'5 min eau chaude. Égoutter.'},
+      {action:'Crémer', detail:'Lait + dattes, mixer 15 sec.'},
+      {action:'Ajouter', detail:'Banane congelée + cacao + nibs.'},
+      {action:'Mixer', detail:'45 sec.'},
+      {action:'Topping', detail:'Granola + nibs + coco + myrtilles.'},
     ],
-    tip:'Double choco = cacao dans le blender + nibs en topping. Les myrtilles apportent les antioxydants.'
+    tip:'Double choco = cacao dans le blender + nibs en topping.'
   },
   {
-    id:'energia_tropical', type:'smoothie', caisse:'Energia Tropical', baseVol:500,
-    emoji:'🥭', title:'Energia Tropical', sub:'Mangue · Fruit de la passion · Chia · Whey',
-    time:'4 min', kcal:'380 kcal', baseVol:500,
+    id:'energia_tropical', type:'smoothie', caisse:'Energia Tropical', baseVol:500, price:7.90,
+    emoji:'🥭', title:'Energia Tropical', sub:'Mangue · Maracujá · Chia · Whey',
+    time:'4 min', kcal:'380 kcal', tags:['sport','sante'],
     ings:[
-      {nom:'Lait amandes',  qty_per_base:200, unite:'ml', note:'base'},
-      {nom:'Mangue fraîche',qty_per_base:180, unite:'g',  note:'congelée de préférence'},
-      {nom:'Yaourt grec',   qty_per_base:80,  unite:'g',  note:'sans lactose'},
-      {nom:'Chia',          qty_per_base:8,   unite:'g',  note:'graines'},
-      {nom:'Whey vanille',  qty_per_base:37,  unite:'g',  note:'1 scoop (37g)'},
+      {nom:'Lait amandes', qty_per_base:200, unite:'ml'},
+      {nom:'Mangue',       qty_per_base:180, unite:'g'},
+      {nom:'Yaourt grec',  qty_per_base:80,  unite:'g', note:'sans lactose'},
+      {nom:'Maracuja',     qty_per_base:40,  unite:'g', note:'pulpe'},
+      {nom:'Chia',         qty_per_base:8,   unite:'g'},
+      {nom:'Whey vanille', qty_per_base:37,  unite:'g'},
     ],
-    toppings:['Granola 30g','Mangue fraîche en dés','Coco râpé 15g'],
+    toppings:['Granola 30g','Mangue en dés','Coco râpé 15g'],
     steps:[
-      {action:'Lait + yaourt', detail:'Au fond du blender.'},
-      {action:'Mangue + chia', detail:'Mangue congelée + graines de chia.'},
-      {action:'Mixer 45 secondes', detail:'Onctueux et tropical.'},
-      {action:'Topping', detail:'Granola + mangue en dés + coco râpé.'},
+      {action:'Base', detail:'Lait + yaourt au blender.'},
+      {action:'Fruits + chia', detail:'Mangue congelée + chia.'},
+      {action:'Mixer', detail:'45 sec.'},
+      {action:'Topping', detail:'Granola + mangue + coco.'},
     ],
-    tip:'La mangue congelée donne la texture. Mixer la whey vanille directement avec les fruits.'
+    tip:'Maracujá = acidité équilibrée. Mangue congelée pour texture.'
   },
   {
-    id:'explosao_proteina', type:'smoothie', caisse:'Explosao de Proteina', baseVol:500,
-    emoji:'💥', title:'Explosão de Proteína', sub:'Banane · Myrtilles · Yaourt · Whey Vanille',
-    time:'4 min', kcal:'380 kcal', baseVol:500,
+    id:'explosao_proteina', type:'smoothie', caisse:'Explosao de Proteina', baseVol:500, price:7.90,
+    emoji:'💥', title:'Explosão de Proteína', sub:'Banane · Myrtilles · Yaourt · Whey',
+    time:'4 min', kcal:'380 kcal', tags:['sport'],
     ings:[
-      {nom:'Lait amandes', qty_per_base:200, unite:'ml', note:'base — 200ml'},
-      {nom:'Banane',       qty_per_base:180, unite:'g',  note:'congelée — 180-200g'},
-      {nom:'Yaourt grec',  qty_per_base:80,  unite:'g',  note:'naturel'},
-      {nom:'Myrtilles',    qty_per_base:60,  unite:'g',  note:'congelées'},
-      {nom:'Whey vanille',  qty_per_base:37,  unite:'g',  note:'1 scoop — mixer avec les fruits'},
+      {nom:'Lait amandes',     qty_per_base:200, unite:'ml'},
+      {nom:'Banane',           qty_per_base:180, unite:'g', note:'congelée'},
+      {nom:'Yaourt grec',      qty_per_base:80,  unite:'g'},
+      {nom:'Myrtilles',        qty_per_base:60,  unite:'g'},
+      {nom:'Whey vanille',     qty_per_base:37,  unite:'g'},
+      {nom:'Beurre cacahuete', qty_per_base:15,  unite:'g', note:'filet topping'},
     ],
-    toppings:['Granola sans gluten 30g','Myrtilles 20g','Beurre de cacahuète 15g filet','Fraise fraîche'],
+    toppings:['Granola 30g','Myrtilles 20g','Beurre de cacahuète filet','Fraise fraîche'],
     steps:[
-      {action:'Base liquide', detail:'Lait d\'amandes 200ml au fond.'},
-      {action:'Banane + yaourt + myrtilles', detail:'Banane congelée 180-200g pour la texture épaisse.'},
-      {action:'Mixer 45 secondes', detail:'Couleur violette intense. Texture crémeuse.'},
-      {action:'Topping', detail:'Granola sans gluten + myrtilles + beurre de cacahuète + fraise.'},
+      {action:'Base', detail:'Lait au fond.'},
+      {action:'Fruits', detail:'Banane + yaourt + myrtilles.'},
+      {action:'Mixer', detail:'45 sec, violette intense.'},
+      {action:'Topping', detail:'Granola + myrtilles + beurre cacahuète + fraise.'},
     ],
-    tip:'Volume : 200ml lait + 180-200g fruit. Riche en protéines grâce au yaourt + whey. Beurre de cacahuète en filet sur le dessus.'
-  },
-  {
-    id:'batido_fraise', type:'smoothie', caisse:'Batido Fraise',
-    emoji:'🍓', title:'Batido Fraise', sub:'Lait amandes · Whey · Fraise',
-    time:'3 min', kcal:'280 kcal', baseVol:300,
-    ings:[
-      {nom:'Lait amandes', qty_per_base:150, unite:'ml', note:'base liquide'},
-      {nom:'Avoine',       qty_per_base:20,  unite:'g',  note:'flocons'},
-      {nom:'Whey vanille', qty_per_base:37,  unite:'g',  note:'1 scoop'},
-      {nom:'Fraise',       qty_per_base:100, unite:'g',  note:'fraiche ou congelee'},
-    ],
-    steps:[
-      {action:'Verser le lait', detail:'Lait amandes 150ml au fond du blender.'},
-      {action:'Ajouter les ingredients', detail:'Avoine, whey vanille, fraises.'},
-      {action:'Mixer', detail:'30 secondes. Texture lisse et buvable.'},
-      {action:'Servir', detail:'Dans un verre 300ml. Pas de topping.'},
-    ],
-    tip:'Le Batido doit etre buvable directement. La fraise congelee donne une texture plus fraiche.'
-  },
-  {
-    id:'batido_banane', type:'smoothie', caisse:'Batido Banane',
-    emoji:'🍌', title:'Batido Banane', sub:'Lait amandes · Cannelle · Beurre cacahuete',
-    time:'3 min', kcal:'320 kcal', baseVol:300,
-    ings:[
-      {nom:'Lait amandes',       qty_per_base:150, unite:'ml', note:'base liquide'},
-      {nom:'Avoine',             qty_per_base:20,  unite:'g',  note:'flocons'},
-      {nom:'Whey vanille',       qty_per_base:37,  unite:'g',  note:'1 scoop'},
-      {nom:'Banane',             qty_per_base:100, unite:'g',  note:'mure'},
-      {nom:'Cannelle',           qty_per_base:10,  unite:'g',  note:''},
-      {nom:'Beurre de cacahuete',qty_per_base:10,  unite:'g',  note:''},
-    ],
-    steps:[
-      {action:'Verser le lait', detail:'Lait amandes 150ml au fond du blender.'},
-      {action:'Ajouter les ingredients', detail:'Avoine, whey vanille, banane, cannelle, beurre de cacahuete.'},
-      {action:'Mixer', detail:'30 secondes. Texture lisse et buvable.'},
-      {action:'Servir', detail:'Dans un verre 300ml. Pas de topping.'},
-    ],
-    tip:'La cannelle et le beurre de cacahuete donnent un gout de cookie. Banane bien mure pour plus de douceur.'
-  },
-  {
-    id:'nouveau_smoothie', type:'smoothie', caisse:'Nouveau Smoothie', baseVol:500,
-    emoji:'🆕', title:'Nouveau Smoothie', sub:'Création du jour',
-    time:'4 min', kcal:'—', baseVol:500,
-    ings:[],
-    toppings:[],
-    steps:[{action:'Recette à définir', detail:'Ce smoothie est une création du moment.'}],
-    tip:'Utiliser pour les créations non encore référencées.'
+    tip:'~30g protéines. Bowl proteico post-training.'
   },
 
-    /* ── SANDWICHS ── */
+  /* ════════ SHOTS — 60 ml (2,50 €) ════════ */
   {
-    id:'poulet_b', type:'sandwich', caisse:'Poulet B', baseVol:1,
+    id:'shot_imunidade', type:'shot', caisse:'Shot Imunidade', baseVol:60, price:2.50,
+    emoji:'🔥', title:'Shot Imunidade', sub:'Gingembre · Curcuma · Citron',
+    time:'3 min', kcal:'25 kcal', tags:['sante','immunite','nouveau'],
+    ings:[
+      {nom:'Gingembre',   qty_per_base:12, unite:'g', note:'frais râpé'},
+      {nom:'Curcuma frais',qty_per_base:8, unite:'g', note:'râpé'},
+      {nom:'Citron jaune',qty_per_base:30, unite:'g', note:'30ml jus'},
+      {nom:'Orange',      qty_per_base:15, unite:'g', note:'15ml jus'},
+      {nom:'Mel',         qty_per_base:5,  unite:'g'},
+      {nom:'Poivre noir', qty_per_base:1,  unite:'g', note:'1 pincée'},
+    ],
+    steps:[
+      {action:'Râper', detail:'Gengibre + curcuma fresco finement.'},
+      {action:'Presser', detail:'Citron + orange (15ml).'},
+      {action:'Mixer', detail:'30 sec.'},
+      {action:'Tamiser', detail:'Passer au tamis fin.'},
+      {action:'Embouteiller', detail:'Bouteille 60ml.'},
+      {action:'Servir', detail:'Frais.'},
+    ],
+    tip:'🆕 Pimenta preta × 20 l\'absorption curcumina. ⚠ Pas grossesse/anticoagulant. Cure 5j 9,90€.'
+  },
+
+/* ════════ SANDWICHS — 7,50 € ════════ */
+  {
+    id:'poulet_b', type:'sandwich', caisse:'Poulet B', baseVol:1, price:7.50,
     emoji:'🥖', title:'Poulet Baguette', sub:'Poulet · Philadelphia · Crudités',
-    time:'8 min', kcal:'520 kcal',
+    time:'8 min', kcal:'520 kcal', tags:['sport'],
     ings:[
-      {nom:'Baguette',     qty_per_base:1,   unite:'u',  note:'1 baguette'},
-      {nom:'Poulet',       qty_per_base:80,  unite:'g',  note:'émincé, cuit'},
-      {nom:'Philadelphia', qty_per_base:60,  unite:'g',  note:'fromage frais'},
-      {nom:'Carotte',      qty_per_base:16,  unite:'g',  note:'râpée'},
-      {nom:'Pomme',        qty_per_base:11,  unite:'g',  note:'verte, coupée fin'},
-      {nom:'Noix',         qty_per_base:8,   unite:'g',  note:'concassées'},
-      {nom:'Oignon Rouge', qty_per_base:11,  unite:'g',  note:'émincé fin'},
-      {nom:'Moutarde',     qty_per_base:8,   unite:'g',  note:''},
-      {nom:'Raisins secs', qty_per_base:8,   unite:'g',  note:''},
-      {nom:'Maïs',         qty_per_base:15,  unite:'g',  note:''},
-      {nom:'Petit pois',   qty_per_base:20,  unite:'g',  note:''},
-      {nom:'Persil',       qty_per_base:5,   unite:'g',  note:'frais ou séché'},
+      {nom:'Baguette',     qty_per_base:1,   unite:'u'},
+      {nom:'Poulet',       qty_per_base:80,  unite:'g', note:'émincé, cuit'},
+      {nom:'Philadelphia', qty_per_base:60,  unite:'g'},
+      {nom:'Carotte',      qty_per_base:16,  unite:'g', note:'râpée'},
+      {nom:'Pomme',        qty_per_base:11,  unite:'g', note:'verte, fin'},
+      {nom:'Noix',         qty_per_base:8,   unite:'g'},
+      {nom:'Oignon Rouge', qty_per_base:11,  unite:'g'},
+      {nom:'Moutarde',     qty_per_base:8,   unite:'g'},
+      {nom:'Raisins secs', qty_per_base:8,   unite:'g'},
+      {nom:'Maïs',         qty_per_base:15,  unite:'g'},
+      {nom:'Petit pois',   qty_per_base:20,  unite:'g'},
+      {nom:'Persil',       qty_per_base:5,   unite:'g'},
     ],
     steps:[
-      {action:'Réchauffer la baguette', detail:"Passer la baguette entière au four 3-4 min."},
-      {action:'Couper la baguette', detail:"Une fois chaude, couper en deux dans la longueur."},
-      {action:'Feuilles de salade', detail:'Déposer des feuilles de salade sur la face inférieure.'},
-      {action:'Tomate en rondelles', detail:'Placer les rondelles de tomate sur la salade.'},
-      {action:'La préparation poulet', detail:'Déposer généreusement la pâte poulet (poulet + Philadelphia + moutarde + crudités) par-dessus.'},
-      {action:'Fermer et servir', detail:'Refermer la baguette. Couper en deux en diagonale. Servir immédiatement.'},
+      {action:'Réchauffer baguette', detail:'Au four 3-4 min.'},
+      {action:'Couper', detail:'En deux dans la longueur.'},
+      {action:'Salade en base', detail:'Feuilles de salade.'},
+      {action:'Tomate', detail:'Rondelles.'},
+      {action:'Pâte poulet', detail:'Garnir généreusement.'},
+      {action:'Fermer + servir', detail:'Couper en diagonale.'},
     ],
-    tip:"La baguette chaude est essentielle. La salade en premier protège le pain. Servir immédiatement."
+    tip:'Baguette chaude obligatoire. Salade en premier protège le pain.'
   },
   {
-        id:'poulet_t', type:'sandwich', caisse:'Poulet T', baseVol:1,
+    id:'poulet_t', type:'sandwich', caisse:'Poulet T', baseVol:1, price:7.50,
     emoji:'🐓', title:'Poulet Tartine', sub:'Léger · Frais · Classique',
-    time:'7 min', kcal:'440 kcal',
+    time:'7 min', kcal:'440 kcal', tags:['sport'],
     ings:[
-      {nom:'Pain',         qty_per_base:2,   unite:'u',  note:'tranches'},
-      {nom:'Poulet',       qty_per_base:80,  unite:'g',  note:'émincé, cuit'},
-      {nom:'Philadelphia', qty_per_base:60,  unite:'g',  note:''},
-      {nom:'Moutarde',     qty_per_base:8,   unite:'g',  note:''},
-      {nom:'Salade',       qty_per_base:30,  unite:'g',  note:'quelques feuilles'},
-      {nom:'Tomate',       qty_per_base:80,  unite:'g',  note:'3 rondelles fines'},
-      {nom:'Carotte',      qty_per_base:16,  unite:'g',  note:'râpée'},
-      {nom:'Oignon Rouge', qty_per_base:11,  unite:'g',  note:'émincé'},
-      {nom:'Maïs',         qty_per_base:15,  unite:'g',  note:''},
-      {nom:'Petit pois',   qty_per_base:20,  unite:'g',  note:''},
-      {nom:'Raisins secs', qty_per_base:8,   unite:'g',  note:''},
-      {nom:'Noix',         qty_per_base:8,   unite:'g',  note:'concassées'},
-      {nom:'Persil',       qty_per_base:5,   unite:'g',  note:'frais ou séché'},
+      {nom:'Pain',         qty_per_base:2,   unite:'u', note:'tranches'},
+      {nom:'Poulet',       qty_per_base:80,  unite:'g'},
+      {nom:'Philadelphia', qty_per_base:60,  unite:'g'},
+      {nom:'Moutarde',     qty_per_base:8,   unite:'g'},
+      {nom:'Salade',       qty_per_base:30,  unite:'g'},
+      {nom:'Tomate',       qty_per_base:80,  unite:'g'},
+      {nom:'Carotte',      qty_per_base:16,  unite:'g'},
+      {nom:'Oignon Rouge', qty_per_base:11,  unite:'g'},
+      {nom:'Maïs',         qty_per_base:15,  unite:'g'},
+      {nom:'Petit pois',   qty_per_base:20,  unite:'g'},
+      {nom:'Raisins secs', qty_per_base:8,   unite:'g'},
+      {nom:'Noix',         qty_per_base:8,   unite:'g'},
+      {nom:'Persil',       qty_per_base:5,   unite:'g'},
     ],
     steps:[
-      {action:'Prendre 2 tartines', detail:'2 tranches de pain.'},
-      {action:'Feuilles de salade', detail:"Déposer des feuilles de salade sur une tranche — elles protègent le pain de l\'humidité."},
-      {action:'Tomate en rondelles', detail:'Placer les rondelles de tomate sur la salade.'},
-      {action:'La préparation poulet', detail:'Déposer la pâte poulet (poulet + Philadelphia + moutarde + crudités) généreusement.'},
-      {action:'Fermer et servir', detail:'Refermer avec la 2ème tranche. Couper en diagonale. Servir.'},
+      {action:'2 tartines', detail:'2 tranches de pain.'},
+      {action:'Salade', detail:'Sur 1 tranche.'},
+      {action:'Tomate', detail:'Rondelles.'},
+      {action:'Pâte poulet', detail:'Généreusement.'},
+      {action:'Fermer + couper', detail:'Diagonale.'},
     ],
-    tip:"T = Tartine : même pâte que la baguette mais avec pain tranché. La salade en premier empêche le pain de devenir mou."
+    tip:'Tartine = même pâte que baguette mais pain tranché.'
   },
-  {    id:'sardine_b', type:'sandwich', caisse:'Sardine B', baseVol:1,
+  {
+    id:'sardine_b', type:'sandwich', caisse:'Sardine B', baseVol:1, price:7.50,
     emoji:'🐟', title:'Sardine Baguette', sub:'Sardine · Légumes · Chaud',
-    time:'7 min', kcal:'400 kcal',
+    time:'7 min', kcal:'400 kcal', tags:[],
     ings:[
-      {nom:'Baguette',      qty_per_base:1,   unite:'u',  note:'1 baguette'},
-      {nom:'Sardine',       qty_per_base:100, unite:'g',  note:'égouttée'},
-      {nom:'Tomate',        qty_per_base:23,  unite:'g',  note:'coupée finement'},
-      {nom:'Oignon Rouge',  qty_per_base:10,  unite:'g',  note:'émincé'},
-      {nom:'Carotte',       qty_per_base:15,  unite:'g',  note:'râpée'},
-      {nom:'Olives coupées',qty_per_base:20,  unite:'g',  note:''},
-      {nom:'Moutarde',      qty_per_base:5,   unite:'g',  note:''},
-      {nom:'Ketchup',       qty_per_base:8,   unite:'g',  note:''},
-      {nom:'Sauce anglaise',qty_per_base:5,   unite:'g',  note:'Worcestershire'},
-      {nom:'Persil',        qty_per_base:5,   unite:'g',  note:'frais ou séché'},
+      {nom:'Baguette',     qty_per_base:1,   unite:'u'},
+      {nom:'Sardine',      qty_per_base:100, unite:'g'},
+      {nom:'Tomate',       qty_per_base:23,  unite:'g'},
+      {nom:'Oignon Rouge', qty_per_base:10,  unite:'g'},
+      {nom:'Carotte',      qty_per_base:15,  unite:'g'},
+      {nom:'Olives',       qty_per_base:20,  unite:'g'},
+      {nom:'Moutarde',     qty_per_base:5,   unite:'g'},
+      {nom:'Ketchup',      qty_per_base:8,   unite:'g'},
+      {nom:'Sauce anglaise',qty_per_base:5,  unite:'g'},
+      {nom:'Persil',       qty_per_base:5,   unite:'g'},
     ],
     steps:[
-      {action:'Préparer la pâte sardine', detail:"Égoutter les sardines, écraser à la fourchette. Mélanger avec tomate finement coupée, oignon, carotte râpée, olives, moutarde, ketchup et sauce anglaise. Bien mélanger."},
-      {action:'Chauffer la baguette', detail:'Passer la baguette entière au four 3-4 min.'},
-      {action:'Couper la baguette', detail:'Couper en deux dans la longueur.'},
-      {action:'Feuilles de salade', detail:'Déposer des feuilles de salade sur la face inférieure.'},
-      {action:'Tomate en rondelles', detail:'Placer les rondelles de tomate sur la salade.'},
-      {action:'La préparation sardine', detail:'Déposer généreusement la pâte sardine par-dessus.'},
-      {action:'Fermer et servir', detail:'Refermer la baguette. Couper en diagonale. Servir.'},
+      {action:'Pâte sardine', detail:'Écraser + mélanger légumes + sauces.'},
+      {action:'Chauffer baguette', detail:'3-4 min.'},
+      {action:'Salade + tomate', detail:'En base.'},
+      {action:'Garnir + fermer', detail:'Servir immédiatement.'},
     ],
-    tip:"La sauce anglaise apporte de la profondeur. Chauffer la baguette avant de couper."
+    tip:'Sauce anglaise = profondeur de goût.'
   },
   {
-    id:'sardine_t', type:'sandwich', caisse:'Sardine T', baseVol:1,
+    id:'sardine_t', type:'sandwich', caisse:'Sardine T', baseVol:1, price:7.50,
     emoji:'🐠', title:'Sardine Tartine', sub:'Sardine · Légumes · Chaud',
-    time:'7 min', kcal:'380 kcal',
+    time:'7 min', kcal:'380 kcal', tags:[],
     ings:[
-      {nom:'Pain',          qty_per_base:2,   unite:'u',  note:'2 tranches'},
-      {nom:'Sardine',       qty_per_base:100, unite:'g',  note:'égouttée'},
-      {nom:'Tomate',        qty_per_base:23,  unite:'g',  note:'coupée finement'},
-      {nom:'Oignon Rouge',  qty_per_base:10,  unite:'g',  note:'émincé'},
-      {nom:'Carotte',       qty_per_base:15,  unite:'g',  note:'râpée'},
-      {nom:'Olives coupées',qty_per_base:20,  unite:'g',  note:''},
-      {nom:'Moutarde',      qty_per_base:5,   unite:'g',  note:''},
-      {nom:'Ketchup',       qty_per_base:8,   unite:'g',  note:''},
-      {nom:'Sauce anglaise',qty_per_base:5,   unite:'g',  note:'Worcestershire'},
-      {nom:'Persil',        qty_per_base:5,   unite:'g',  note:'frais ou séché'},
+      {nom:'Pain',         qty_per_base:2,   unite:'u'},
+      {nom:'Sardine',      qty_per_base:100, unite:'g'},
+      {nom:'Tomate',       qty_per_base:23,  unite:'g'},
+      {nom:'Oignon Rouge', qty_per_base:10,  unite:'g'},
+      {nom:'Carotte',      qty_per_base:15,  unite:'g'},
+      {nom:'Olives',       qty_per_base:20,  unite:'g'},
+      {nom:'Moutarde',     qty_per_base:5,   unite:'g'},
+      {nom:'Ketchup',      qty_per_base:8,   unite:'g'},
+      {nom:'Sauce anglaise',qty_per_base:5,  unite:'g'},
+      {nom:'Persil',       qty_per_base:5,   unite:'g'},
     ],
     steps:[
-      {action:'Préparer la pâte sardine', detail:"Même préparation que la baguette : sardines + tomate + oignon + carotte + olives + moutarde + ketchup + sauce anglaise."},
-      {action:'Chauffer le pain', detail:'Passer les tranches au grille-pain.'},
-      {action:'Feuilles de salade', detail:'Déposer des feuilles de salade sur une tranche.'},
-      {action:'Tomate en rondelles', detail:'Placer les rondelles de tomate sur la salade.'},
-      {action:'La préparation sardine', detail:'Déposer généreusement la pâte sardine par-dessus.'},
-      {action:'Fermer et servir', detail:"Refermer avec la 2ème tranche. Couper en diagonale. Servir."},
+      {action:'Pâte sardine', detail:'Comme baguette.'},
+      {action:'Griller pain', detail:'Grille-pain.'},
+      {action:'Garnir', detail:'Salade + tomate + pâte.'},
+      {action:'Fermer + servir', detail:'Diagonale.'},
     ],
-    tip:"T = Tartine : même pâte que la baguette. Chauffer le pain avant d\'assembler."
+    tip:'Pain grillé avant assemblage.'
   },
   {
-        id:'thon_b', type:'sandwich', caisse:'Thon B', baseVol:1,
+    id:'thon_b', type:'sandwich', caisse:'Thon B', baseVol:1, price:7.50,
     emoji:'🎣', title:'Thon Baguette', sub:'Thon · Philadelphia · Chaud',
-    time:'7 min', kcal:'420 kcal',
+    time:'7 min', kcal:'420 kcal', tags:[],
     ings:[
-      {nom:'Baguette',     qty_per_base:1,   unite:'u',  note:'1 baguette'},
-      {nom:'Thon',         qty_per_base:80,  unite:'g',  note:'1 boîte égouttée'},
-      {nom:'Philadelphia', qty_per_base:75,  unite:'g',  note:'1/4 boîte'},
-      {nom:'Moutarde',     qty_per_base:8,   unite:'g',  note:''},
-      {nom:'Carotte',      qty_per_base:8,   unite:'g',  note:'râpée'},
-      {nom:'Oignon Rouge', qty_per_base:13,  unite:'g',  note:'émincé'},
-      {nom:'Tomate',       qty_per_base:13,  unite:'g',  note:'en dés + rondelles'},
-      {nom:'Cornichon',    qty_per_base:11,  unite:'g',  note:'émincé'},
-      {nom:'Citron jaune', qty_per_base:15,  unite:'g',  note:'zeste + jus'},
-      {nom:'Roquette',     qty_per_base:10,  unite:'g',  note:''},
-      {nom:'Persil',       qty_per_base:5,   unite:'g',  note:'frais ou séché'},
+      {nom:'Baguette',     qty_per_base:1,   unite:'u'},
+      {nom:'Thon',         qty_per_base:80,  unite:'g'},
+      {nom:'Philadelphia', qty_per_base:75,  unite:'g'},
+      {nom:'Moutarde',     qty_per_base:8,   unite:'g'},
+      {nom:'Carotte',      qty_per_base:8,   unite:'g'},
+      {nom:'Oignon Rouge', qty_per_base:13,  unite:'g'},
+      {nom:'Tomate',       qty_per_base:13,  unite:'g'},
+      {nom:'Cornichon',    qty_per_base:11,  unite:'g'},
+      {nom:'Citron jaune', qty_per_base:15,  unite:'g'},
+      {nom:'Roquette',     qty_per_base:10,  unite:'g'},
+      {nom:'Persil',       qty_per_base:5,   unite:'g'},
     ],
     steps:[
-      {action:'Préparer la pâte thon', detail:"Égoutter le thon. Mélanger avec Philadelphia, moutarde, carotte râpée, oignon, tomate en dés, cornichons émincés, zeste et jus de citron."},
-      {action:'Couper la baguette', detail:'Couper en deux dans la longueur.'},
-      {action:'Tranche de fromage en base', detail:"Déposer une tranche de fromage fondu sur chaque face — il fondra à la chauffe et liera la garniture."},
-      {action:'Tomate en rondelles', detail:'Placer les rondelles de tomate sur le fromage.'},
-      {action:'Roquette', detail:'Quelques feuilles de roquette.'},
-      {action:'La pâte thon', detail:'Déposer généreusement la pâte thon par-dessus.'},
-      {action:'Fermer', detail:'Refermer la baguette.'},
-      {action:'Chauffer', detail:'Passer au four chaud 3-4 min — la tranche de fromage fond et la baguette croustille. Servir chaud.'},
+      {action:'Pâte thon', detail:'Thon + Philadelphia + condiments.'},
+      {action:'Couper baguette', detail:'En deux longueur.'},
+      {action:'Fromage en base', detail:'Tranche fondante.'},
+      {action:'Tomate + roquette', detail:'Sur fromage.'},
+      {action:'Pâte thon', detail:'Généreusement.'},
+      {action:'Fermer', detail:'Refermer.'},
+      {action:'Chauffer 3-4 min', detail:'Le fromage fond.'},
     ],
-    tip:"Le fromage en tranche en base est la clé — il fond à la chauffe et lie tous les ingrédients. Toujours fermer avant de chauffer."
+    tip:'Fromage en base fond et lie. Fermer AVANT de chauffer.'
   },
   {
-    id:'thon_t', type:'sandwich', caisse:'Thon T', baseVol:1,
+    id:'thon_t', type:'sandwich', caisse:'Thon T', baseVol:1, price:7.50,
     emoji:'🐡', title:'Thon Tartine', sub:'Thon · Philadelphia · Chaud',
-    time:'7 min', kcal:'390 kcal',
+    time:'7 min', kcal:'390 kcal', tags:[],
     ings:[
-      {nom:'Pain',         qty_per_base:2,   unite:'u',  note:'2 tranches'},
-      {nom:'Thon',         qty_per_base:80,  unite:'g',  note:'1 boîte égouttée'},
-      {nom:'Philadelphia', qty_per_base:75,  unite:'g',  note:'1/4 boîte'},
-      {nom:'Moutarde',     qty_per_base:8,   unite:'g',  note:''},
-      {nom:'Carotte',      qty_per_base:8,   unite:'g',  note:'râpée'},
-      {nom:'Oignon Rouge', qty_per_base:13,  unite:'g',  note:'émincé'},
-      {nom:'Tomate',       qty_per_base:13,  unite:'g',  note:'en dés + rondelles'},
-      {nom:'Cornichon',    qty_per_base:11,  unite:'g',  note:'émincé'},
-      {nom:'Citron jaune', qty_per_base:15,  unite:'g',  note:'zeste + jus'},
-      {nom:'Roquette',     qty_per_base:10,  unite:'g',  note:''},
-      {nom:'Persil',       qty_per_base:5,   unite:'g',  note:'frais ou séché'},
+      {nom:'Pain',         qty_per_base:2,   unite:'u'},
+      {nom:'Thon',         qty_per_base:80,  unite:'g'},
+      {nom:'Philadelphia', qty_per_base:75,  unite:'g'},
+      {nom:'Moutarde',     qty_per_base:8,   unite:'g'},
+      {nom:'Carotte',      qty_per_base:8,   unite:'g'},
+      {nom:'Oignon Rouge', qty_per_base:13,  unite:'g'},
+      {nom:'Tomate',       qty_per_base:13,  unite:'g'},
+      {nom:'Cornichon',    qty_per_base:11,  unite:'g'},
+      {nom:'Citron jaune', qty_per_base:15,  unite:'g'},
+      {nom:'Roquette',     qty_per_base:10,  unite:'g'},
+      {nom:'Persil',       qty_per_base:5,   unite:'g'},
     ],
     steps:[
-      {action:'Préparer la pâte thon', detail:'Même préparation que la baguette : thon + Philadelphia + moutarde + carotte + oignon + tomate en dés + cornichons + zeste et jus de citron.'},
-      {action:'Prendre les tartines', detail:'2 tranches de pain.'},
-      {action:'Tranche de fromage en base', detail:"Déposer une tranche de fromage fondu sur chaque tartine — il fondra à la chauffe."},
-      {action:'Tomate en rondelles', detail:'Placer les rondelles de tomate sur le fromage.'},
-      {action:'Roquette', detail:'Quelques feuilles de roquette.'},
-      {action:'La pâte thon', detail:'Déposer la pâte thon généreusement par-dessus.'},
-      {action:'Fermer', detail:'Refermer avec la 2ème tranche de pain.'},
-      {action:'Chauffer et servir', detail:'Passer au four 3-4 min. La tranche de fromage fond. Couper en diagonale. Servir chaud.'},
+      {action:'Pâte thon', detail:'Idem baguette.'},
+      {action:'2 tartines', detail:'Pain tranché.'},
+      {action:'Fromage en base', detail:'Tranche fondante.'},
+      {action:'Tomate + roquette', detail:'Sur fromage.'},
+      {action:'Pâte thon', detail:'Garnir.'},
+      {action:'Fermer + chauffer', detail:'3-4 min four.'},
     ],
-    tip:"Toujours fermer avant de chauffer. Le fromage en tranche en base fond et lie la garniture."
-  },
-  {
-    id:'overgnith', type:'gateau', caisse:'Overgnith', baseVol:200,
-    emoji:'🌿', title:'Overgnith', sub:'Chia · Avoine · Lait',
-    time:'5 min + 1 nuit', kcal:'220 kcal', baseVol:200,
-    ings:[
-      {nom:'Chia',        qty_per_base:10,  unite:'g',  note:''},
-      {nom:'Avoine',      qty_per_base:15,  unite:'g',  note:'flocons'},
-      {nom:'Sirop agave', qty_per_base:5,   unite:'g',  note:'1 cuillere a cafe'},
-      {nom:'Lait vache',  qty_per_base:150, unite:'ml', note:''},
-    ],
-    steps:[
-      {action:'Melanger', detail:'Mettre chia, avoine et sirop agave dans un pot ou verre.'},
-      {action:'Ajouter le lait', detail:'Verser 150ml de lait. Bien melanger.'},
-      {action:'Refrigerer', detail:'Couvrir et laisser au frigo toute la nuit (minimum 4h).'},
-      {action:'Servir', detail:'Remuer avant de servir. Texture epaisse et onctueuse.'},
-    ],
-    tip:'Preparer la veille au soir pour le lendemain matin. Le chia absorbe le lait et gonfle.'
-  },
-  {
-    id:'overgnith_fraise', type:'gateau', caisse:'Overgnith Fraise', baseVol:200,
-    emoji:'🍓', title:'Overgnith Fraise', sub:'Chia · Avoine · Fraise',
-    time:'5 min + 1 nuit', kcal:'240 kcal', baseVol:200,
-    ings:[
-      {nom:'Chia',        qty_per_base:10,  unite:'g',  note:''},
-      {nom:'Avoine',      qty_per_base:15,  unite:'g',  note:'flocons'},
-      {nom:'Sirop agave', qty_per_base:5,   unite:'g',  note:'1 cuillere a cafe'},
-      {nom:'Lait vache',  qty_per_base:150, unite:'ml', note:''},
-      {nom:'Fraise',      qty_per_base:20,  unite:'g',  note:'fraiche coupee en des'},
-    ],
-    steps:[
-      {action:'Melanger', detail:'Mettre chia, avoine et sirop agave dans un pot.'},
-      {action:'Ajouter le lait', detail:'Verser 150ml de lait. Bien melanger.'},
-      {action:'Refrigerer', detail:'Couvrir et laisser au frigo toute la nuit.'},
-      {action:'Servir', detail:'Ajouter les fraises fraiches coupees en des juste avant de servir.'},
-    ],
-    tip:'Les fraises se mettent toujours au moment du service pour garder leur fraicheur.'
-  },
-  {
-    id:'soupe_carotte', type:'soupe', caisse:'Soupe Carotte', baseVol:300,
-    emoji:'🥕', title:'Soupe Carotte Coco', sub:'Carotte · Lait coco · Gingembre',
-    time:'35 min', kcal:'180 kcal', baseVol:300,
-    ings:[
-      {nom:'Carotte',          qty_per_base:900, unite:'g',  note:'pelees, en rondelles'},
-      {nom:'Echalotte',        qty_per_base:110, unite:'g',  note:'emincee'},
-      {nom:'Lait coco',        qty_per_base:300, unite:'ml', note:'1 boite'},
-      {nom:'Huile olive',      qty_per_base:30,  unite:'ml', note:'2 cuilleres a soupe'},
-      {nom:'Gingembre poudre', qty_per_base:5,   unite:'g',  note:'1 cuillere a cafe'},
-      {nom:'Thym',             qty_per_base:2,   unite:'g',  note:'2 pincees deshydrate'},
-      {nom:'Poivre',           qty_per_base:3,   unite:'g',  note:'3 pincees'},
-      {nom:'Sel',              qty_per_base:5,   unite:'g',  note:'1 cuillere a cafe'},
-      {nom:'Eau',              qty_per_base:850, unite:'ml', note:''},
-      {nom:'Persil',           qty_per_base:5,   unite:'g',  note:'3 brins deco'},
-    ],
-    steps:[
-      {action:'Faire revenir', detail:'Chauffer huile olive. Faire revenir echalotte 3-4 min.'},
-      {action:'Carottes', detail:'Ajouter carottes en rondelles. Melanger 2 min.'},
-      {action:'Assaisonner', detail:'Ajouter gingembre, thym, sel, poivre.'},
-      {action:'Cuire', detail:'Ajouter 850ml eau. Porter a ebullition. Cuire 20 min a feu doux.'},
-      {action:'Mixer', detail:'Mixer jusqu\'a texture lisse et veloutee.'},
-      {action:'Lait coco', detail:'Hors du feu, ajouter 300ml lait coco. Melanger.'},
-      {action:'Servir', detail:'Chaud avec persil frais en decoration.'},
-    ],
-    tip:'5 portions par preparation. Conservation 3 jours au frigo.'
-  },
-  {
-    id:'soupe_butternut', type:'soupe', caisse:'Soupe Butternut', baseVol:300,
-    emoji:'🍲', title:'Soupe Butternut', sub:'Réconfortant · Crémeux · Automne',
-    time:'35 min', kcal:'280 kcal', portions:'5',
-    ings:[
-      {nom:'Butternut',        qty_per_base:1,    unite:'u',  note:'≈1.2kg'},
-      {nom:'Oignon',           qty_per_base:1,    unite:'u',  note:''},
-      {nom:'Lard',             qty_per_base:150,  unite:'g',  note:'lardons'},
-      {nom:'Bouillon légumes', qty_per_base:2,    unite:'u',  note:'2 cubes'},
-      {nom:'Tête de moine',    qty_per_base:60,   unite:'g',  note:'râpée'},
-      {nom:'Beurre',           qty_per_base:25,   unite:'g',  note:''},
-    ],
-    steps:[
-      {action:"Préparer les légumes", detail:"Éplucher et couper le butternut en cubes. Émincer l\'oignon."},
-      {action:"Faire revenir", detail:"Faire fondre le beurre dans une grande casserole. Faire revenir l\'oignon et les lardons 5 min."},
-      {action:"Ajouter le butternut", detail:"Ajouter les cubes de butternut. Mélanger 2 min."},
-      {action:"Mouiller", detail:"Ajouter 1L d\'eau chaude + les 2 cubes de bouillon. Porter à ébullition."},
-      {action:"Cuire", detail:"Laisser mijoter 20 min à feu moyen jusqu\'à ce que le butternut soit tendre."},
-      {action:"Mixer", detail:"Mixer jusqu\'à obtenir une texture lisse et crémeuse."},
-      {action:"Servir", detail:"Dans des bols chauds. Parsemer de tête de moine râpée par-dessus."},
-    ],
-    tip:"Recette pour 5 portions. La tête de moine se râpe avec un girolle pour de belles rosettes. Peut se congeler sans la garniture."
+    tip:'Fermer avant chauffe.'
   },
 
+  /* ════════ OVERGNITH (Overnight Oats) — 6,00 € ════════ */
   {
-    id:'soupe_tomate', type:'soupe', caisse:'Soupe Tomate', baseVol:300,
-    emoji:'🍅', title:'Soupe Tomate', sub:'Maison · Veloutée · Facile',
-    time:'30 min', kcal:'220 kcal', portions:'5',
+    id:'overgnith', type:'gateau', caisse:'Overgnith', baseVol:200, price:6.00,
+    emoji:'🌿', title:'Overgnith', sub:'Chia · Avoine · Lait',
+    time:'5 min + 1 nuit', kcal:'220 kcal', tags:['sport'],
     ings:[
-      {nom:'Tomate',             qty_per_base:1000, unite:'g',  note:'≈6-7 tomates'},
-      {nom:'Oignon',             qty_per_base:1,    unite:'u',  note:''},
-      {nom:'Ail',                qty_per_base:1,    unite:'u',  note:'1 gousse'},
-      {nom:'Bouillon légumes',   qty_per_base:2,    unite:'u',  note:'2 cubes'},
-      {nom:'Crème fraîche',      qty_per_base:150,  unite:'g',  note:''},
-      {nom:'Beurre',             qty_per_base:45,   unite:'g',  note:''},
-      {nom:'Concentré tomate',   qty_per_base:130,  unite:'g',  note:''},
+      {nom:'Chia',        qty_per_base:10,  unite:'g'},
+      {nom:'Avoine',      qty_per_base:15,  unite:'g'},
+      {nom:'Sirop agave', qty_per_base:5,   unite:'ml'},
+      {nom:'Lait vache',  qty_per_base:150, unite:'ml'},
     ],
     steps:[
-      {action:"Préparer les légumes", detail:"Émincer l'oignon et l'ail. Couper les tomates en quartiers."},
-      {action:"Faire revenir", detail:"Faire fondre le beurre dans une grande casserole. Faire revenir l'oignon et l'ail 5 min à feu doux jusqu\'à ce qu'ils soient translucides."},
-      {action:"Ajouter les tomates", detail:"Ajouter les tomates en quartiers et le concentré de tomate. Mélanger et cuire 5 min."},
-      {action:"Mouiller", detail:"Ajouter 800ml d'eau chaude + les 2 cubes de bouillon. Porter à ébullition."},
-      {action:"Cuire", detail:"Laisser mijoter 15 min à feu moyen jusqu\'à ce que les tomates soient bien fondues."},
-      {action:"Mixer", detail:"Mixer jusqu\'à obtenir une texture lisse et veloutée."},
-      {action:"Ajouter la crème", detail:"Incorporer la crème fraîche hors du feu. Ajuster l'assaisonnement."},
-      {action:"Servir", detail:"Dans des bols chauds. Quelques gouttes de crème et une feuille de basilic en décoration."},
+      {action:'Mélanger sec', detail:'Chia + avoine + agave dans pot.'},
+      {action:'Lait', detail:'Verser 150ml de lait.'},
+      {action:'Réfrigérer', detail:'Toute la nuit (min 4h).'},
+      {action:'Servir', detail:'Remuer avant. Texture épaisse.'},
     ],
-    tip:"Recette pour 5 portions. Peut se préparer à l\'avance et se congeler. La crème peut être remplacée par de la crème de coco pour une version végane."
+    tip:'Préparer la veille au soir. Chia gonfle dans le lait.'
+  },
+  {
+    id:'overgnith_fraise', type:'gateau', caisse:'Overgnith Fraise', baseVol:200, price:6.00,
+    emoji:'🍓', title:'Overgnith Fraise', sub:'Chia · Avoine · Fraise',
+    time:'5 min + 1 nuit', kcal:'240 kcal', tags:['sport'],
+    ings:[
+      {nom:'Chia',        qty_per_base:10,  unite:'g'},
+      {nom:'Avoine',      qty_per_base:15,  unite:'g'},
+      {nom:'Sirop agave', qty_per_base:5,   unite:'ml'},
+      {nom:'Lait vache',  qty_per_base:150, unite:'ml'},
+      {nom:'Fraise',      qty_per_base:20,  unite:'g', note:'en dés au service'},
+    ],
+    steps:[
+      {action:'Mélanger sec', detail:'Chia + avoine + agave.'},
+      {action:'Lait + nuit', detail:'Lait 150ml + frigo nuit.'},
+      {action:'Fraises au service', detail:'En dés juste avant.'},
+    ],
+    tip:'Fraises toujours au moment du service.'
+  },
+
+  /* ════════ SOUPES — 4,90 € ════════ */
+  {
+    id:'soupe_carotte', type:'soupe', caisse:'Soupe Carotte', baseVol:300, price:4.90,
+    emoji:'🥕', title:'Soupe Carotte Coco', sub:'Carotte · Lait coco · Gingembre',
+    time:'35 min', kcal:'180 kcal', tags:['sante'],
+    ings:[
+      {nom:'Carotte',     qty_per_base:900, unite:'g'},
+      {nom:'Echalotte',   qty_per_base:110, unite:'g'},
+      {nom:'Lait coco',   qty_per_base:300, unite:'ml'},
+      {nom:'Huile olive', qty_per_base:30,  unite:'ml'},
+      {nom:'Gingembre',   qty_per_base:5,   unite:'g'},
+      {nom:'Thym',        qty_per_base:2,   unite:'g'},
+      {nom:'Poivre',      qty_per_base:3,   unite:'g'},
+      {nom:'Sel',         qty_per_base:5,   unite:'g'},
+      {nom:'Eau',         qty_per_base:850, unite:'ml'},
+      {nom:'Persil',      qty_per_base:5,   unite:'g'},
+    ],
+    steps:[
+      {action:'Revenir', detail:'Échalotte huile olive 3-4 min.'},
+      {action:'Carottes', detail:'En rondelles, 2 min.'},
+      {action:'Assaisonner', detail:'Gingembre + thym + sel + poivre.'},
+      {action:'Cuire', detail:'850ml eau, 20 min feu doux.'},
+      {action:'Mixer', detail:'Veluté lisse.'},
+      {action:'Lait coco', detail:'Hors du feu, ajouter.'},
+      {action:'Servir', detail:'Persil en déco.'},
+    ],
+    tip:'5 portions. Conservation 3j frigo.'
+  },
+  {
+    id:'soupe_butternut', type:'soupe', caisse:'Soupe Butternut', baseVol:300, price:4.90,
+    emoji:'🍲', title:'Soupe Butternut', sub:'Réconfortant · Crémeux · Automne',
+    time:'35 min', kcal:'280 kcal', tags:['sante'],
+    ings:[
+      {nom:'Butternut',         qty_per_base:1,    unite:'u'},
+      {nom:'Oignon',            qty_per_base:1,    unite:'u'},
+      {nom:'Lard',              qty_per_base:150,  unite:'g'},
+      {nom:'Bouillon legumes',  qty_per_base:2,    unite:'u'},
+      {nom:'Tête de moine',     qty_per_base:60,   unite:'g'},
+      {nom:'Beurre',            qty_per_base:25,   unite:'g'},
+    ],
+    steps:[
+      {action:'Préparer', detail:'Butternut en cubes, oignon émincé.'},
+      {action:'Revenir', detail:'Beurre + oignon + lardons 5 min.'},
+      {action:'Butternut', detail:'Cubes, mélanger 2 min.'},
+      {action:'Mouiller', detail:'1L eau chaude + 2 cubes bouillon.'},
+      {action:'Cuire', detail:'20 min jusqu\'à tendre.'},
+      {action:'Mixer', detail:'Crémeux.'},
+      {action:'Servir', detail:'Tête de moine râpée dessus.'},
+    ],
+    tip:'5 portions. Tête de moine = rosettes à la girolle.'
+  },
+  {
+    id:'soupe_tomate', type:'soupe', caisse:'Soupe Tomate', baseVol:300, price:4.90,
+    emoji:'🍅', title:'Soupe Tomate', sub:'Maison · Veloutée · Facile',
+    time:'30 min', kcal:'220 kcal', tags:['sante'],
+    ings:[
+      {nom:'Tomate',             qty_per_base:1000, unite:'g'},
+      {nom:'Oignon',             qty_per_base:1,    unite:'u'},
+      {nom:'Ail',                qty_per_base:1,    unite:'u'},
+      {nom:'Bouillon legumes',   qty_per_base:2,    unite:'u'},
+      {nom:'Creme fraiche',      qty_per_base:150,  unite:'g'},
+      {nom:'Beurre',             qty_per_base:45,   unite:'g'},
+      {nom:'Concentré tomate',   qty_per_base:130,  unite:'g'},
+    ],
+    steps:[
+      {action:'Préparer', detail:'Oignon + ail émincés, tomates en quartiers.'},
+      {action:'Revenir', detail:'Beurre + oignon + ail 5 min.'},
+      {action:'Tomates', detail:'+ concentré 5 min.'},
+      {action:'Mouiller', detail:'800ml eau + 2 cubes.'},
+      {action:'Cuire', detail:'15 min.'},
+      {action:'Mixer', detail:'Veloutée.'},
+      {action:'Crème', detail:'Hors feu, incorporer.'},
+      {action:'Servir', detail:'Quelques gouttes crème + basilic.'},
+    ],
+    tip:'5 portions. Crème coco pour version vegan.'
   },
 
 ];
@@ -920,14 +1205,11 @@ const RECIPES = [
 let currentFilter = 'all';
 let currentRecipe = null;
 let currentVol = null;
-let stockBouteilles = JSON.parse(localStorage.getItem('bs_stock_bouteilles') || '{}');
-let customRecettes = JSON.parse(localStorage.getItem('bs_custom_recettes') || '[]');
 let newRecetteType = 'jus';
-let unitesData = JSON.parse(localStorage.getItem('bs_unites') || '{}');
-let seuilsData = JSON.parse(localStorage.getItem('bs_seuils2') || '{}');
+let lastDeduction = null;
 
 /* ════════════════════════════════════════════════
-   STOCK
+   STOCK SYNC
 ════════════════════════════════════════════════ */
 async function syncStock() {
   try {
@@ -936,9 +1218,7 @@ async function syncStock() {
     const text = await res.text();
     const json = JSON.parse(text.substring(47).slice(0,-2));
     if (json.table && json.table.rows) {
-      const newStock = {};
-      const newUnites = {};
-      const newSeuils = {};
+      const newStock = {}, newUnites = {}, newSeuils = {};
       json.table.rows.forEach(row => {
         if (!row.c[0]?.v || row.c[0].v === 'Ingredient') return;
         const nom = row.c[0].v;
@@ -963,33 +1243,21 @@ async function syncStock() {
 
 function getStockStatus(nom, qty) {
   const ref = INGS_REF[nom];
-  if (!ref) return 'unknown';
   const stock = stockData[nom] || 0;
   if (stock <= 0) return 'rupture';
-  if (stock < ref.seuil_cr) return 'critique';
-  if (stock < ref.seuil_al) return 'alerte';
+  const seuil_cr = seuilsData[nom]?.cr || ref?.seuil_cr || 0;
+  const seuil_al = seuilsData[nom]?.al || ref?.seuil_al || 0;
+  if (stock < seuil_cr) return 'critique';
+  if (stock < seuil_al) return 'alerte';
   return 'ok';
 }
 
 function stockLabel(nom) {
   const stock = stockData[nom];
   if (stock === undefined) return '?';
-  const ref = INGS_REF[nom];
-  if (!ref) return `${stock}`;
-  if (ref.unite === 'g' && stock >= 1000) return `${(stock/1000).toFixed(1)}kg`;
-  return `${stock}${ref.unite}`;
-}
-
-/* ════════════════════════════════════════════════
-   CALCUL DES PROPORTIONS
-════════════════════════════════════════════════ */
-function calcQty(ing, vol) {
-  // Pour les recettes liquides, on scale selon le volume
-  if (ing.qty_per_base !== undefined) {
-    return Math.round(ing.qty_per_base * vol / (currentRecipe.baseVol || vol));
-  }
-  // Pour les sandwichs, quantité fixe
-  return ing.qty;
+  const unite = unitesData[nom] || INGS_REF[nom]?.unite || 'g';
+  if (unite === 'g' && stock >= 1000) return `${(stock/1000).toFixed(1)}kg`;
+  return `${stock}${unite}`;
 }
 
 function fmtQty(qty, unite) {
@@ -1042,133 +1310,7 @@ function renderStockBouteilles() {
 }
 
 /* ════════════════════════════════════════════════
-   NOUVELLE RECETTE
-════════════════════════════════════════════════ */
-function selectType(type, btn) {
-  newRecetteType = type;
-  document.querySelectorAll('#typeSelector .vol-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  const volInput = document.getElementById('newRecetteVol');
-  volInput.value = type === 'sandwich' ? '1' : '950';
-}
-
-function populateIngSelects() {
-  const ingsNoms = Object.keys(INGS_REF).sort();
-  document.querySelectorAll('.ing-select').forEach(sel => {
-    if (sel.options.length <= 1) {
-      ingsNoms.forEach(nom => {
-        const o = document.createElement('option');
-        o.value = nom; o.textContent = nom;
-        sel.appendChild(o);
-      });
-    }
-  });
-}
-
-function addIngredientRow() {
-  const list = document.getElementById('newIngsList');
-  const ingsNoms = Object.keys(INGS_REF).sort();
-  const div = document.createElement('div');
-  div.className = 'ing-new-row';
-  div.innerHTML = `<div style="display:flex;gap:6px;margin-bottom:6px;align-items:center">
-    <select class="ing-select" style="flex:2;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'DM Mono',monospace;font-size:12px;padding:8px 6px;outline:none">
-      <option value="">-- Choisir --</option>
-      ${ingsNoms.map(n => `<option value="${n}">${n}</option>`).join('')}
-    </select>
-    <input type="number" class="ing-qty" placeholder="Qté" min="0"
-      style="width:70px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'DM Mono',monospace;font-size:13px;padding:8px 6px;outline:none;text-align:center">
-    <select class="ing-unite" style="width:60px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'DM Mono',monospace;font-size:12px;padding:8px 4px;outline:none">
-      <option value="g">g</option><option value="ml">ml</option><option value="u">u</option>
-    </select>
-    <button onclick="removeIngRow(this)" style="background:var(--rdim);border:none;color:var(--red);border-radius:6px;width:28px;height:28px;cursor:pointer;font-size:14px;flex-shrink:0">×</button>
-  </div>`;
-  list.appendChild(div);
-}
-
-function removeIngRow(btn) { btn.closest('.ing-new-row').remove(); }
-
-function addEtapeRow() {
-  const list = document.getElementById('newEtapesList');
-  const num = list.children.length + 1;
-  const div = document.createElement('div');
-  div.className = 'etape-row';
-  div.style.cssText = 'display:flex;gap:8px;margin-bottom:8px';
-  div.innerHTML = `<div style="width:24px;height:24px;min-width:24px;background:var(--gdim);border:1px solid var(--green);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:var(--green);margin-top:8px">${num}</div>
-    <div style="flex:1">
-      <input type="text" class="etape-action" placeholder="Action"
-        style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'DM Mono',monospace;font-size:12px;padding:8px 10px;outline:none;margin-bottom:4px">
-      <input type="text" class="etape-detail" placeholder="Détail"
-        style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--muted);font-family:'DM Mono',monospace;font-size:11px;padding:6px 10px;outline:none">
-    </div>
-    <button onclick="removeEtapeRow(this)" style="background:var(--rdim);border:none;color:var(--red);border-radius:6px;width:28px;height:28px;cursor:pointer;font-size:14px;flex-shrink:0;margin-top:4px">×</button>`;
-  list.appendChild(div);
-}
-
-function removeEtapeRow(btn) {
-  btn.closest('.etape-row').remove();
-  document.querySelectorAll('#newEtapesList .etape-row').forEach((r, i) => {
-    const n = r.querySelector('div');
-    if (n) n.textContent = i + 1;
-  });
-}
-
-function sauvegarderRecette() {
-  const nom  = document.getElementById('newRecetteName').value.trim();
-  const sub  = document.getElementById('newRecetteSub').value.trim();
-  const vol  = parseInt(document.getElementById('newRecetteVol').value) || 950;
-  const time = document.getElementById('newRecetteTime').value.trim() || '10 min';
-  const tip  = document.getElementById('newRecetteTip').value.trim();
-  if (!nom) { showToast('Donne un nom à la recette', true); return; }
-
-  const ings = [];
-  document.querySelectorAll('.ing-new-row').forEach(row => {
-    const n = row.querySelector('.ing-select').value;
-    const q = parseFloat(row.querySelector('.ing-qty').value) || 0;
-    const u = row.querySelector('.ing-unite').value;
-    if (n && q > 0) ings.push({ nom: n, qty_per_base: q, unite: u, note: '' });
-  });
-  if (!ings.length) { showToast('Ajoute au moins un ingrédient', true); return; }
-
-  const steps = [];
-  document.querySelectorAll('.etape-row').forEach(row => {
-    const a = row.querySelector('.etape-action').value.trim();
-    const d = row.querySelector('.etape-detail').value.trim();
-    if (a) steps.push({ action: a, detail: d });
-  });
-
-  const emojis = { jus:'🍊', smoothie:'🥤', soupe:'🍲', sandwich:'🥪' };
-  const newRec = {
-    id: 'custom_' + Date.now(),
-    type: newRecetteType,
-    caisse: nom,
-    emoji: emojis[newRecetteType] || '🍽',
-    title: nom, sub: sub || newRecetteType + ' maison',
-    time, kcal: '—',
-    baseVol: newRecetteType !== 'sandwich' ? vol : null,
-    ings, steps,
-    tip: tip || 'Recette personnalisée BS Salada.',
-    custom: true
-  };
-
-  customRecettes.push(newRec);
-  localStorage.setItem('bs_custom_recettes', JSON.stringify(customRecettes));
-  RECIPES.push(newRec);
-  showToast(`✅ "${nom}" sauvegardée !`);
-  resetNouvelleRecette();
-  renderRecipes();
-  switchTab('recettes', document.querySelectorAll('.tab')[0]);
-}
-
-function resetNouvelleRecette() {
-  document.getElementById('newRecetteName').value = '';
-  document.getElementById('newRecetteSub').value = '';
-  document.getElementById('newRecetteVol').value = '950';
-  document.getElementById('newRecetteTime').value = '';
-  document.getElementById('newRecetteTip').value = '';
-}
-
-/* ════════════════════════════════════════════════
-   RENDER
+   RENDER RECETTES
 ════════════════════════════════════════════════ */
 function setFilter(f, btn) {
   currentFilter = f;
@@ -1179,55 +1321,84 @@ function setFilter(f, btn) {
 
 function renderRecipes() {
   const grid = document.getElementById('recipeGrid');
-  const list = currentFilter === 'all' ? RECIPES : RECIPES.filter(r => r.type === currentFilter);
+  const search = (document.getElementById('searchInput')?.value || '').toLowerCase();
+  let list = RECIPES;
+
+  // Filtre par type ou par tag
+  if (currentFilter !== 'all') {
+    if (currentFilter.startsWith('tag:')) {
+      const tag = currentFilter.substring(4);
+      list = list.filter(r => (r.tags || []).includes(tag));
+    } else {
+      list = list.filter(r => r.type === currentFilter);
+    }
+  }
+
+  // Filtre recherche
+  if (search) {
+    list = list.filter(r => 
+      r.title.toLowerCase().includes(search) ||
+      r.sub.toLowerCase().includes(search) ||
+      r.ings.some(i => i.nom.toLowerCase().includes(search))
+    );
+  }
+
   if (!list.length) { grid.innerHTML = '<div class="empty">Aucune recette</div>'; return; }
 
-  const pillClass = {jus:'pill-jus', smoothie:'pill-smoothie', sandwich:'pill-sandwich', soupe:'pill-soupe'};
-  const pillLabel = {jus:'🍊 Jus', smoothie:'🥤 Smoothie', sandwich:'🥪 Sandwich', soupe:'🍲 Soupe'};
-  const cardBorder = {jus:'rc-jus', smoothie:'rc-smoothie', sandwich:'rc-sandwich', soupe:'rc-soupe'};
+  const pillClass = {jus:'pill-jus', smoothie:'pill-smoothie', batido:'pill-batido', sandwich:'pill-sandwich', soupe:'pill-soupe', shot:'pill-shot', gateau:'pill-gateau'};
+  const pillLabel = {jus:'🍊 Jus', smoothie:'🥣 Smoothie Bowl', batido:'🥤 Batido', sandwich:'🥪 Sandwich', soupe:'🍲 Soupe', shot:'🔥 Shot', gateau:'🌿 Oats'};
+  const cardBorder = {jus:'rc-jus', smoothie:'rc-smoothie', batido:'rc-batido', sandwich:'rc-sandwich', soupe:'rc-soupe', shot:'rc-shot', gateau:'rc-gateau'};
 
   grid.innerHTML = list.map(r => {
-    const hasVol = r.baseVol !== undefined;
-    return `<div class="recipe-card ${cardBorder[r.type]}" onclick="openRecipe('${r.id}')">
+    const hasVol = r.baseVol !== undefined && r.type !== 'sandwich';
+    const tagBadges = (r.tags || []).map(t => {
+      const cls = t === 'sport' ? 'tag-sport' : t === 'sante' ? 'tag-sante' : t === 'vegan' ? 'tag-vegan' : t === 'immunite' ? 'tag-immunite' : t === 'nouveau' ? 'tag-nouveau' : '';
+      const label = t === 'sport' ? '💪' : t === 'sante' ? '🌿' : t === 'vegan' ? '🌱' : t === 'immunite' ? '🔥' : t === 'nouveau' ? '🆕 NEW' : t;
+      return `<span class="tag ${cls}">${label}</span>`;
+    }).join('');
+
+    return `<div class="recipe-card ${cardBorder[r.type]||''}" onclick="openRecipe('${r.id}')">
       <div class="rc-head">
         <div>
           <div class="rc-title">${r.emoji} ${r.title}</div>
           <div class="rc-sub">${r.sub}</div>
         </div>
-        <span class="rc-pill ${pillClass[r.type]}">${pillLabel[r.type]}</span>
+        <span class="rc-pill ${pillClass[r.type]||''}">${pillLabel[r.type]||r.type}</span>
       </div>
       <div class="rc-tags">
         <span class="tag">⏱ ${r.time}</span>
         <span class="tag">${r.kcal}</span>
-        ${hasVol ? `<span class="tag">📐 Base ${r.baseVol}ml</span>` : ''}
+        ${hasVol ? `<span class="tag">📐 ${r.baseVol}ml</span>` : ''}
+        ${tagBadges}
       </div>
+      <div class="rc-price">${r.price ? r.price.toFixed(2) + ' €' : ''}</div>
       <div class="rc-caisse-link">↔ Caisse : "${r.caisse}"</div>
     </div>`;
   }).join('');
 }
 
+/* ════════════════════════════════════════════════
+   BATCH PRODUCTION
+════════════════════════════════════════════════ */
 function renderBatch() {
   const grid = document.getElementById('batchGrid');
-  const liquides = RECIPES.filter(r => r.baseVol !== undefined);
-  grid.innerHTML = liquides.map(r => {
-    return `<div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:8px">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-        <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700">${r.emoji} ${r.title}</div>
-        <span class="tag">base ${r.baseVol}ml</span>
+  const liquides = RECIPES.filter(r => r.baseVol !== undefined && r.type !== 'sandwich' && r.type !== 'shot' && r.type !== 'gateau');
+  grid.innerHTML = liquides.map(r => `<div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:8px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700">${r.emoji} ${r.title}</div>
+      <span class="tag">base ${r.baseVol}ml</span>
+    </div>
+    <div class="batch-block">
+      <div class="batch-title">Volume à produire</div>
+      <div class="batch-row">
+        <input type="number" class="batch-input" id="batch-${r.id}" value="${r.baseVol}" min="100" step="100" oninput="updateBatch('${r.id}')">
+        <span class="batch-unit">ml total</span>
       </div>
-      <div class="batch-block">
-        <div class="batch-title">Volume à produire</div>
-        <div class="batch-row">
-          <input type="number" class="batch-input" id="batch-${r.id}" value="${r.baseVol}" min="100" step="100"
-            oninput="updateBatch('${r.id}')">
-          <span class="batch-unit">ml total</span>
-        </div>
-        <div class="batch-result" id="batch-result-${r.id}"></div>
-        <div id="batch-ings-${r.id}" style="margin-top:8px"></div>
-        <button class="btn-batch" onclick="doBatch('${r.id}')">⚡ Déduire du stock (batch)</button>
-      </div>
-    </div>`;
-  }).join('');
+      <div class="batch-result" id="batch-result-${r.id}"></div>
+      <div id="batch-ings-${r.id}" style="margin-top:8px"></div>
+      <button class="btn-batch" onclick="doBatch('${r.id}')">⚡ Déduire du stock (batch)</button>
+    </div>
+  </div>`).join('');
   liquides.forEach(r => updateBatch(r.id));
 }
 
@@ -1239,7 +1410,6 @@ function updateBatch(id) {
   const ingsEl = document.getElementById('batch-ings-' + id);
   const resEl = document.getElementById('batch-result-' + id);
   if (!ingsEl) return;
-
   resEl.textContent = `→ ${Math.floor(vol / 340)} verre${Math.floor(vol/340)>1?'s':''} de 340ml · reste ~${vol % 340}ml`;
   ingsEl.innerHTML = r.ings.map(ing => {
     const qty = Math.round(ing.qty_per_base * ratio);
@@ -1251,17 +1421,13 @@ function updateBatch(id) {
       <span class="ing-stock ${stCls}">${stockLabel(ing.nom)}</span>
     </div>`;
   }).join('');
-
-  // Afficher les toppings si présents
   if (r.toppings && r.toppings.length > 0) {
-    ingsEl.innerHTML += `
-      <div style="margin-top:10px;padding:8px 10px;background:var(--bdim);border:1px solid var(--blue);border-radius:10px">
-        <div style="font-size:10px;color:var(--blue);font-weight:600;letter-spacing:1px;margin-bottom:6px">✨ TOPPINGS</div>
-        ${r.toppings.map(t => `<div class="ing-row" style="background:var(--bdim);border:1px solid var(--border)">
-          <span style="font-size:14px">⭐</span>
-          <span class="ing-name">${t}</span>
-        </div>`).join('')}
-      </div>`;
+    ingsEl.innerHTML += `<div style="margin-top:10px;padding:8px 10px;background:var(--bdim);border:1px solid var(--blue);border-radius:10px">
+      <div style="font-size:10px;color:var(--blue);font-weight:600;letter-spacing:1px;margin-bottom:6px">✨ TOPPINGS</div>
+      ${r.toppings.map(t => `<div class="ing-row" style="background:var(--bdim);border:1px solid var(--border)">
+        <span style="font-size:14px">⭐</span><span class="ing-name">${t}</span>
+      </div>`).join('')}
+    </div>`;
   }
 }
 
@@ -1270,7 +1436,6 @@ async function doBatch(id) {
   if (!r) return;
   const vol = parseInt(document.getElementById('batch-' + id)?.value) || r.baseVol;
   const ratio = vol / r.baseVol;
-
   const rows = [];
   r.ings.forEach(ing => {
     const qty = Math.round(ing.qty_per_base * ratio);
@@ -1279,56 +1444,42 @@ async function doBatch(id) {
     }
     rows.push([ing.nom, -qty, ing.unite, 'Batch ' + r.title]);
   });
-
   localStorage.setItem('bs_stock', JSON.stringify(stockData));
   renderStockTab();
-
   try {
     const now = new Date();
     const d = `${String(now.getDate()).padStart(2,'0')}/${String(now.getMonth()+1).padStart(2,'0')}/${now.getFullYear()}`;
     await fetch(STOCK_URL, {
       method: 'POST', mode: 'no-cors',
       headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({type: 'achats', rows: rows.map(r => [d, r[0], Math.abs(r[1]), r[2], r[3], 0])})
+      body: JSON.stringify({type: 'achats', rows: rows.map(rr => [d, rr[0], Math.abs(rr[1]), rr[2], rr[3], 0])})
     });
   } catch(e) {}
-
-  // Mettre à jour stock bouteilles
   stockBouteilles[r.title] = (stockBouteilles[r.title] || 0) + vol;
   saveStockBouteilles();
   renderStockBouteilles();
-
-  showToast(`⚡ ${r.title} ${vol}ml produit · Stock bouteille: ${stockBouteilles[r.title]}ml`);
+  showToast(`⚡ ${r.title} ${vol}ml · Stock bouteille: ${stockBouteilles[r.title]}ml`);
 }
 
 function renderStockTab() {
   const el = document.getElementById('stockLive');
   let ok = 0, alert = 0;
-
   const items = Object.entries(stockData).sort((a,b) => a[0].localeCompare(b[0]));
-
   if (!items.length) {
     el.innerHTML = '<div class="empty">Appuie sur Sync pour charger le stock</div>';
     document.getElementById('statOk').textContent = '—';
     document.getElementById('statAlert').textContent = '—';
     return;
   }
-
   el.innerHTML = items.map(([nom, stock]) => {
-    // Utiliser unité et seuils de V10 en priorité
     const unite    = unitesData[nom] || INGS_REF[nom]?.unite || 'g';
     const seuil_al = seuilsData[nom]?.al || INGS_REF[nom]?.seuil_al || 200;
     const seuil_cr = seuilsData[nom]?.cr || INGS_REF[nom]?.seuil_cr || 100;
-
     const st = stock <= 0 ? 'rupture' : stock < seuil_cr ? 'critique' : stock < seuil_al ? 'alerte' : 'ok';
     if (st === 'ok') ok++; else alert++;
-
     const pct = seuil_al > 0 ? Math.min(100, stock / seuil_al * 100) : 0;
     const barColor = st === 'ok' ? 'var(--green)' : st === 'alerte' ? 'var(--orange)' : 'var(--red)';
-    const qtyLabel = unite === 'g' && stock >= 1000
-      ? `${(stock/1000).toFixed(1)}kg`
-      : `${stock}${unite}`;
-
+    const qtyLabel = unite === 'g' && stock >= 1000 ? `${(stock/1000).toFixed(1)}kg` : `${stock}${unite}`;
     return `<div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:5px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
         <span style="font-size:13px">${nom}</span>
@@ -1339,7 +1490,6 @@ function renderStockTab() {
       </div>
     </div>`;
   }).join('');
-
   document.getElementById('statOk').textContent = ok;
   document.getElementById('statAlert').textContent = alert;
   document.getElementById('statAlert').className = 'stat-val ' + (alert > 5 ? 'red' : alert > 0 ? 'orange' : '');
@@ -1353,30 +1503,38 @@ function openRecipe(id) {
   if (!r) return;
   currentRecipe = r;
   currentVol = r.baseVol || null;
-
-  const pillClass = {jus:'badge-bl', smoothie:'badge-pu', sandwich:'badge-or'};
-  const pillLabel = {jus:'Jus', smoothie:'Smoothie', sandwich:'Sandwich'};
+  const pillClass = {jus:'badge-bl', smoothie:'badge-pu', batido:'badge-bt', sandwich:'badge-or', soupe:'badge-tl', shot:'badge-go', gateau:'badge-pk'};
+  const pillLabel = {jus:'Jus', smoothie:'Smoothie Bowl', batido:'Batido', sandwich:'Sandwich', soupe:'Soupe', shot:'Shot', gateau:'Overgnith'};
 
   document.getElementById('mTitle').textContent = r.emoji + ' ' + r.title;
   document.getElementById('mSub').textContent = r.sub;
   document.getElementById('mBadges').innerHTML = `
-    <span class="m-badge ${pillClass[r.type]}">${pillLabel[r.type]}</span>
+    <span class="m-badge ${pillClass[r.type]||'badge-gr'}">${pillLabel[r.type]||r.type}</span>
     <span class="m-badge badge-gr">⏱ ${r.time}</span>
     <span class="m-badge badge-gr">${r.kcal}</span>
     <span class="m-badge badge-bl">Caisse: ${r.caisse}</span>`;
 
-  // Volume selector pour les recettes liquides
+  // PRIX
+  if (r.price) {
+    document.getElementById('mPrice').innerHTML = `<div class="price-box">
+      <span class="price-label">Prix vente</span>
+      <span class="price-value">${r.price.toFixed(2)} €</span>
+    </div>`;
+  } else {
+    document.getElementById('mPrice').innerHTML = '';
+  }
+
+  // Volume selector
   const volBlock = document.getElementById('mVolBlock');
-  if (r.baseVol) {
-    const vols = [300, 400, 500, 750, 1000];
+  if (r.baseVol && r.type !== 'sandwich') {
+    const vols = r.type === 'shot' ? [30,60,90,120] : r.type === 'smoothie' ? [400,500,750,1000] : r.type === 'batido' ? [200,300,400,500] : [200,300,400,500,750];
     volBlock.innerHTML = `<div class="vol-block">
       <div class="vol-title">📐 Volume du gobelet</div>
       <div class="vol-btns">
         ${vols.map(v => `<button class="vol-btn${v===currentVol?' active':''}" onclick="selectVol(${v},this)">${v} ml</button>`).join('')}
       </div>
       <div class="vol-custom">
-        <input type="number" class="vol-input" id="customVol" placeholder="${r.baseVol}" min="100" max="2000" step="50"
-          oninput="selectVol(parseInt(this.value)||${r.baseVol},null)">
+        <input type="number" class="vol-input" id="customVol" placeholder="${r.baseVol}" min="30" max="2000" step="10" oninput="selectVol(parseInt(this.value)||${r.baseVol},null)">
         <span class="vol-unit">ml libre</span>
       </div>
       <div class="vol-portions" id="volPortions"></div>
@@ -1407,19 +1565,15 @@ function selectVol(v, btn) {
 function updateVolPortions() {
   const el = document.getElementById('volPortions');
   if (!el || !currentRecipe || !currentVol) return;
-  const base = currentRecipe.baseVol;
-  el.textContent = `→ ×${(currentVol/base).toFixed(2)} par rapport à la base (${base}ml)`;
+  el.textContent = `→ ×${(currentVol/currentRecipe.baseVol).toFixed(2)} par rapport à la base (${currentRecipe.baseVol}ml)`;
 }
 
 function renderModalIngs() {
   const r = currentRecipe;
   if (!r) return;
   const vol = currentVol || r.baseVol;
-
   document.getElementById('mIngs').innerHTML = r.ings.map(ing => {
-    const qty = ing.qty_per_base !== undefined
-      ? Math.round(ing.qty_per_base * (vol / r.baseVol))
-      : ing.qty;
+    const qty = ing.qty_per_base !== undefined ? Math.round(ing.qty_per_base * (vol / r.baseVol)) : ing.qty;
     const st = getStockStatus(ing.nom, qty);
     const stCls = st === 'ok' ? 'stock-ok' : st === 'rupture' || st === 'critique' ? 'stock-none' : 'stock-low';
     const stLabel = st === 'ok' ? '✓' : st === 'rupture' ? '✗' : '~';
@@ -1448,14 +1602,10 @@ function renderDeductBlock() {
   const r = currentRecipe;
   if (!r) return;
   const vol = currentVol || r.baseVol;
-
   const items = r.ings.map(ing => {
-    const qty = ing.qty_per_base !== undefined
-      ? Math.round(ing.qty_per_base * (vol / (r.baseVol || vol)))
-      : ing.qty;
+    const qty = ing.qty_per_base !== undefined ? Math.round(ing.qty_per_base * (vol / (r.baseVol || vol))) : ing.qty;
     return {nom: ing.nom, qty, unite: ing.unite};
   });
-
   document.getElementById('mDeduct').innerHTML = `
     <div class="deduct-block">
       <div class="deduct-title">📦 Déduction stock à la vente</div>
@@ -1468,34 +1618,25 @@ function renderDeductBlock() {
     </div>`;
 }
 
-let lastDeduction = null;
-
 async function deductStock() {
   const r = currentRecipe;
   if (!r) return;
   const vol = currentVol || r.baseVol;
-
   const rows = [];
   const snapshot = {};
-
   r.ings.forEach(ing => {
-    const qty = ing.qty_per_base !== undefined
-      ? Math.round(ing.qty_per_base * (vol / (r.baseVol || vol)))
-      : ing.qty;
+    const qty = ing.qty_per_base !== undefined ? Math.round(ing.qty_per_base * (vol / (r.baseVol || vol))) : ing.qty;
     snapshot[ing.nom] = stockData[ing.nom];
     if (stockData[ing.nom] !== undefined) {
       stockData[ing.nom] = Math.max(0, (stockData[ing.nom] || 0) - qty);
     }
     rows.push([ing.nom, qty, ing.unite]);
   });
-
   lastDeduction = { rows, snapshot, recette: r.title, vol };
   localStorage.setItem('bs_stock', JSON.stringify(stockData));
   renderStockTab();
-
   const btn = document.querySelector('.btn-deduct');
   if (btn) { btn.disabled = true; btn.textContent = '⏳ Envoi...'; }
-
   try {
     const now = new Date();
     const d = `${String(now.getDate()).padStart(2,'0')}/${String(now.getMonth()+1).padStart(2,'0')}/${now.getFullYear()}`;
@@ -1508,11 +1649,8 @@ async function deductStock() {
       })
     });
   } catch(e) {}
-
   showToast('✅ Stock déduit : ' + r.title);
   if (btn) { btn.textContent = '✓ Déduit'; btn.disabled = false; }
-
-  // Afficher bouton Annuler sans effacer le bloc
   let undoBtn = document.getElementById('btnUndo');
   if (undoBtn) undoBtn.style.display = 'block';
 }
@@ -1520,14 +1658,11 @@ async function deductStock() {
 async function undoDeductStock() {
   if (!lastDeduction) { showToast('Rien à annuler', true); return; }
   const { rows, snapshot, recette, vol } = lastDeduction;
-
   Object.entries(snapshot).forEach(([nom, val]) => {
     if (val !== undefined) stockData[nom] = val;
   });
-
   localStorage.setItem('bs_stock', JSON.stringify(stockData));
   renderStockTab();
-
   try {
     const now = new Date();
     const d = `${String(now.getDate()).padStart(2,'0')}/${String(now.getMonth()+1).padStart(2,'0')}/${now.getFullYear()}`;
@@ -1540,7 +1675,6 @@ async function undoDeductStock() {
       })
     });
   } catch(e) {}
-
   lastDeduction = null;
   showToast('↩ Déduction annulée');
   renderDeductBlock();
@@ -1553,7 +1687,144 @@ function closeModal(e) {
 }
 
 /* ════════════════════════════════════════════════
-   TABS + UTILS
+   CRÉATION RECETTE
+════════════════════════════════════════════════ */
+function selectType(type, btn) {
+  newRecetteType = type;
+  document.querySelectorAll('#typeSelector .vol-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const volInput = document.getElementById('newRecetteVol');
+  const defaults = {jus:300, batido:300, smoothie:500, soupe:300, sandwich:1, shot:60};
+  volInput.value = defaults[type] || 300;
+}
+
+function populateIngSelects() {
+  const ingsNoms = Object.keys(INGS_REF).sort();
+  document.querySelectorAll('.ing-select').forEach(sel => {
+    if (sel.options.length <= 1) {
+      ingsNoms.forEach(nom => {
+        const o = document.createElement('option');
+        o.value = nom; o.textContent = nom;
+        sel.appendChild(o);
+      });
+    }
+  });
+}
+
+function addIngredientRow() {
+  const list = document.getElementById('newIngsList');
+  const ingsNoms = Object.keys(INGS_REF).sort();
+  const div = document.createElement('div');
+  div.className = 'ing-new-row';
+  div.innerHTML = `<div style="display:flex;gap:6px;margin-bottom:6px;align-items:center">
+    <select class="ing-select" style="flex:2;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'DM Mono',monospace;font-size:12px;padding:8px 6px;outline:none">
+      <option value="">-- Choisir --</option>
+      ${ingsNoms.map(n => `<option value="${n}">${n}</option>`).join('')}
+    </select>
+    <input type="number" class="ing-qty" placeholder="Qté" min="0" style="width:70px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'DM Mono',monospace;font-size:13px;padding:8px 6px;outline:none;text-align:center">
+    <select class="ing-unite" style="width:60px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'DM Mono',monospace;font-size:12px;padding:8px 4px;outline:none">
+      <option value="g">g</option><option value="ml">ml</option><option value="u">u</option>
+    </select>
+    <button onclick="removeIngRow(this)" style="background:var(--rdim);border:none;color:var(--red);border-radius:6px;width:28px;height:28px;cursor:pointer;font-size:14px;flex-shrink:0">×</button>
+  </div>`;
+  list.appendChild(div);
+}
+
+function removeIngRow(btn) { btn.closest('.ing-new-row').remove(); }
+
+function addEtapeRow() {
+  const list = document.getElementById('newEtapesList');
+  const num = list.children.length + 1;
+  const div = document.createElement('div');
+  div.className = 'etape-row';
+  div.style.cssText = 'display:flex;gap:8px;margin-bottom:8px';
+  div.innerHTML = `<div style="width:24px;height:24px;min-width:24px;background:var(--gdim);border:1px solid var(--green);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:var(--green);margin-top:8px">${num}</div>
+    <div style="flex:1">
+      <input type="text" class="etape-action" placeholder="Action" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'DM Mono',monospace;font-size:12px;padding:8px 10px;outline:none;margin-bottom:4px">
+      <input type="text" class="etape-detail" placeholder="Détail" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--muted);font-family:'DM Mono',monospace;font-size:11px;padding:6px 10px;outline:none">
+    </div>
+    <button onclick="removeEtapeRow(this)" style="background:var(--rdim);border:none;color:var(--red);border-radius:6px;width:28px;height:28px;cursor:pointer;font-size:14px;flex-shrink:0;margin-top:4px">×</button>`;
+  list.appendChild(div);
+}
+
+function removeEtapeRow(btn) {
+  btn.closest('.etape-row').remove();
+  document.querySelectorAll('#newEtapesList .etape-row').forEach((r, i) => {
+    const n = r.querySelector('div');
+    if (n) n.textContent = i + 1;
+  });
+}
+
+function sauvegarderRecette() {
+  const nom = document.getElementById('newRecetteName').value.trim();
+  const sub = document.getElementById('newRecetteSub').value.trim();
+  const vol = parseInt(document.getElementById('newRecetteVol').value) || 300;
+  const price = parseFloat(document.getElementById('newRecettePrice').value) || 0;
+  const time = document.getElementById('newRecetteTime').value.trim() || '5 min';
+  const tagsStr = document.getElementById('newRecetteTags').value.trim();
+  const tip = document.getElementById('newRecetteTip').value.trim();
+  if (!nom) { showToast('Donne un nom à la recette', true); return; }
+
+  const ings = [];
+  document.querySelectorAll('.ing-new-row').forEach(row => {
+    const n = row.querySelector('.ing-select').value;
+    const q = parseFloat(row.querySelector('.ing-qty').value) || 0;
+    const u = row.querySelector('.ing-unite').value;
+    if (n && q > 0) ings.push({ nom: n, qty_per_base: q, unite: u, note: '' });
+  });
+  if (!ings.length) { showToast('Ajoute au moins un ingrédient', true); return; }
+
+  const steps = [];
+  document.querySelectorAll('.etape-row').forEach(row => {
+    const a = row.querySelector('.etape-action').value.trim();
+    const d = row.querySelector('.etape-detail').value.trim();
+    if (a) steps.push({ action: a, detail: d });
+  });
+
+  const tags = tagsStr ? tagsStr.split(',').map(t => t.trim()).filter(Boolean) : [];
+  tags.push('nouveau');
+
+  const emojis = { jus:'🍊', smoothie:'🥤', soupe:'🍲', sandwich:'🥪', shot:'🔥' };
+  const newRec = {
+    id: 'custom_' + Date.now(),
+    type: newRecetteType,
+    caisse: nom,
+    emoji: emojis[newRecetteType] || '🍽',
+    title: nom, sub: sub || newRecetteType + ' maison',
+    time, kcal: '—',
+    baseVol: newRecetteType !== 'sandwich' ? vol : null,
+    price,
+    tags,
+    ings, steps,
+    tip: tip || 'Recette personnalisée BS Salada.',
+    custom: true
+  };
+
+  customRecettes.push(newRec);
+  localStorage.setItem('bs_custom_recettes', JSON.stringify(customRecettes));
+  RECIPES.push(newRec);
+  showToast(`✅ "${nom}" sauvegardée !`);
+  resetNouvelleRecette();
+  renderRecipes();
+  switchTab('recettes', document.querySelectorAll('.tab')[0]);
+}
+
+function resetNouvelleRecette() {
+  document.getElementById('newRecetteName').value = '';
+  document.getElementById('newRecetteSub').value = '';
+  document.getElementById('newRecetteVol').value = '300';
+  document.getElementById('newRecettePrice').value = '5.90';
+  document.getElementById('newRecetteTime').value = '';
+  document.getElementById('newRecetteTags').value = '';
+  document.getElementById('newRecetteTip').value = '';
+  document.getElementById('newIngsList').innerHTML = '';
+  document.getElementById('newEtapesList').innerHTML = '';
+  addIngredientRow();
+  addEtapeRow();
+}
+
+/* ════════════════════════════════════════════════
+   UTILS
 ════════════════════════════════════════════════ */
 function switchTab(tab, btn) {
   document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
@@ -1572,19 +1843,16 @@ function showToast(msg, err=false, warn=false) {
   setTimeout(() => t.classList.remove('show'), 2500);
 }
 
-/* ════════════════════════════════════════════════
-   INIT
-════════════════════════════════════════════════ */
 document.addEventListener('DOMContentLoaded', () => {
-  // Charger recettes personnalisées sauvegardées
   customRecettes.forEach(r => {
     if (!RECIPES.find(x => x.id === r.id)) RECIPES.push(r);
   });
   renderRecipes();
   renderStockBouteilles();
+  addIngredientRow();
+  addEtapeRow();
   populateIngSelects();
   syncStock();
-  // Auto-sync toutes les 5 minutes
   setInterval(syncStock, 5 * 60 * 1000);
 });
 </script>
