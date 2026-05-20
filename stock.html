@@ -1015,7 +1015,10 @@ function renderPeremption() {
             </div>
             <div class="card-right">
               <div style="color:${color};font-weight:700;font-size:13px">${label}</div>
-              <button onclick="modifierDuree('${item.ing}')" style="margin-top:6px;background:var(--surface);border:1px solid var(--border);border-radius:6px;color:var(--muted);font-size:10px;padding:3px 8px;cursor:pointer">✏️ ${item.duree}j</button>
+              <div style="display:flex;gap:4px;margin-top:6px">
+                <button onclick="modifierDuree('${item.ing.replace(/'/g,"\\'")}')" style="background:var(--surface);border:1px solid var(--border);border-radius:6px;color:var(--muted);font-size:10px;padding:3px 8px;cursor:pointer">✏️ ${item.duree}j</button>
+                <button onclick="jeterProduit('${item.ing.replace(/'/g,"\\'")}')" style="background:var(--rdim);border:1px solid var(--red);border-radius:6px;color:var(--red);font-size:10px;padding:3px 8px;cursor:pointer">🗑️ Jeter</button>
+              </div>
             </div>
           </div>
         </div>`;
@@ -1045,7 +1048,10 @@ function renderPeremption() {
               ${item.recettes.length ? `<div style="font-size:10px;color:var(--muted);margin-top:3px">🍽️ ${item.recettes.join(' · ')}</div>` : ''}
             </div>
             <div class="card-right">
-              <button onclick="modifierDuree('${item.ing}')" style="background:var(--surface);border:1px solid var(--border);border-radius:6px;color:var(--muted);font-size:10px;padding:3px 8px;cursor:pointer">✏️ ${item.duree}j</button>
+              <div style="display:flex;gap:4px">
+                <button onclick="modifierDuree('${item.ing.replace(/'/g,"\\'")}')" style="background:var(--surface);border:1px solid var(--border);border-radius:6px;color:var(--muted);font-size:10px;padding:3px 8px;cursor:pointer">✏️ ${item.duree}j</button>
+                <button onclick="jeterProduit('${item.ing.replace(/'/g,"\\'")}')" style="background:var(--rdim);border:1px solid var(--red);border-radius:6px;color:var(--red);font-size:10px;padding:3px 8px;cursor:pointer">🗑️ Jeter</button>
+              </div>
             </div>
           </div>
         </div>`;
@@ -1069,6 +1075,68 @@ function modifierDuree(ing) {
     renderPeremption();
     showToast('✅ Durée mise à jour : ' + ing + ' = ' + parseInt(nouvelle) + 'j');
   }
+}
+
+// ── JETER (perte) ────────────────────────────────────────────────────────────
+// Produits finis = présents dans GATEAUX (gâteaux + jus maison)
+// Ingrédients bruts = tout le reste (légumes, fruits, etc.)
+async function jeterProduit(ing) {
+  const estProduitFini = GATEAUX.some(g => g.nom === ing);
+  const stockActuel = stockData[ing] || 0;
+  const unite = estProduitFini ? 'u' : 'g';
+  const label = estProduitFini ? 'unité(s)' : 'gramme(s)';
+
+  if (stockActuel <= 0) {
+    showToast('Stock déjà à 0 pour ' + ing, true);
+    return;
+  }
+
+  const saisie = prompt(
+    `🗑️ Jeter combien de ${label} de "${ing}" ?\n\nStock actuel : ${stockActuel} ${unite}`,
+    String(stockActuel)
+  );
+  if (saisie === null) return; // annulé
+
+  const qty = parseFloat(String(saisie).replace(',', '.'));
+  if (isNaN(qty) || qty <= 0) {
+    showToast('Quantité invalide', true);
+    return;
+  }
+  if (qty > stockActuel) {
+    if (!confirm(`La quantité saisie (${qty}) dépasse le stock (${stockActuel}). Continuer quand même ?`)) return;
+  }
+
+  if (!confirm(`Confirmer : jeter ${qty} ${unite} de "${ing}" ?`)) return;
+
+  // 1) MAJ stock local immédiatement
+  stockData[ing] = Math.max(0, stockActuel - qty);
+  localStorage.setItem('bs_stock', JSON.stringify(stockData));
+
+  // Si stock à 0, retirer la date d'achat (plus rien à suivre)
+  if (stockData[ing] === 0 && datesAchat[ing]) {
+    delete datesAchat[ing];
+    localStorage.setItem('bs_dates_achat', JSON.stringify(datesAchat));
+  }
+
+  // 2) MAJ V10 + Stock_App + log Pertes
+  try {
+    const params = new URLSearchParams({
+      type: 'jeter',
+      nom: ing,
+      qty: String(qty),
+      unite: unite,
+      fini: estProduitFini ? '1' : '0',
+      date: `${String(new Date().getDate()).padStart(2,'0')}/${String(new Date().getMonth()+1).padStart(2,'0')}/${new Date().getFullYear()}`
+    });
+    await fetch(SHEET_URL + '?' + params.toString(), { method: 'GET' });
+  } catch(e) {
+    console.log('Erreur sync jeter: ' + e);
+  }
+
+  // 3) Rafraîchir UI
+  renderPeremption();
+  renderStock();
+  showToast(`✅ ${qty} ${unite} de "${ing}" jeté(s)`);
 }
 
 
