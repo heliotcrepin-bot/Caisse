@@ -572,6 +572,48 @@ const RECIPES = [
     tip:'Édition été Algarve. Hydratation pure, sans sucre.'
   },
 
+  /* ★★★ NOUVEAU : Suco Mamão (doux brésilien) ★★★ */
+  {
+    id:'suco_mamao', type:'jus', caisse:'Suco Mamao', baseVol:300, price:4.90,
+    emoji:'🥭', title:'Suco Mamão', sub:'Papaye · Orange · Banane',
+    time:'4 min', kcal:'120 kcal', tags:['sante'],
+    ings:[
+      {nom:'Papaye',      qty_per_base:150, unite:'g', note:'chair mûre, sans grainhas'},
+      {nom:'Orange',      qty_per_base:150, unite:'g', note:'~2 oranges pressées'},
+      {nom:'Banane',      qty_per_base:60,  unite:'g', note:'½ mûre'},
+      {nom:'Citron vert', qty_per_base:5,   unite:'g', note:'jus, optionnel'},
+    ],
+    steps:[
+      {action:'Presser oranges', detail:'~2 oranges → 150 ml de jus frais.'},
+      {action:'Cubes', detail:'Mamão et banane en cubes.'},
+      {action:'Mixer (pas centrifuger)', detail:'Banane épaissit naturellement la texture. 30 sec.'},
+      {action:'Lime', detail:'Optionnel — réveille le mamão.'},
+      {action:'Servir', detail:'Frais, couleur orange velouté.'},
+    ],
+    tip:'Le jus doux par excellence. Pour enfants ou premier jus de la matinée. Papaïne = digestion facile.'
+  },
+
+  /* ★★★ NOUVEAU : Suco Maracujá (tropical signature) ★★★ */
+  {
+    id:'suco_maracuja', type:'jus', caisse:'Suco Maracuja', baseVol:300, price:4.00,
+    emoji:'💛', title:'Suco Maracujá', sub:'Maracujá · Mangue · Citron',
+    time:'4 min', kcal:'105 kcal', tags:['sante','nouveau'],
+    ings:[
+      {nom:'Maracuja',    qty_per_base:80,  unite:'g', note:'pulpe surgelée'},
+      {nom:'Mangue',      qty_per_base:100, unite:'g', note:'fraîche ou surgelée'},
+      {nom:'Citron jaune',qty_per_base:10,  unite:'g', note:'jus'},
+      {nom:'Eau',         qty_per_base:100, unite:'ml', note:'froide'},
+    ],
+    steps:[
+      {action:'Décongeler légèrement', detail:'Sortir la pulpe maracujá 5 min avant pour faciliter le mixage.'},
+      {action:'Préparer mangue', detail:'Couper la mangue en cubes.'},
+      {action:'Mixer', detail:'Tout au blender 30 secondes. Texture lisse avec graines maracujá visibles.'},
+      {action:'Option sans graines', detail:'Tamiser si le client demande sans grainhas.'},
+      {action:'Servir', detail:'Avec glaçons. Couleur orange éclatant.'},
+    ],
+    tip:'🆕 Signature tropical brésilien. Pulpe maracujá surgelée = dispo toute l\'année. Les graines noires apportent l\'authenticité.'
+  },
+
   /* ════════ BATIDOS — 300 ml (5,90 €) ════════ */
   {
     id:'batido_banana_canela', type:'batido', caisse:'Banana-Canela', baseVol:300, price:5.90,
