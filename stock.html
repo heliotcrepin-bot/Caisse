@@ -406,17 +406,11 @@ const INGS=[
   {nom:"Echalotte",    cat:"Légumes",     unite:"g",  seuil_al:100, seuil_cr:0, conso_j:0, stock3j:110, duree:30,  fragile:false, prix_kg:5.00},
   {nom:"Huile olive",  cat:"Épicerie",    unite:"ml", seuil_al:100, seuil_cr:0, conso_j:0, stock3j:100, duree:730, fragile:false, prix_kg:5.00},
   {nom:"Bouillon légumes", cat:"Condiments", unite:"u", seuil_al:3, seuil_cr:1, conso_j:0, stock3j:3, duree:365, fragile:false, prix_kg:1.0, note:"cube"},
-,
   // Gâteaux maison
   {nom:"Brownie",  cat:"Gâteaux", unite:"u", seuil_al:4, seuil_cr:2, conso_j:0, stock3j:4, duree:4, fragile:false, prix_kg:1.0, note:"fait maison"},
   {nom:"Muffins",  cat:"Gâteaux", unite:"u", seuil_al:4, seuil_cr:2, conso_j:0, stock3j:4, duree:3, fragile:false, prix_kg:1.0, note:"fait maison"},
   {nom:"Gateau",   cat:"Gâteaux", unite:"u", seuil_al:2, seuil_cr:1, conso_j:0, stock3j:2, duree:3, fragile:false, prix_kg:1.0, note:"fait maison"},
   {nom:"Overgnith",cat:"Gâteaux", unite:"u", seuil_al:4, seuil_cr:2, conso_j:0, stock3j:4, duree:2, fragile:true,  prix_kg:1.0, note:"boisson maison"},
-  // Gâteaux maison
-  {nom:"Brownie",        cat:"Gâteaux", unite:"u", seuil_al:0, seuil_cr:0, conso_j:0, stock3j:0, duree:4, fragile:false, prix_kg:1.0},
-  {nom:"Muffins",        cat:"Gâteaux", unite:"u", seuil_al:0, seuil_cr:0, conso_j:0, stock3j:0, duree:3, fragile:false, prix_kg:1.0},
-  {nom:"Gateau",         cat:"Gâteaux", unite:"u", seuil_al:0, seuil_cr:0, conso_j:0, stock3j:0, duree:3, fragile:false, prix_kg:1.0},
-  {nom:"Overgnith",      cat:"Gâteaux", unite:"u", seuil_al:0, seuil_cr:0, conso_j:0, stock3j:0, duree:2, fragile:false, prix_kg:1.0},
   // Jus maison
   {nom:"Suco Rosa",      cat:"Jus maison", unite:"u", seuil_al:0, seuil_cr:0, conso_j:0, stock3j:0, duree:2, fragile:true,  prix_kg:1.0},
   {nom:"Vale Agradavel", cat:"Jus maison", unite:"u", seuil_al:0, seuil_cr:0, conso_j:0, stock3j:0, duree:2, fragile:true,  prix_kg:1.0},
@@ -962,15 +956,28 @@ function renderPeremption() {
     const datesAchatLocal = JSON.parse(localStorage.getItem('bs_dates_achat') || '{}');
 
     // Aussi lire depuis stockData pour avoir les ingrédients en stock
+    let cleaned = false;
     Object.keys(datesAchatLocal).forEach(ing => {
       const dateStr = datesAchatLocal[ing]; // format YYYY-MM-DD
       if (!dateStr) return;
+      // Ne pas afficher les items dont le stock est à 0 (jetés ou consommés)
+      // Et nettoyer la date orpheline du localStorage
+      const stockIng = stockData[ing] || 0;
+      if (stockIng <= 0) {
+        delete datesAchatLocal[ing];
+        delete datesAchat[ing];
+        cleaned = true;
+        return;
+      }
       const dateAchat = new Date(dateStr);
       dateAchat.setHours(0,0,0,0);
       if (!isNaN(dateAchat)) {
         achats[ing] = { dateAchat, ing };
       }
     });
+    if (cleaned) {
+      localStorage.setItem('bs_dates_achat', JSON.stringify(datesAchatLocal));
+    }
 
     if (Object.keys(achats).length === 0) {
       el.innerHTML = '<div class="section"><div style="color:var(--muted);text-align:center;padding:20px">Aucune date d\'achat enregistrée.<br><br>Les dates sont sauvegardées automatiquement quand tu valides un achat dans l\'onglet Courses.</div></div>';
@@ -1002,6 +1009,8 @@ function renderPeremption() {
         const color = item.joursRestants < 0 ? 'var(--red)' : item.joursRestants === 0 ? 'var(--red)' : item.joursRestants <= 2 ? 'var(--orange,#f97316)' : 'var(--yellow,#eab308)';
         const label = item.joursRestants < 0 ? 'PÉRIMÉ' : item.joursRestants === 0 ? 'Aujourd\'hui !' : item.joursRestants + 'j restant' + (item.joursRestants > 1 ? 's' : '');
         const dateStr = String(item.datePeremption.getDate()).padStart(2,'0') + '/' + String(item.datePeremption.getMonth()+1).padStart(2,'0');
+        const stockIng = stockData[item.ing] || 0;
+        const stockLabel = kgLabel(stockIng, 'g');
 
         html += `<div class="ing-card" style="border-color:${color}">
           <div class="card-row">
@@ -1010,6 +1019,7 @@ function renderPeremption() {
               <div style="font-size:11px;margin-top:3px">
                 <span style="color:var(--muted)">Acheté le ${String(item.dateAchat.getDate()).padStart(2,'0')}/${String(item.dateAchat.getMonth()+1).padStart(2,'0')}</span>
                 <span style="color:${color};margin-left:8px">Périme le ${dateStr}</span>
+                <span style="color:var(--accent);margin-left:8px">Stock: ${stockLabel}</span>
               </div>
               ${item.recettes.length ? `<div style="font-size:10px;color:var(--accent);margin-top:4px">🍽️ ${item.recettes.join(' · ')}</div>` : ''}
             </div>
@@ -1035,6 +1045,8 @@ function renderPeremption() {
       normaux.forEach(item => {
         const dateStr = String(item.datePeremption.getDate()).padStart(2,'0') + '/' + String(item.datePeremption.getMonth()+1).padStart(2,'0');
         const color = item.joursRestants <= 7 ? 'var(--yellow,#eab308)' : 'var(--muted)';
+        const stockIng = stockData[item.ing] || 0;
+        const stockLabel = kgLabel(stockIng, 'g');
 
         html += `<div class="ing-card ok">
           <div class="card-row">
@@ -1044,6 +1056,7 @@ function renderPeremption() {
                 Acheté le ${String(item.dateAchat.getDate()).padStart(2,'0')}/${String(item.dateAchat.getMonth()+1).padStart(2,'0')}
                 · Périme le <span style="color:${color}">${dateStr}</span>
                 · ${item.joursRestants}j restants
+                · <span style="color:var(--accent)">Stock: ${stockLabel}</span>
               </div>
               ${item.recettes.length ? `<div style="font-size:10px;color:var(--muted);margin-top:3px">🍽️ ${item.recettes.join(' · ')}</div>` : ''}
             </div>
@@ -1701,6 +1714,9 @@ const GATEAUX = [
   {nom:'Vale Agradavel',  duree:2, cat:'Jus maison', unite:'u'},
   {nom:'Raiz Viva',       duree:2, cat:'Jus maison', unite:'u'},
   {nom:'Ginger Zinga',    duree:2, cat:'Jus maison', unite:'u'},
+  {nom:'Suco Praia',      duree:2, cat:'Jus maison', unite:'u'},
+  {nom:'Suco Mamao',      duree:2, cat:'Jus maison', unite:'u'},
+  {nom:'Suco Maracuja',   duree:2, cat:'Jus maison', unite:'u'},
 ];
 
 function ouvrirDateFabrication() {
