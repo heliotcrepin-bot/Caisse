@@ -596,22 +596,24 @@ const RECIPES = [
   /* ★★★ NOUVEAU : Suco Maracujá (tropical signature) ★★★ */
   {
     id:'suco_maracuja', type:'jus', caisse:'Suco Maracuja', baseVol:300, price:4.00,
-    emoji:'💛', title:'Suco Maracujá', sub:'Maracujá · Mangue · Citron',
-    time:'4 min', kcal:'105 kcal', tags:['sante','nouveau'],
+    emoji:'💛', title:'Suco Maracujá', sub:'Maracujá · Mangue · Citron · Agave',
+    time:'4 min', kcal:'115 kcal', tags:['sante','nouveau'],
     ings:[
-      {nom:'Maracuja',    qty_per_base:80,  unite:'g', note:'pulpe surgelée'},
+      {nom:'Maracuja',    qty_per_base:54,  unite:'g', note:'pulpe surgelée'},
       {nom:'Mangue',      qty_per_base:100, unite:'g', note:'fraîche ou surgelée'},
-      {nom:'Citron jaune',qty_per_base:10,  unite:'g', note:'jus'},
-      {nom:'Eau',         qty_per_base:100, unite:'ml', note:'froide'},
+      {nom:'Citron jaune',qty_per_base:17,  unite:'g', note:'jus ½ citron'},
+      {nom:'Eau',         qty_per_base:130, unite:'ml', note:'froide'},
+      {nom:'Sirop agave', qty_per_base:5,   unite:'ml', note:'1 c. à café'},
     ],
     steps:[
       {action:'Décongeler légèrement', detail:'Sortir la pulpe maracujá 5 min avant pour faciliter le mixage.'},
       {action:'Préparer mangue', detail:'Couper la mangue en cubes.'},
-      {action:'Mixer', detail:'Tout au blender 30 secondes. Texture lisse avec graines maracujá visibles.'},
+      {action:'Presser ½ citron', detail:'Récupérer ~17 ml de jus.'},
+      {action:'Mixer', detail:'Tout au blender 30 secondes avec l\'eau froide et le sirop d\'agave.'},
       {action:'Option sans graines', detail:'Tamiser si le client demande sans grainhas.'},
       {action:'Servir', detail:'Avec glaçons. Couleur orange éclatant.'},
     ],
-    tip:'🆕 Signature tropical brésilien. Pulpe maracujá surgelée = dispo toute l\'année. Les graines noires apportent l\'authenticité.'
+    tip:'🆕 Signature tropical brésilien. L\'agave adoucit l\'acidité du maracujá. Pulpe surgelée = dispo toute l\'année.'
   },
 
   /* ════════ BATIDOS — 300 ml (5,90 €) ════════ */
