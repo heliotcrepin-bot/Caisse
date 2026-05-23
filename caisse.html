@@ -328,6 +328,27 @@
     background: rgba(96,180,240,0.12);
     color: var(--blue);
   }
+  /* ─── UBER : style distinctif pour bien voir qu'on est en mode Uber ─── */
+  #lieu-Uber.selected {
+    border-color: #00C16E;
+    background: rgba(0, 193, 110, 0.15);
+    color: #00C16E;
+  }
+  #mode-Uber.selected {
+    border-color: #00C16E;
+    background: rgba(0, 193, 110, 0.15);
+    color: #00C16E;
+  }
+  .mode-btn.disabled-mode {
+    opacity: 0.35;
+    pointer-events: none;
+    filter: grayscale(0.7);
+  }
+  .product-btn.disabled-uber {
+    opacity: 0.35;
+    cursor: not-allowed;
+    filter: grayscale(0.6);
+  }
 
   .valider-btn {
     width: 100%;
@@ -694,6 +715,7 @@
   <div class="lieu-modes">
     <button class="lieu-btn selected" onclick="selectLieu('Sur place')" id="lieu-Sur place">🪑 Sur place</button>
     <button class="lieu-btn" onclick="selectLieu('Emporter')" id="lieu-Emporter">🥡 Emporter</button>
+    <button class="lieu-btn" onclick="selectLieu('Uber')" id="lieu-Uber">🚚 Uber</button>
   </div>
   <button class="valider-btn" id="valider-btn" onclick="validerVente()" disabled>
     Valider la vente — <span id="valider-total">0,00 €</span>
@@ -704,60 +726,72 @@
 // ── PRODUITS ────────────────────────────────────────────────────────
 const PRODUCTS = [
   // Salade
-  { name: 'Salade',    price: 10,  cat: 'salade',   icon: '🥗', modal: true },
+  { name: 'Salade',    price: 10,  priceUber: 11.90, cat: 'salade',   icon: '🥗', modal: true },
   // Smoothies
-  { name: 'Alma Selvagem',         price: 6, cat: 'smoothie', icon: '🍍' },
-  { name: 'Double Choco Coco Nuts',price: 6, cat: 'smoothie', icon: '🍫' },
-  { name: 'Energia Tropical',      price: 6, cat: 'smoothie', icon: '🥭' },
-  { name: 'Explosao de Proteina',  price: 6, cat: 'smoothie', icon: '💥' },
-  { name: 'Nouveau Smoothie',      price: 6, cat: 'smoothie', icon: '🆕' },
+  { name: 'Alma Selvagem',         price: 6, priceUber: 7.50, cat: 'smoothie', icon: '🍍' },
+  { name: 'Double Choco Coco Nuts',price: 6, priceUber: 7.50, cat: 'smoothie', icon: '🍫' },
+  { name: 'Energia Tropical',      price: 6, priceUber: 7.50, cat: 'smoothie', icon: '🥭' },
+  { name: 'Explosao de Proteina',  price: 6, priceUber: 7.50, cat: 'smoothie', icon: '💥' },
+  { name: 'Nouveau Smoothie',      price: 6, priceUber: 7.50, cat: 'smoothie', icon: '🆕' },
   // ★★★ Nouveaux Batidos Cosechas v12 ★★★
-  { name: 'Frutos Vermelhos',      price: 4.50, cat: 'batido', icon: '🫐', destock: true },
-  { name: 'Abacate Tropical',      price: 4.50, cat: 'batido', icon: '🥑', destock: true },
-  { name: 'Acai Power',            price: 4.50, cat: 'batido', icon: '🟣', destock: true },
-  { name: 'Mamao Carioca',         price: 4.50, cat: 'batido', icon: '🥭', destock: true },
-  { name: 'Athleta Plant',         price: 4.50, cat: 'batido', icon: '🌱', destock: true },
+  { name: 'Frutos Vermelhos',      price: 4.50, priceUber: 5.90, cat: 'batido', icon: '🫐', destock: true },
+  { name: 'Abacate Tropical',      price: 4.50, priceUber: 5.90, cat: 'batido', icon: '🥑', destock: true },
+  { name: 'Acai Power',            price: 4.50, priceUber: 5.90, cat: 'batido', icon: '🟣', destock: true },
+  { name: 'Mamao Carioca',         price: 4.50, priceUber: 5.90, cat: 'batido', icon: '🥭', destock: true },
+  { name: 'Athleta Plant',         price: 4.50, priceUber: 5.90, cat: 'batido', icon: '🌱', destock: true },
   // ★★★ Batidos manquants ajoutés ★★★
-  { name: 'Banana-Canela',         price: 4.50, cat: 'batido', icon: '🍌', destock: true },
-  { name: 'Batido Guaraná',        price: 4.50, cat: 'batido', icon: '⚡', destock: true },
-  { name: 'Coco Tropical',         price: 4.50, cat: 'batido', icon: '🥥', destock: true },
-  { name: 'Sunrise',               price: 4.50, cat: 'batido', icon: '🌅', destock: true },
-  { name: 'Strawberry',            price: 4.50, cat: 'batido', icon: '🍓', destock: true },
-  { name: 'Strawberry Plus',       price: 4.50, cat: 'batido', icon: '🍓', destock: true },
-  { name: 'Verde Vital',           price: 4.50, cat: 'batido', icon: '💚', destock: true },
-  { name: 'Batido Azul',           price: 4.50, cat: 'batido', icon: '💙', destock: true },
+  { name: 'Banana-Canela',         price: 4.50, priceUber: 5.90, cat: 'batido', icon: '🍌', destock: true },
+  { name: 'Batido Guaraná',        price: 4.50, priceUber: 5.90, cat: 'batido', icon: '⚡', destock: true },
+  { name: 'Coco Tropical',         price: 4.50, priceUber: 5.90, cat: 'batido', icon: '🥥', destock: true },
+  { name: 'Sunrise',               price: 4.50, priceUber: 5.90, cat: 'batido', icon: '🌅', destock: true },
+  { name: 'Strawberry',            price: 4.50, priceUber: 5.90, cat: 'batido', icon: '🍓', destock: true },
+  { name: 'Strawberry Plus',       price: 4.50, priceUber: 5.90, cat: 'batido', icon: '🍓', destock: true },
+  { name: 'Verde Vital',           price: 4.50, priceUber: 5.90, cat: 'batido', icon: '💚', destock: true },
+  { name: 'Batido Azul',           price: 4.50, priceUber: 5.90, cat: 'batido', icon: '💙', destock: true },
   // Sandwichs
-  { name: 'Poulet B',  price: 6,   cat: 'sandwich', icon: '🥖', destock: true },
-  { name: 'Poulet T',  price: 6,   cat: 'sandwich', icon: '🐓' },
-  { name: 'Sardine B', price: 6,   cat: 'sandwich', icon: '🐟' },
-  { name: 'Sardine T', price: 6,   cat: 'sandwich', icon: '🐠' },
-  { name: 'Thon B',    price: 6,   cat: 'sandwich', icon: '🎣' },
-  { name: 'Thon T',    price: 6,   cat: 'sandwich', icon: '🐡' },
+  { name: 'Poulet B',  price: 6,   priceUber: 7.50, cat: 'sandwich', icon: '🥖', destock: true },
+  { name: 'Poulet T',  price: 6,   priceUber: 7.50, cat: 'sandwich', icon: '🐓' },
+  { name: 'Sardine B', price: 6,   priceUber: 7.50, cat: 'sandwich', icon: '🐟' },
+  { name: 'Sardine T', price: 6,   priceUber: 7.50, cat: 'sandwich', icon: '🐠' },
+  { name: 'Thon B',    price: 6,   priceUber: 7.50, cat: 'sandwich', icon: '🎣' },
+  { name: 'Thon T',    price: 6,   priceUber: 7.50, cat: 'sandwich', icon: '🐡' },
   // Jus
-  { name: 'Suco Rosa',          price: 4, cat: 'jus', icon: '🔴', destock: true  },
-  { name: 'Vale Agradavel',     price: 4, cat: 'jus', icon: '🍉', destock: true  },
-  { name: 'Raiz Viva',         price: 4, cat: 'jus', icon: '🍏', destock: true  },
-  { name: 'Ginger Zinga',      price: 4, cat: 'jus', icon: '🫚', destock: true  },
-  { name: 'Jus du Jour',       price: 4, cat: 'jus', icon: '🥤', destock: false },
-  { name: 'Jus Orange',         price: 3, cat: 'jus', icon: '🍊', destock: true  },
+  { name: 'Suco Rosa',          price: 4, priceUber: 4.90, cat: 'jus', icon: '🔴', destock: true  },
+  { name: 'Vale Agradavel',     price: 4, priceUber: 4.90, cat: 'jus', icon: '🍉', destock: true  },
+  { name: 'Raiz Viva',         price: 4, priceUber: 4.90, cat: 'jus', icon: '🍏', destock: true  },
+  { name: 'Ginger Zinga',      price: 4, priceUber: 4.90, cat: 'jus', icon: '🫚', destock: true  },
+  { name: 'Jus du Jour',       price: 4, priceUber: 4.90, cat: 'jus', icon: '🥤', destock: false },
+  { name: 'Jus Orange',         price: 3, priceUber: 3.90, cat: 'jus', icon: '🍊', destock: true  },
   // ★★★ Nouveau Jus saisonnier v12 ★★★
-  { name: 'Suco Praia',         price: 4, cat: 'jus', icon: '🌊', destock: true  },
-  { name: 'Suco Mamao',         price: 4, cat: 'jus', icon: '🥭', destock: true  },
-  { name: 'Suco Maracuja',      price: 4, cat: 'jus', icon: '💛', destock: true  },
+  { name: 'Suco Praia',         price: 4, priceUber: 4.90, cat: 'jus', icon: '🌊', destock: true  },
+  { name: 'Suco Mamao',         price: 4, priceUber: 4.90, cat: 'jus', icon: '🥭', destock: true  },
+  { name: 'Suco Maracuja',      price: 4, priceUber: 4.90, cat: 'jus', icon: '💛', destock: true  },
 
 
   // Chaud
-  { name: 'Soupe Butternut', price: 4,   cat: 'chaud',    icon: '🍲' },
-  { name: 'Soupe Tomate',    price: 4,   cat: 'chaud',    icon: '🍅' },
-  { name: 'Soupe Carotte',   price: 4,   cat: 'chaud',    icon: '🥕' },
+  { name: 'Soupe Butternut', price: 4,   priceUber: 4.90, cat: 'chaud',    icon: '🍲' },
+  { name: 'Soupe Tomate',    price: 4,   priceUber: 4.90, cat: 'chaud',    icon: '🍅' },
+  { name: 'Soupe Carotte',   price: 4,   priceUber: 4.90, cat: 'chaud',    icon: '🥕' },
   { name: 'Petit Café',      price: 1,   cat: 'chaud',    icon: '☕' },
   { name: 'Grand Café',      price: 1.2, cat: 'chaud',    icon: '☕' },
   // Gâteaux
-  { name: 'Overgnith', price: 4, cat: 'gateau', icon: '🌿', destock: false },
-  { name: 'Overgnith Fraise', price: 4, cat: 'gateau', icon: '🍓', destock: false },
-  { name: 'Brownie',   price: 2.5, cat: 'gateau',   icon: '🍫' },
-  { name: 'Muffins',   price: 3,   cat: 'gateau',   icon: '🧁' },
+  { name: 'Overgnith', price: 4, priceUber: 4.90, cat: 'gateau', icon: '🌿', destock: false },
+  { name: 'Overgnith Fraise', price: 4, priceUber: 4.90, cat: 'gateau', icon: '🍓', destock: false },
+  { name: 'Brownie',   price: 2.5, priceUber: 3.40, cat: 'gateau',   icon: '🍫' },
+  { name: 'Muffins',   price: 3,   priceUber: 3.90, cat: 'gateau',   icon: '🧁' },
 ];
+
+// ── PRIX EFFECTIF SELON LIEU ─────────────────────────────────────────
+// Retourne le prix à appliquer pour le lieu actuel.
+// Si Uber et pas de priceUber défini (ex: cafés), le produit n'est pas vendu sur Uber → prix boutique.
+function getPrice(p) {
+  if (lieu === 'Uber' && p.priceUber != null) return p.priceUber;
+  return p.price;
+}
+
+// Commission Uber : 30% + IVA 23% sur la commission = 36,9% de prélèvement
+// Net encaissé = total × 0,631
+const UBER_NET_FACTOR = 0.631;
 
 const CAT_LABELS = {
   salade:   '🥗 Salade',
@@ -808,15 +842,21 @@ function renderProducts() {
     grid.className = 'grid';
     prods.forEach(p => {
       const btn = document.createElement('button');
-      btn.className = `product-btn cat-${cat}`;
+      const indispoUber = (lieu === 'Uber' && p.priceUber == null);
+      btn.className = `product-btn cat-${cat}` + (indispoUber ? ' disabled-uber' : '');
       btn.id = `btn-${p.name}`;
       btn.innerHTML = `
         <div class="accent-bar"></div>
         <div class="p-name">${p.icon} ${p.name}</div>
-        <div class="p-price">${formatPrice(p.price)}</div>
+        <div class="p-price">${formatPrice(getPrice(p))}</div>
         <div class="p-count" id="count-${p.name}">0</div>
       `;
-      btn.onclick = () => addProduct(p);
+      if (indispoUber) {
+        btn.disabled = true;
+        btn.title = 'Non disponible sur Uber';
+      } else {
+        btn.onclick = () => addProduct(p);
+      }
       grid.appendChild(btn);
     });
     container.appendChild(grid);
@@ -877,7 +917,7 @@ function updateTotal() {
 function getTotal() {
   return Object.entries(panier).reduce((sum, [name, qty]) => {
     const p = PRODUCTS.find(x => x.name === name);
-    return sum + (p ? p.price * qty : 0);
+    return sum + (p ? getPrice(p) * qty : 0);
   }, 0);
 }
 
@@ -904,14 +944,14 @@ function renderPanier() {
     div.innerHTML = `
       <div class="item-info">
         <div class="item-name">${p.icon} ${p.name}</div>
-        <div class="item-prix">${formatPrice(p.price)} / unité</div>
+        <div class="item-prix">${formatPrice(getPrice(p))} / unité</div>
       </div>
       <div class="qty-controls">
         <button class="qty-btn" onclick="changeQty('${name}', -1)">−</button>
         <div class="qty-val">${qty}</div>
         <button class="qty-btn" onclick="changeQty('${name}', +1)">+</button>
       </div>
-      <div class="item-total">${formatPrice(p.price * qty)}</div>
+      <div class="item-total">${formatPrice(getPrice(p) * qty)}</div>
     `;
     container.appendChild(div);
   });
@@ -949,10 +989,13 @@ async function envoyerVersSheets(vente) {
   const heure = now.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
   try {
     const items = Object.entries(vente.items);
-    const produits = items.map(([name]) => name).join('|');
+    const isUber = vente.lieu === 'Uber';
+    // Suffixe " Uber" sur le nom produit pour Uber → traçabilité directe dans V10
+    const produits = items.map(([name]) => isUber ? `${name} Uber` : name).join('|');
     const prix_list = items.map(([name]) => {
       const p = PRODUCTS.find(x => x.name === name);
-      return p ? p.price : 0;
+      if (!p) return 0;
+      return isUber && p.priceUber != null ? p.priceUber : p.price;
     }).join('|');
     const qty_list = items.map(([, qty]) => qty).join('|');
 
@@ -964,6 +1007,16 @@ async function envoyerVersSheets(vente) {
       mode:    vente.mode,
       lieu:    vente.lieu,
     });
+
+    // Pour Uber : ajouter le brut, le net encaissé (×0,631) et la commission (incluant IVA)
+    if (isUber) {
+      const brut = vente.total;
+      const net = +(brut * UBER_NET_FACTOR).toFixed(2);
+      const commission = +(brut - net).toFixed(2);
+      params.append('total_brut', brut.toFixed(2));
+      params.append('net_uber', net.toFixed(2));
+      params.append('commission_uber', commission.toFixed(2));
+    }
 
     await fetch(`${SCRIPT_URL}?${params.toString()}`, {
       method: 'GET',
@@ -1176,17 +1229,71 @@ function exportCSV() {
 
 // ── MODES ────────────────────────────────────────────────────────────
 function selectMode(mode) {
+  // Quand lieu = Uber, le mode est verrouillé sur "Uber"
+  if (lieu === 'Uber' && mode !== 'Uber') {
+    showToast('Mode paiement verrouillé sur Uber');
+    return;
+  }
   modePaiement = mode;
-  ['Espèces','SumUp','MB Way'].forEach(m => {
-    document.getElementById(`mode-${m}`).classList.toggle('selected', m === mode);
+  ['Espèces','SumUp','MB Way','Uber'].forEach(m => {
+    const el = document.getElementById(`mode-${m}`);
+    if (el) el.classList.toggle('selected', m === mode);
   });
 }
 
 function selectLieu(l) {
   lieu = l;
-  ['Sur place','Emporter'].forEach(x => {
-    document.getElementById(`lieu-${x}`).classList.toggle('selected', x === l);
+  ['Sur place','Emporter','Uber'].forEach(x => {
+    const el = document.getElementById(`lieu-${x}`);
+    if (el) el.classList.toggle('selected', x === l);
   });
+
+  // Bascule auto du mode paiement
+  if (l === 'Uber') {
+    // Crée le bouton Uber dans la barre paiement s'il n'existe pas encore
+    ensureUberPaymentButton();
+    modePaiement = 'Uber';
+    ['Espèces','SumUp','MB Way','Uber'].forEach(m => {
+      const el = document.getElementById(`mode-${m}`);
+      if (el) {
+        el.classList.toggle('selected', m === 'Uber');
+        // Désactive visuellement les autres modes
+        if (m !== 'Uber') {
+          el.classList.add('disabled-mode');
+        }
+      }
+    });
+  } else {
+    // Retour aux modes normaux
+    if (modePaiement === 'Uber') modePaiement = 'Espèces';
+    ['Espèces','SumUp','MB Way','Uber'].forEach(m => {
+      const el = document.getElementById(`mode-${m}`);
+      if (el) {
+        el.classList.toggle('selected', m === modePaiement);
+        el.classList.remove('disabled-mode');
+      }
+    });
+  }
+
+  // Re-render les produits et le panier avec les nouveaux prix
+  renderProducts();
+  // Restaurer les badges de quantité après le re-render
+  Object.keys(panier).forEach(name => updateCountBadge(name));
+  renderPanier();
+  updateTotal();
+}
+
+// Crée dynamiquement le bouton "Uber" dans la barre paiement (1 seule fois)
+function ensureUberPaymentButton() {
+  if (document.getElementById('mode-Uber')) return;
+  const bar = document.querySelector('.paiement-modes');
+  if (!bar) return;
+  const btn = document.createElement('button');
+  btn.className = 'mode-btn';
+  btn.id = 'mode-Uber';
+  btn.onclick = () => selectMode('Uber');
+  btn.innerHTML = '<span class="mode-icon">🚚</span>Uber';
+  bar.appendChild(btn);
 }
 
 // ── SECTIONS ─────────────────────────────────────────────────────────
