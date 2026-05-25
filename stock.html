@@ -2088,16 +2088,58 @@ async function partagerTicketComptable(i){
   const t=ticketsComptable[i];if(!t)return;
   try{
     if(t.img){
-      const res=await fetch(t.img);const blob=await res.blob();
-      const file=new File([blob],`ticket_${t.date.replace(/\//g,'-')}.jpg`,{type:'image/jpeg'});
-      if(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){
-        await navigator.share({title:`Ticket ${t.magasin} — ${(t.total||0).toFixed(2)}€`,text:`${t.date} · ${t.magasin} · Total: ${(t.total||0).toFixed(2)}€`,files:[file]});
+      // Convertir data URL en File
+      const res=await fetch(t.img);
+      const blob=await res.blob();
+      const file=new File([blob],`ticket_${t.magasin}_${t.date.replace(/\//g,'-')}.jpg`,{type:'image/jpeg'});
+
+      // Vérifier si le partage de fichier est supporté
+      const peutPartagerAvecFichier = navigator.canShare && navigator.canShare({files:[file]});
+
+      if(peutPartagerAvecFichier){
+        await navigator.share({
+          title:`Ticket ${t.magasin} — ${(t.total||0).toFixed(2)}€`,
+          text:`${t.date} · ${t.magasin} · Total: ${(t.total||0).toFixed(2)}€`,
+          files:[file]
+        });
         return;
       }
+
+      // ── FALLBACK : partage fichier non supporté ──
+      // Au lieu de partager sans photo silencieusement, on télécharge la photo
+      // pour que l'utilisateur la joigne manuellement dans WhatsApp/Mail/etc.
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `ticket_${t.magasin}_${t.date.replace(/\//g,'-')}.jpg`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      // Et on partage le texte si possible
+      if(navigator.share){
+        await navigator.share({
+          title:`Ticket ${t.magasin}`,
+          text:`${t.date} · ${t.magasin} · Total: ${(t.total||0).toFixed(2)}€\n\n📎 Photo téléchargée — à joindre manuellement.`
+        });
+      }
+      showToast('Photo téléchargée — joins-la manuellement au partage',false);
+      return;
     }
-    if(navigator.share)await navigator.share({title:`Ticket ${t.magasin}`,text:`${t.date} · ${t.magasin} · Total: ${(t.total||0).toFixed(2)}€`});
-    else showToast('Partage non disponible',true);
-  }catch(e){if(e.name!=='AbortError')showToast('Erreur: '+e.message,true);}
+
+    // Pas de photo : partage texte seul
+    if(navigator.share){
+      await navigator.share({
+        title:`Ticket ${t.magasin}`,
+        text:`${t.date} · ${t.magasin} · Total: ${(t.total||0).toFixed(2)}€`
+      });
+    } else {
+      showToast('Partage non disponible',true);
+    }
+  }catch(e){
+    if(e.name!=='AbortError') showToast('Erreur: '+e.message,true);
+  }
 }
 
 function supprimerTicketComptable(i){
