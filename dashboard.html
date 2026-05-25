@@ -300,6 +300,66 @@ body {
 svg.chart { width:100%; overflow:visible; }
 .kpi-annual { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px; }
 .kpi-annual-full { grid-column:1/-1; }
+
+/* ── TENDANCES PRODUITS ──────────────────────────────────────────── */
+.trend-toggles { display:flex; flex-direction:column; gap:10px; margin-bottom:14px; }
+.trend-toggle-group { display:flex; flex-direction:column; gap:6px; }
+.trend-toggle-label { font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px; }
+.trend-toggle-row { display:flex; gap:6px; flex-wrap:wrap; }
+.trend-btn {
+  flex: 1 1 auto;
+  min-width: 70px;
+  background: var(--card); border: 1px solid var(--border);
+  color: var(--muted); font-family:'DM Mono',monospace; font-size:10px;
+  padding: 7px 10px; border-radius: 16px; cursor: pointer;
+  transition: all 0.15s;
+}
+.trend-btn:hover { color: var(--text); border-color: var(--accent); }
+.trend-btn.selected {
+  background: var(--gdim); color: var(--accent); border-color: var(--accent);
+}
+.trend-summary {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 12px; padding: 12px 14px; margin-bottom: 12px;
+  font-size: 11px; color: var(--muted); line-height: 1.5;
+}
+.trend-summary strong { color: var(--text); }
+.trend-summary .up { color: var(--accent); }
+.trend-summary .down { color: var(--red); }
+.trend-table-wrap {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 12px; overflow: hidden;
+}
+.trend-table {
+  width: 100%; border-collapse: collapse; font-size: 11px;
+}
+.trend-table thead th {
+  background: var(--surface); color: var(--accent2);
+  padding: 10px 8px; text-align: left; font-weight: 600;
+  border-bottom: 1px solid var(--border); font-size: 10px;
+  text-transform: uppercase; letter-spacing: 0.5px;
+}
+.trend-table thead th.num { text-align: right; }
+.trend-table tbody td {
+  padding: 9px 8px; border-bottom: 1px solid var(--border);
+  color: var(--text);
+}
+.trend-table tbody tr:last-child td { border-bottom: none; }
+.trend-table tbody tr:hover { background: var(--surface); }
+.trend-table td.num { text-align: right; font-variant-numeric: tabular-nums; }
+.trend-evol-up { color: var(--accent); font-weight: 600; }
+.trend-evol-down { color: var(--red); font-weight: 600; }
+.trend-evol-flat { color: var(--muted); }
+.trend-arrow { font-size: 14px; }
+.trend-arrow-up { color: var(--accent); }
+.trend-arrow-up-strong { color: var(--accent); font-weight: 700; }
+.trend-arrow-down { color: var(--red); }
+.trend-arrow-down-strong { color: var(--red); font-weight: 700; }
+.trend-arrow-flat { color: var(--muted); }
+.trend-arrow-new { color: var(--yellow); }
+.trend-empty {
+  padding: 20px; text-align: center; color: var(--muted); font-size: 11px;
+}
 </style>
 </head>
 <body>
@@ -371,6 +431,46 @@ svg.chart { width:100%; overflow:visible; }
   <div class="jour-card" id="jour-list"></div>
 </div>
 
+<!-- ── TENDANCES PRODUITS ─────────────────────────────────────────── -->
+<div id="trend-section" style="display:none">
+  <div class="section-title">📈 Tendances produits</div>
+
+  <div class="trend-toggles">
+    <div class="trend-toggle-group">
+      <div class="trend-toggle-label">Période</div>
+      <div class="trend-toggle-row">
+        <button class="trend-btn selected" data-period="week" onclick="setTrendPeriod('week')">Semaine vs S-1</button>
+        <button class="trend-btn" data-period="rolling7" onclick="setTrendPeriod('rolling7')">7j vs 7j</button>
+        <button class="trend-btn" data-period="month" onclick="setTrendPeriod('month')">Mois vs M-1</button>
+      </div>
+    </div>
+    <div class="trend-toggle-group">
+      <div class="trend-toggle-label">Canal</div>
+      <div class="trend-toggle-row">
+        <button class="trend-btn selected" data-channel="all" onclick="setTrendChannel('all')">Global</button>
+        <button class="trend-btn" data-channel="boutique" onclick="setTrendChannel('boutique')">🏪 Boutique</button>
+        <button class="trend-btn" data-channel="uber" onclick="setTrendChannel('uber')">🚚 Uber</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="trend-summary" id="trend-summary"></div>
+  <div class="trend-table-wrap">
+    <table class="trend-table" id="trend-table">
+      <thead>
+        <tr>
+          <th>Produit</th>
+          <th class="num">Précédent</th>
+          <th class="num">Actuel</th>
+          <th class="num">Évol.</th>
+          <th>Tendance</th>
+        </tr>
+      </thead>
+      <tbody id="trend-tbody"></tbody>
+    </table>
+  </div>
+</div>
+
 <script>
 const SHEET_URL = 'https://script.google.com/macros/s/AKfycbwenbhjtHVc1ifb2_y63ZWb8_9ysSrRcgTVYLbu6tt59W85pYDQhAWMprhq2KpH4Fhg/exec';
 
@@ -388,15 +488,17 @@ async function loadData() {
   btn.textContent = '⟳ Sync...';
 
   try {
-    // Charger les 3 onglets en parallèle
-    const [margeBrute, achatsTickets, charges] = await Promise.all([
+    // Charger les 4 onglets en parallèle (saisie pour les tendances produits)
+    const [margeBrute, achatsTickets, charges, saisie] = await Promise.all([
       fetchSheet('margeBrute'),
       fetchSheet('achatsTickets'),
-      fetchSheet('charges')
+      fetchSheet('charges'),
+      fetchSheet('saisie')
     ]);
 
-    allData = { margeBrute, achatsTickets, charges };
+    allData = { margeBrute, achatsTickets, charges, saisie };
     buildUI();
+    buildTrendSection();
   } catch(err) {
     document.getElementById('kpi-section').innerHTML =
       `<div class="empty">Erreur chargement: ${err.message}</div>`;
@@ -750,6 +852,249 @@ function buildLineChart(moisData) {
       ${dots('marge','#60a5fa')}
     </svg>
   </div>`;
+}
+
+// ════════════════════════════════════════════════════════════════════
+// ── TENDANCES PRODUITS ──────────────────────────────────────────────
+// ════════════════════════════════════════════════════════════════════
+let trendPeriod = 'week';     // 'week' | 'rolling7' | 'month'
+let trendChannel = 'all';     // 'all' | 'boutique' | 'uber'
+
+// Parse une date "JJ/MM/YYYY" en objet Date (à midi pour éviter pbs TZ)
+function parseSaisieDate(s) {
+  if (!s) return null;
+  const parts = String(s).trim().split('/');
+  if (parts.length !== 3) return null;
+  const d = parseInt(parts[0]), m = parseInt(parts[1]), y = parseInt(parts[2]);
+  if (isNaN(d) || isNaN(m) || isNaN(y)) return null;
+  return new Date(y, m-1, d, 12, 0, 0);
+}
+
+// Calcule les bornes [debutCourant, finCourant, debutPrec, finPrec]
+// selon la période et la date du jour
+function getTrendBounds(period, ref) {
+  const now = ref || new Date();
+  const y = now.getFullYear(), m = now.getMonth(), d = now.getDate();
+  const today = new Date(y, m, d, 12, 0, 0);
+
+  if (period === 'rolling7') {
+    // 7 derniers jours (jour J-6 inclus à J inclus) vs J-13 à J-7
+    const finC = today;
+    const debC = new Date(y, m, d - 6, 12, 0, 0);
+    const finP = new Date(y, m, d - 7, 12, 0, 0);
+    const debP = new Date(y, m, d - 13, 12, 0, 0);
+    return { debC, finC, debP, finP, labelC: '7 derniers jours', labelP: '7 jours précédents' };
+  }
+
+  if (period === 'week') {
+    // Semaine ISO en cours (lundi → dimanche)
+    const jourDeLaSemaine = today.getDay(); // 0=dim, 1=lun, ..., 6=sam
+    const decalLundi = (jourDeLaSemaine === 0 ? 6 : jourDeLaSemaine - 1);
+    const debC = new Date(y, m, d - decalLundi, 12, 0, 0);
+    const finC = new Date(y, m, d - decalLundi + 6, 12, 0, 0);
+    const debP = new Date(y, m, d - decalLundi - 7, 12, 0, 0);
+    const finP = new Date(y, m, d - decalLundi - 1, 12, 0, 0);
+    return { debC, finC, debP, finP, labelC: 'Semaine en cours', labelP: 'Semaine précédente' };
+  }
+
+  if (period === 'month') {
+    // Mois calendaire en cours vs mois précédent
+    const debC = new Date(y, m, 1, 12, 0, 0);
+    const finC = new Date(y, m + 1, 0, 12, 0, 0);
+    const debP = new Date(y, m - 1, 1, 12, 0, 0);
+    const finP = new Date(y, m, 0, 12, 0, 0);
+    return { debC, finC, debP, finP, labelC: 'Mois en cours', labelP: 'Mois précédent' };
+  }
+
+  return null;
+}
+
+// Strip le suffixe " Uber" pour la vue Global
+function stripUberSuffix(name) {
+  return name.replace(/\s+Uber\s*$/i, '').trim();
+}
+
+// Détecte si une ligne est Uber (par lieu OU par suffixe nom — sécurité)
+function isUberRow(row) {
+  const lieu = String(row[4] || '').trim().toLowerCase();
+  const produit = String(row[1] || '');
+  return lieu === 'uber' || /\s+Uber\s*$/i.test(produit);
+}
+
+// Filtre les ventes selon le canal
+function filterByChannel(rows, channel) {
+  if (channel === 'all') return rows;
+  if (channel === 'uber') return rows.filter(r => isUberRow(r));
+  if (channel === 'boutique') return rows.filter(r => !isUberRow(r));
+  return rows;
+}
+
+// Agrège les ventes par produit sur une plage de dates
+// channel 'all' → strip du suffixe " Uber" pour regrouper avec la version boutique
+function aggregateByProduct(rows, debut, fin, channel) {
+  const agg = {};
+  rows.forEach(row => {
+    const d = parseSaisieDate(row[0]);
+    if (!d) return;
+    if (d < debut || d > fin) return;
+    let produit = String(row[1] || '').trim();
+    if (!produit) return;
+    const qty = parseInt(row[3]) || 0;
+    const prix = parseFloat(row[2]) || 0;
+    if (qty <= 0) return;
+
+    // En vue Global, on strip le suffixe " Uber" pour regrouper
+    if (channel === 'all') produit = stripUberSuffix(produit);
+
+    if (!agg[produit]) agg[produit] = { qty: 0, ca: 0 };
+    agg[produit].qty += qty;
+    agg[produit].ca += prix * qty;
+  });
+  return agg;
+}
+
+// Construit la liste des produits avec leur évolution
+function buildTrendList(rows, period, channel) {
+  const bounds = getTrendBounds(period);
+  if (!bounds) return { lines: [], totalC: 0, totalP: 0, bounds: null };
+
+  const filtered = filterByChannel(rows, channel);
+  const aggC = aggregateByProduct(filtered, bounds.debC, bounds.finC, channel);
+  const aggP = aggregateByProduct(filtered, bounds.debP, bounds.finP, channel);
+
+  // Union de tous les produits ayant été vendus dans une ou l'autre période
+  const tousLesProduits = new Set([...Object.keys(aggC), ...Object.keys(aggP)]);
+
+  const lines = [];
+  let totalC = 0, totalP = 0;
+
+  tousLesProduits.forEach(produit => {
+    const c = aggC[produit] || { qty: 0, ca: 0 };
+    const p = aggP[produit] || { qty: 0, ca: 0 };
+    totalC += c.qty;
+    totalP += p.qty;
+
+    let evolPct = null;
+    let evolLabel = '—';
+    let arrow = '';
+    let arrowClass = 'trend-arrow-flat';
+    let evolClass = 'trend-evol-flat';
+
+    if (p.qty === 0 && c.qty > 0) {
+      evolLabel = 'Nouveau';
+      arrow = '🆕';
+      arrowClass = 'trend-arrow-new';
+      evolClass = 'trend-evol-up';
+      evolPct = Infinity;
+    } else if (p.qty > 0 && c.qty === 0) {
+      evolLabel = '-100%';
+      arrow = '↓↓';
+      arrowClass = 'trend-arrow-down-strong';
+      evolClass = 'trend-evol-down';
+      evolPct = -100;
+    } else if (p.qty > 0) {
+      evolPct = Math.round((c.qty - p.qty) / p.qty * 1000) / 10;
+      evolLabel = (evolPct >= 0 ? '+' : '') + evolPct + '%';
+      if (evolPct >= 50)       { arrow = '↗↗'; arrowClass = 'trend-arrow-up-strong'; evolClass = 'trend-evol-up'; }
+      else if (evolPct >= 10)  { arrow = '↗';  arrowClass = 'trend-arrow-up';        evolClass = 'trend-evol-up'; }
+      else if (evolPct >  -10) { arrow = '→';  arrowClass = 'trend-arrow-flat';      evolClass = 'trend-evol-flat'; }
+      else if (evolPct >  -50) { arrow = '↘';  arrowClass = 'trend-arrow-down';      evolClass = 'trend-evol-down'; }
+      else                     { arrow = '↘↘'; arrowClass = 'trend-arrow-down-strong'; evolClass = 'trend-evol-down'; }
+    } else {
+      // p.qty = 0 et c.qty = 0 → ignorer (produit nulle part)
+      return;
+    }
+
+    lines.push({
+      produit, qtyP: p.qty, qtyC: c.qty,
+      evolPct, evolLabel, arrow, arrowClass, evolClass,
+    });
+  });
+
+  // Tri : nouveaux d'abord (Infinity), puis par évolution décroissante
+  lines.sort((a, b) => {
+    if (a.evolPct === Infinity && b.evolPct !== Infinity) return -1;
+    if (b.evolPct === Infinity && a.evolPct !== Infinity) return 1;
+    return (b.evolPct || 0) - (a.evolPct || 0);
+  });
+
+  return { lines, totalC, totalP, bounds };
+}
+
+function setTrendPeriod(p) {
+  trendPeriod = p;
+  document.querySelectorAll('.trend-btn[data-period]').forEach(b => {
+    b.classList.toggle('selected', b.dataset.period === p);
+  });
+  renderTrend();
+}
+
+function setTrendChannel(c) {
+  trendChannel = c;
+  document.querySelectorAll('.trend-btn[data-channel]').forEach(b => {
+    b.classList.toggle('selected', b.dataset.channel === c);
+  });
+  renderTrend();
+}
+
+function buildTrendSection() {
+  if (!allData || !allData.saisie) return;
+  document.getElementById('trend-section').style.display = 'block';
+  renderTrend();
+}
+
+function renderTrend() {
+  if (!allData || !allData.saisie) return;
+  const rows = allData.saisie;
+  const { lines, totalC, totalP, bounds } = buildTrendList(rows, trendPeriod, trendChannel);
+
+  // Résumé global
+  const summaryEl = document.getElementById('trend-summary');
+  if (!bounds) {
+    summaryEl.innerHTML = '<div class="trend-empty">Pas de période sélectionnée.</div>';
+    document.getElementById('trend-tbody').innerHTML = '';
+    return;
+  }
+  let evolTotal = '—';
+  let evolClass = '';
+  if (totalP > 0) {
+    const pct = Math.round((totalC - totalP) / totalP * 1000) / 10;
+    evolTotal = (pct >= 0 ? '+' : '') + pct + '%';
+    evolClass = pct >= 0 ? 'up' : 'down';
+  } else if (totalC > 0) {
+    evolTotal = 'Nouveau';
+    evolClass = 'up';
+  }
+
+  const fmtDate = d => String(d.getDate()).padStart(2,'0') + '/' + String(d.getMonth()+1).padStart(2,'0');
+  const canalLabel = trendChannel === 'all' ? 'tous canaux (Uber regroupé avec boutique)' :
+                     trendChannel === 'uber' ? '🚚 Uber uniquement' :
+                     '🏪 Boutique uniquement';
+
+  summaryEl.innerHTML = `
+    <div><strong>${bounds.labelC}</strong> (${fmtDate(bounds.debC)} → ${fmtDate(bounds.finC)})
+    vs <strong>${bounds.labelP}</strong> (${fmtDate(bounds.debP)} → ${fmtDate(bounds.finP)})</div>
+    <div style="margin-top:6px">Total unités vendues : <strong>${totalC}</strong> vs ${totalP}
+    → <span class="${evolClass}"><strong>${evolTotal}</strong></span></div>
+    <div style="margin-top:4px;font-size:10px">Canal : ${canalLabel}</div>
+  `;
+
+  // Tableau
+  const tbody = document.getElementById('trend-tbody');
+  if (lines.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="5" class="trend-empty">Aucune vente sur ces deux périodes.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = lines.map(l => `
+    <tr>
+      <td>${l.produit}</td>
+      <td class="num">${l.qtyP}</td>
+      <td class="num"><strong>${l.qtyC}</strong></td>
+      <td class="num ${l.evolClass}">${l.evolLabel}</td>
+      <td><span class="trend-arrow ${l.arrowClass}">${l.arrow}</span></td>
+    </tr>
+  `).join('');
 }
 
 // Charger au démarrage
