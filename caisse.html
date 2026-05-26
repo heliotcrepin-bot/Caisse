@@ -1503,18 +1503,21 @@ function validerSalade() {
   // Calculer le coût réel de cette salade
   const coutReel = calculerCoutSalade();
 
-  if (!panier['Salade']) panier['Salade'] = 0;
-  panier['Salade'] += 1;
+  // Le nom du produit dans le panier (correspond au SKU dans PRODUCTS)
+  const nomProduit = 'Salada a Compor';
+
+  if (!panier[nomProduit]) panier[nomProduit] = 0;
+  panier[nomProduit] += 1;
 
   // Stocker le coût pour l'envoi à V10 lors du paiement
   if (!window.saladeCouts) window.saladeCouts = [];
   window.saladeCouts.push(coutReel);
 
-  updateCountBadge('Salade');
+  updateCountBadge(nomProduit);
   updateTotal();
   renderPanier();
   fermerSalade();
-  showToast(`🥗 Salade ajoutée — coût ${coutReel.toFixed(2)}€`);
+  showToast(`🥗 Salada a Compor ajoutée — coût ${coutReel.toFixed(2)}€`);
 
   // Envoyer détails + coût vers V10
   envoyerDetailsSalade(baseLabel, ings, saladeSauce, coutReel);
