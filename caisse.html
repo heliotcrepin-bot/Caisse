@@ -726,7 +726,12 @@
 // ── PRODUITS ────────────────────────────────────────────────────────
 const PRODUCTS = [
   // Salade
-  { name: 'Salade',    price: 10,  priceUber: 11.90, cat: 'salade',   icon: '🥗', modal: true },
+  // Saladas (3 SKU distincts)
+  // - Mediterrânica et Proteína : recettes pré-définies (pas de modal)
+  // - À Compor : modal pour choisir les ingrédients
+  { name: 'Salada Mediterranica',  price: 10, priceUber: 11.90, cat: 'salade', icon: '🥗' },
+  { name: 'Salada Proteina',       price: 10, priceUber: 11.90, cat: 'salade', icon: '⭐' },
+  { name: 'Salada a Compor',       price: 10, priceUber: 12.90, cat: 'salade', icon: '🥗', modal: true },
   // Smoothies
   { name: 'Alma Selvagem',         price: 6, priceUber: 7.50, cat: 'smoothie', icon: '🍍' },
   { name: 'Double Choco Coco Nuts',price: 6, priceUber: 7.50, cat: 'smoothie', icon: '🍫' },
@@ -744,7 +749,6 @@ const PRODUCTS = [
   { name: 'Batido Guaraná',        price: 4.50, priceUber: 5.90, cat: 'batido', icon: '⚡', destock: true },
   { name: 'Coco Tropical',         price: 4.50, priceUber: 5.90, cat: 'batido', icon: '🥥', destock: true },
   { name: 'Sunrise',               price: 4.50, priceUber: 5.90, cat: 'batido', icon: '🌅', destock: true },
-  { name: 'Strawberry',            price: 4.50, priceUber: 5.90, cat: 'batido', icon: '🍓', destock: true },
   { name: 'Strawberry Plus',       price: 4.50, priceUber: 5.90, cat: 'batido', icon: '🍓', destock: true },
   { name: 'Verde Vital',           price: 4.50, priceUber: 5.90, cat: 'batido', icon: '💚', destock: true },
   { name: 'Batido Azul',           price: 4.50, priceUber: 5.90, cat: 'batido', icon: '💙', destock: true },
@@ -778,15 +782,29 @@ const PRODUCTS = [
   { name: 'Overgnith', price: 4, priceUber: 4.90, cat: 'gateau', icon: '🌿', destock: false },
   { name: 'Overgnith Fraise', price: 4, priceUber: 4.90, cat: 'gateau', icon: '🍓', destock: false },
   { name: 'Brownie',   price: 2.5, priceUber: 3.40, cat: 'gateau',   icon: '🍫' },
-  { name: 'Muffins',   price: 3,   priceUber: 3.90, cat: 'gateau',   icon: '🧁' },
+  { name: 'Muffins',   price: 3,   priceUber: 4.00, cat: 'gateau',   icon: '🧁' },
+  // ★ Brigadeiro Fit : deux SKU selon le canal ★
+  // Boutique : vente à l'unité 2,50 € · Uber : duo uniquement 6,50 €
+  { name: 'Brigadeiro Fit',     price: 2.5, priceUber: null, cat: 'gateau', icon: '🍬', destock: true },
+  { name: 'Brigadeiro Fit Duo', price: null, priceUber: 6.50, cat: 'gateau', icon: '🍬', destock: true },
 ];
 
 // ── PRIX EFFECTIF SELON LIEU ─────────────────────────────────────────
 // Retourne le prix à appliquer pour le lieu actuel.
-// Si Uber et pas de priceUber défini (ex: cafés), le produit n'est pas vendu sur Uber → prix boutique.
+// - Si lieu = Uber et priceUber est null  → produit non disponible sur Uber (ex: cafés)
+// - Si lieu = Boutique et price est null  → produit non disponible en boutique (ex: Brigadeiro Fit Duo)
+// - Sinon → applique le prix du canal courant
 function getPrice(p) {
-  if (lieu === 'Uber' && p.priceUber != null) return p.priceUber;
-  return p.price;
+  if (lieu === 'Uber') {
+    return p.priceUber != null ? p.priceUber : p.price; // fallback prix boutique si pas de priceUber (sera grisé)
+  }
+  return p.price != null ? p.price : p.priceUber; // fallback prix Uber si pas de price (sera grisé)
+}
+
+// Détermine si un produit est disponible dans le canal courant
+function isProductAvailable(p) {
+  if (lieu === 'Uber') return p.priceUber != null;
+  return p.price != null;
 }
 
 // Commission Uber : 30% + IVA 23% sur la commission = 36,9% de prélèvement
@@ -842,8 +860,8 @@ function renderProducts() {
     grid.className = 'grid';
     prods.forEach(p => {
       const btn = document.createElement('button');
-      const indispoUber = (lieu === 'Uber' && p.priceUber == null);
-      btn.className = `product-btn cat-${cat}` + (indispoUber ? ' disabled-uber' : '');
+      const indispo = !isProductAvailable(p);
+      btn.className = `product-btn cat-${cat}` + (indispo ? ' disabled-uber' : '');
       btn.id = `btn-${p.name}`;
       btn.innerHTML = `
         <div class="accent-bar"></div>
@@ -851,9 +869,9 @@ function renderProducts() {
         <div class="p-price">${formatPrice(getPrice(p))}</div>
         <div class="p-count" id="count-${p.name}">0</div>
       `;
-      if (indispoUber) {
+      if (indispo) {
         btn.disabled = true;
-        btn.title = 'Non disponible sur Uber';
+        btn.title = lieu === 'Uber' ? 'Non disponible sur Uber' : 'Disponible uniquement sur Uber';
       } else {
         btn.onclick = () => addProduct(p);
       }
