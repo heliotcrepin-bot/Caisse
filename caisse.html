@@ -339,6 +339,17 @@
     background: rgba(0, 193, 110, 0.15);
     color: #00C16E;
   }
+  /* ─── BOLT : style distinctif (vert Bolt) ─── */
+  #lieu-Bolt.selected {
+    border-color: #34D186;
+    background: rgba(52, 209, 134, 0.15);
+    color: #34D186;
+  }
+  #mode-Bolt.selected {
+    border-color: #34D186;
+    background: rgba(52, 209, 134, 0.15);
+    color: #34D186;
+  }
   .mode-btn.disabled-mode {
     opacity: 0.35;
     pointer-events: none;
@@ -716,6 +727,7 @@
     <button class="lieu-btn selected" onclick="selectLieu('Sur place')" id="lieu-Sur place">🪑 Sur place</button>
     <button class="lieu-btn" onclick="selectLieu('Emporter')" id="lieu-Emporter">🥡 Emporter</button>
     <button class="lieu-btn" onclick="selectLieu('Uber')" id="lieu-Uber">🚚 Uber</button>
+    <button class="lieu-btn" onclick="selectLieu('Bolt')" id="lieu-Bolt">🛴 Bolt</button>
   </div>
   <button class="valider-btn" id="valider-btn" onclick="validerVente()" disabled>
     Valider la vente — <span id="valider-total">0,00 €</span>
@@ -791,11 +803,13 @@ const PRODUCTS = [
 
 // ── PRIX EFFECTIF SELON LIEU ─────────────────────────────────────────
 // Retourne le prix à appliquer pour le lieu actuel.
-// - Si lieu = Uber et priceUber est null  → produit non disponible sur Uber (ex: cafés)
+// - Si lieu = Uber/Bolt et priceUber est null  → produit non disponible sur plateforme (ex: cafés)
 // - Si lieu = Boutique et price est null  → produit non disponible en boutique (ex: Brigadeiro Fit Duo)
 // - Sinon → applique le prix du canal courant
+// Bolt utilise les mêmes tarifs qu'Uber (commission 30% + IVA 23% identique)
+function isPlateforme(l) { return l === 'Uber' || l === 'Bolt'; }
 function getPrice(p) {
-  if (lieu === 'Uber') {
+  if (isPlateforme(lieu)) {
     return p.priceUber != null ? p.priceUber : p.price; // fallback prix boutique si pas de priceUber (sera grisé)
   }
   return p.price != null ? p.price : p.priceUber; // fallback prix Uber si pas de price (sera grisé)
@@ -803,13 +817,14 @@ function getPrice(p) {
 
 // Détermine si un produit est disponible dans le canal courant
 function isProductAvailable(p) {
-  if (lieu === 'Uber') return p.priceUber != null;
+  if (isPlateforme(lieu)) return p.priceUber != null;
   return p.price != null;
 }
 
-// Commission Uber : 30% + IVA 23% sur la commission = 36,9% de prélèvement
+// Commission plateformes (Uber/Bolt) : 30% + IVA 23% sur la commission = 36,9% de prélèvement
 // Net encaissé = total × 0,631
-const UBER_NET_FACTOR = 0.631;
+const PLATEFORME_NET_FACTOR = 0.631;
+const UBER_NET_FACTOR = PLATEFORME_NET_FACTOR; // alias rétrocompatibilité
 
 const CAT_LABELS = {
   salade:   '🥗 Salade',
@@ -871,7 +886,7 @@ function renderProducts() {
       `;
       if (indispo) {
         btn.disabled = true;
-        btn.title = lieu === 'Uber' ? 'Non disponible sur Uber' : 'Disponible uniquement sur Uber';
+        btn.title = isPlateforme(lieu) ? `Non disponible sur ${lieu}` : 'Disponible uniquement sur Uber/Bolt';
       } else {
         btn.onclick = () => addProduct(p);
       }
@@ -1008,12 +1023,15 @@ async function envoyerVersSheets(vente) {
   try {
     const items = Object.entries(vente.items);
     const isUber = vente.lieu === 'Uber';
-    // Suffixe " Uber" sur le nom produit pour Uber → traçabilité directe dans V10
-    const produits = items.map(([name]) => isUber ? `${name} Uber` : name).join('|');
+    const isBolt = vente.lieu === 'Bolt';
+    const isPF = isUber || isBolt; // plateforme livraison
+    const suffixe = isUber ? ' Uber' : (isBolt ? ' Bolt' : '');
+    // Suffixe " Uber" ou " Bolt" sur le nom produit → traçabilité directe dans V10
+    const produits = items.map(([name]) => isPF ? `${name}${suffixe}` : name).join('|');
     const prix_list = items.map(([name]) => {
       const p = PRODUCTS.find(x => x.name === name);
       if (!p) return 0;
-      return isUber && p.priceUber != null ? p.priceUber : p.price;
+      return isPF && p.priceUber != null ? p.priceUber : p.price;
     }).join('|');
     const qty_list = items.map(([, qty]) => qty).join('|');
 
@@ -1026,12 +1044,16 @@ async function envoyerVersSheets(vente) {
       lieu:    vente.lieu,
     });
 
-    // Pour Uber : ajouter le brut, le net encaissé (×0,631) et la commission (incluant IVA)
-    if (isUber) {
+    // Pour Uber/Bolt : ajouter le brut, le net encaissé (×0,631) et la commission (incluant IVA)
+    if (isPF) {
       const brut = vente.total;
-      const net = +(brut * UBER_NET_FACTOR).toFixed(2);
+      const net = +(brut * PLATEFORME_NET_FACTOR).toFixed(2);
       const commission = +(brut - net).toFixed(2);
       params.append('total_brut', brut.toFixed(2));
+      params.append('net_plateforme', net.toFixed(2));
+      params.append('commission_plateforme', commission.toFixed(2));
+      params.append('plateforme', vente.lieu);
+      // alias rétrocompatibles (anciens noms)
       params.append('net_uber', net.toFixed(2));
       params.append('commission_uber', commission.toFixed(2));
     }
@@ -1247,13 +1269,13 @@ function exportCSV() {
 
 // ── MODES ────────────────────────────────────────────────────────────
 function selectMode(mode) {
-  // Quand lieu = Uber, le mode est verrouillé sur "Uber"
-  if (lieu === 'Uber' && mode !== 'Uber') {
-    showToast('Mode paiement verrouillé sur Uber');
+  // Quand lieu = Uber/Bolt, le mode est verrouillé sur la plateforme correspondante
+  if (isPlateforme(lieu) && mode !== lieu) {
+    showToast(`Mode paiement verrouillé sur ${lieu}`);
     return;
   }
   modePaiement = mode;
-  ['Espèces','SumUp','MB Way','Uber'].forEach(m => {
+  ['Espèces','SumUp','MB Way','Uber','Bolt'].forEach(m => {
     const el = document.getElementById(`mode-${m}`);
     if (el) el.classList.toggle('selected', m === mode);
   });
@@ -1261,30 +1283,33 @@ function selectMode(mode) {
 
 function selectLieu(l) {
   lieu = l;
-  ['Sur place','Emporter','Uber'].forEach(x => {
+  ['Sur place','Emporter','Uber','Bolt'].forEach(x => {
     const el = document.getElementById(`lieu-${x}`);
     if (el) el.classList.toggle('selected', x === l);
   });
 
   // Bascule auto du mode paiement
-  if (l === 'Uber') {
-    // Crée le bouton Uber dans la barre paiement s'il n'existe pas encore
-    ensureUberPaymentButton();
-    modePaiement = 'Uber';
-    ['Espèces','SumUp','MB Way','Uber'].forEach(m => {
+  if (isPlateforme(l)) {
+    // Crée le bouton plateforme correspondant dans la barre paiement
+    if (l === 'Uber') ensureUberPaymentButton();
+    if (l === 'Bolt') ensureBoltPaymentButton();
+    modePaiement = l;
+    ['Espèces','SumUp','MB Way','Uber','Bolt'].forEach(m => {
       const el = document.getElementById(`mode-${m}`);
       if (el) {
-        el.classList.toggle('selected', m === 'Uber');
+        el.classList.toggle('selected', m === l);
         // Désactive visuellement les autres modes
-        if (m !== 'Uber') {
+        if (m !== l) {
           el.classList.add('disabled-mode');
+        } else {
+          el.classList.remove('disabled-mode');
         }
       }
     });
   } else {
     // Retour aux modes normaux
-    if (modePaiement === 'Uber') modePaiement = 'Espèces';
-    ['Espèces','SumUp','MB Way','Uber'].forEach(m => {
+    if (isPlateforme(modePaiement)) modePaiement = 'Espèces';
+    ['Espèces','SumUp','MB Way','Uber','Bolt'].forEach(m => {
       const el = document.getElementById(`mode-${m}`);
       if (el) {
         el.classList.toggle('selected', m === modePaiement);
@@ -1311,6 +1336,19 @@ function ensureUberPaymentButton() {
   btn.id = 'mode-Uber';
   btn.onclick = () => selectMode('Uber');
   btn.innerHTML = '<span class="mode-icon">🚚</span>Uber';
+  bar.appendChild(btn);
+}
+
+// Crée dynamiquement le bouton "Bolt" dans la barre paiement (1 seule fois)
+function ensureBoltPaymentButton() {
+  if (document.getElementById('mode-Bolt')) return;
+  const bar = document.querySelector('.paiement-modes');
+  if (!bar) return;
+  const btn = document.createElement('button');
+  btn.className = 'mode-btn';
+  btn.id = 'mode-Bolt';
+  btn.onclick = () => selectMode('Bolt');
+  btn.innerHTML = '<span class="mode-icon">🛴</span>Bolt';
   bar.appendChild(btn);
 }
 
