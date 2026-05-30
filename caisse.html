@@ -1215,10 +1215,18 @@ async function annulerDerniereVente() {
   const heure = now.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
 
   const items = Object.entries(lastVente.items);
-  const produits  = items.map(([name]) => name).join('|');
+  const isUber = lastVente.lieu === 'Uber';
+  const isBolt = lastVente.lieu === 'Bolt';
+  const isPF = isUber || isBolt;
+  const suffixe = isUber ? ' Uber' : (isBolt ? ' Bolt' : '');
+
+  // Annulation : même format que la vente (suffixe + prix plateforme), juste avec prix négatif
+  const produits  = items.map(([name]) => isPF ? `${name}${suffixe}` : name).join('|');
   const prix_list = items.map(([name]) => {
     const p = PRODUCTS.find(x => x.name === name);
-    return p ? -p.price : 0; // prix négatif = annulation
+    if (!p) return 0;
+    const prix = isPF && p.priceUber != null ? p.priceUber : p.price;
+    return -prix; // prix négatif = annulation
   }).join('|');
   const qty_list  = items.map(([,qty]) => qty).join('|');
 
