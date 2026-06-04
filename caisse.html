@@ -666,6 +666,15 @@
       <button class="sauce-btn" id="sauce-Oriental" onclick="toggleSauce('Oriental')">🌶 Oriental</button>
     </div>
 
+    <!-- SUPPLÉMENTS BOLT (visible uniquement en mode Bolt) -->
+    <div id="bolt-suppl-section" style="display:none">
+      <div class="modal-section-title" style="color:#34D186">
+        🛴 Suppléments Bolt
+        <span id="bolt-suppl-total" style="font-size:10px;opacity:0.85;font-weight:600">+0,00 €</span>
+      </div>
+      <div class="ingredients-grid" id="bolt-suppl-grid"></div>
+    </div>
+
     <div class="modal-footer">
       <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;font-size:11px;color:var(--muted)">
         <span>Coût matière estimé</span>
@@ -700,6 +709,28 @@
     </div>
     <div style="padding:12px 16px">
       <button onclick="fermerGestion()" style="width:100%;background:var(--accent);color:#0f0f0f;border:none;border-radius:var(--radius);padding:14px;font-size:15px;font-weight:700;cursor:pointer">✅ Terminé</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODALE SUPPLÉMENTS BOLT (pour Mediterranica/Proteina en mode Bolt) -->
+<div class="modal-overlay" id="supp-modal">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <div class="modal-title" id="supp-modal-title">🛴 Suppléments Bolt</div>
+      <button class="modal-close" onclick="fermerSuppModal()">✕</button>
+    </div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:8px;padding:0 4px" id="supp-modal-product">—</div>
+    <div class="modal-section-title" style="color:#34D186">
+      Ingrédients facturables
+      <span id="supp-modal-total" style="font-size:10px;opacity:0.85;font-weight:600">+0,00 €</span>
+    </div>
+    <div class="ingredients-grid" id="supp-modal-grid"></div>
+    <div class="modal-footer">
+      <button class="modal-validate" id="supp-validate-btn" onclick="validerSuppModal()">
+        ✅ Ajouter — X,XX €
+      </button>
     </div>
   </div>
 </div>
@@ -908,11 +939,87 @@ function addProduct(p) {
     ouvrirSalade();
     return;
   }
+  // ── BOLT : pour les salades fixes (Mediterranica/Proteina), proposer les suppléments avant d'ajouter ──
+  if (lieu === 'Bolt' && (p.name === 'Salada Mediterranica' || p.name === 'Salada Proteina')) {
+    ouvrirSuppModal(p);
+    return;
+  }
   panier[p.name] = (panier[p.name] || 0) + 1;
   updateCountBadge(p.name);
   updateTotal();
   renderPanier();
   showToast(`${p.icon} ${p.name} ajouté`);
+}
+
+// ── BOLT : mini-modal de suppléments pour Mediterranica/Proteina ────────────
+let suppModalProduct = null; // référence au produit en cours
+
+function ouvrirSuppModal(p) {
+  suppModalProduct = p;
+  supplementsBoltSet = new Set();
+  document.getElementById('supp-modal-title').textContent = `🛴 ${p.name}`;
+  document.getElementById('supp-modal-product').textContent =
+    `Prix de base : ${(p.priceUber || p.price).toFixed(2).replace('.', ',')} € — coche les suppléments à facturer`;
+  renderSuppModal();
+  document.getElementById('supp-modal').classList.add('open');
+}
+
+function fermerSuppModal() {
+  document.getElementById('supp-modal').classList.remove('open');
+  suppModalProduct = null;
+}
+
+function renderSuppModal() {
+  const grid = document.getElementById('supp-modal-grid');
+  if (grid) {
+    grid.innerHTML = SUPPLEMENTS_BOLT.map(s => {
+      const sel = supplementsBoltSet.has(s.nom);
+      return `<button class="ing-btn ${sel ? 'selected' : ''}"
+        onclick="toggleSupplementBolt('${s.nom.replace(/'/g, "\\'")}')"
+        style="${sel ? 'border-color:#34D186;background:rgba(52,209,134,0.15)' : ''}">
+        <span class="ing-icon">${s.icon}</span>
+        <span class="ing-name">${s.nom}<br><b style="color:#34D186;font-size:10px">+${s.prix.toFixed(2)}€</b></span>
+      </button>`;
+    }).join('');
+  }
+  const suppTotal = getSupplementsBoltTotal();
+  const totalEl   = document.getElementById('supp-modal-total');
+  if (totalEl) totalEl.textContent = `+${suppTotal.toFixed(2).replace('.', ',')} €`;
+
+  const btn = document.getElementById('supp-validate-btn');
+  if (btn && suppModalProduct) {
+    const prixBase  = suppModalProduct.priceUber || suppModalProduct.price;
+    const prixTotal = prixBase + suppTotal;
+    btn.textContent = `✅ Ajouter — ${prixTotal.toFixed(2).replace('.', ',')} €`;
+  }
+}
+
+function validerSuppModal() {
+  if (!suppModalProduct) return;
+  const p = suppModalProduct;
+  panier[p.name] = (panier[p.name] || 0) + 1;
+
+  // Stocker les suppléments cochés (parallèle au tableau saladeSupplementsBolt pour Salada a Compor)
+  if (!window.saladeSupplementsBolt) window.saladeSupplementsBolt = [];
+  // Format identique à Salada a Compor : on stocke par produit dans un map
+  if (!window.supplementsParProduit) window.supplementsParProduit = {};
+  if (!window.supplementsParProduit[p.name]) window.supplementsParProduit[p.name] = [];
+  const suppCopy = [...supplementsBoltSet]
+    .map(nom => SUPPLEMENTS_BOLT.find(s => s.nom === nom))
+    .filter(Boolean);
+  window.supplementsParProduit[p.name].push(suppCopy);
+
+  updateCountBadge(p.name);
+  updateTotal();
+  renderPanier();
+  fermerSuppModal();
+
+  const suppTotal = getSupplementsBoltTotal();
+  if (suppTotal > 0) {
+    showToast(`${p.icon} ${p.name} ajouté — +${suppTotal.toFixed(2)}€ suppl.`);
+  } else {
+    showToast(`${p.icon} ${p.name} ajouté`);
+  }
 }
 
 function updateCountBadge(name) {
@@ -950,10 +1057,29 @@ function updateTotal() {
 }
 
 function getTotal() {
-  return Object.entries(panier).reduce((sum, [name, qty]) => {
+  const baseTotal = Object.entries(panier).reduce((sum, [name, qty]) => {
     const p = PRODUCTS.find(x => x.name === name);
     return sum + (p ? getPrice(p) * qty : 0);
   }, 0);
+  return baseTotal + getAllSupplementsBoltTotal();
+}
+
+// Somme de tous les suppléments Bolt cochés sur toutes les salades du panier
+function getAllSupplementsBoltTotal() {
+  let total = 0;
+  if (window.saladeSupplementsBolt) {
+    window.saladeSupplementsBolt.forEach(supps => {
+      supps.forEach(s => { total += s.prix; });
+    });
+  }
+  if (window.supplementsParProduit) {
+    Object.values(window.supplementsParProduit).forEach(arr => {
+      arr.forEach(supps => {
+        supps.forEach(s => { total += s.prix; });
+      });
+    });
+  }
+  return total;
 }
 
 function renderPanier() {
@@ -1028,20 +1154,45 @@ async function envoyerVersSheets(vente) {
     const isBolt = vente.lieu === 'Bolt';
     const isPF = isUber || isBolt; // plateforme livraison
     const suffixe = isUber ? ' Uber' : (isBolt ? ' Bolt' : '');
-    // Suffixe " Uber" ou " Bolt" sur le nom produit → traçabilité directe dans V10
-    const produits = items.map(([name]) => isPF ? `${name}${suffixe}` : name).join('|');
-    const prix_list = items.map(([name]) => {
+
+    // ── Collecter les suppléments Bolt (uniquement en mode Bolt) ──
+    const supplementsLignes = []; // [{nom, prix}]
+    if (isBolt) {
+      if (window.saladeSupplementsBolt) {
+        window.saladeSupplementsBolt.forEach(supps => {
+          supps.forEach(s => supplementsLignes.push(s));
+        });
+      }
+      if (window.supplementsParProduit) {
+        Object.values(window.supplementsParProduit).forEach(arr => {
+          arr.forEach(supps => {
+            supps.forEach(s => supplementsLignes.push(s));
+          });
+        });
+      }
+    }
+
+    // Construire les listes en concaténant items normaux + suppléments
+    const nomsItems  = items.map(([name]) => isPF ? `${name}${suffixe}` : name);
+    const prixItems  = items.map(([name]) => {
       const p = PRODUCTS.find(x => x.name === name);
       if (!p) return 0;
       return isPF && p.priceUber != null ? p.priceUber : p.price;
-    }).join('|');
-    const qty_list = items.map(([, qty]) => qty).join('|');
+    });
+    const qtyItems   = items.map(([, qty]) => qty);
+
+    // Ajouter chaque supplément comme ligne unitaire avec suffixe " Bolt"
+    supplementsLignes.forEach(s => {
+      nomsItems.push(`${s.nom} Bolt`);
+      prixItems.push(s.prix);
+      qtyItems.push(1);
+    });
 
     const params = new URLSearchParams({
       date:    `${date} ${heure}`,
-      produit: produits,
-      prix:    prix_list,
-      qty:     qty_list,
+      produit: nomsItems.join('|'),
+      prix:    prixItems.join('|'),
+      qty:     qtyItems.join('|'),
       mode:    vente.mode,
       lieu:    vente.lieu,
     });
@@ -1064,6 +1215,12 @@ async function envoyerVersSheets(vente) {
       method: 'GET',
       mode: 'no-cors',
     });
+
+    // ── RESET des suppléments Bolt après envoi réussi ──
+    // Pour éviter de les renvoyer à la prochaine vente.
+    window.saladeSupplementsBolt = [];
+    window.supplementsParProduit = {};
+
     return true;
   } catch(e) {
     console.error('Erreur envoi:', e);
@@ -1400,6 +1557,45 @@ const ING_DEFAULT = [
   { nom:'Fraise',            icon:'🍓' },
 ];
 
+// ── SUPPLÉMENTS PAYANTS BOLT ─────────────────────────────────────────────────
+// Affichés uniquement quand lieu === 'Bolt' dans la modal de salade.
+// Tarifs reflétant la configuration foodpartner.bolt.eu (menu-editor/modifiers).
+// Chaque supplément coché AJOUTE son prix au prix de base de la salade.
+const SUPPLEMENTS_BOLT = [
+  { nom: 'Frango',                prix: 3.00, icon: '🍗' },
+  { nom: 'Ovos',                  prix: 2.10, icon: '🥚' },
+  { nom: 'Grão-de-bico',          prix: 2.50, icon: '🫘' },
+  { nom: 'Abacate',               prix: 3.60, icon: '🥑' },
+  { nom: 'Batata-doce',           prix: 2.50, icon: '🍠' },
+  { nom: 'Tomate confitado',      prix: 3.00, icon: '🍅' },
+  { nom: 'Cenoura',               prix: 1.50, icon: '🥕' },
+  { nom: 'Milho',                 prix: 1.00, icon: '🌽' },
+  { nom: 'Azeitonas',             prix: 1.00, icon: '🫒' },
+  { nom: 'Pepino',                prix: 1.50, icon: '🥒' },
+  { nom: 'Cebola Roxa',           prix: 1.00, icon: '🧅' },
+  { nom: 'Queijo Feta',           prix: 3.00, icon: '🧀' },
+  { nom: 'Atum',                  prix: 3.00, icon: '🐟' },
+  { nom: 'Beterraba',             prix: 1.00, icon: '🔴' },
+  { nom: 'Ananás',                prix: 2.10, icon: '🍍' },
+  { nom: 'Mussarela',             prix: 1.00, icon: '🫙' },
+  { nom: 'Caponata beringela',    prix: 1.00, icon: '🍆' },
+  { nom: 'Camarões',              prix: 1.00, icon: '🦐' },
+  { nom: 'Feijão branco',         prix: 1.00, icon: '⚪' },
+  { nom: 'Manga fresca',          prix: 1.00, icon: '🥭' },
+  { nom: 'Palmito',               prix: 1.00, icon: '🌴' },
+  { nom: 'Salmão',                prix: 1.00, icon: '🐠' },
+];
+
+// Calcule la somme des prix des suppléments cochés
+function getSupplementsBoltTotal() {
+  let total = 0;
+  for (const nom of (supplementsBoltSet || [])) {
+    const s = SUPPLEMENTS_BOLT.find(x => x.nom === nom);
+    if (s) total += s.prix;
+  }
+  return total;
+}
+
 // ── COÛTS MATIÈRE — lus depuis Config_Salade dans V10 ────────────────────────
 let COUT_MAP = {}; // { 'Avocat': 0.318, ... } — chargé depuis V10
 
@@ -1434,6 +1630,7 @@ let ingredientsListe = JSON.parse(localStorage.getItem('bs_salade_ings') || 'nul
 let saladeBase = null;
 let saladeIngredients = new Set();
 let saladeSauce = null;
+let supplementsBoltSet = new Set(); // suppléments cochés (mode Bolt uniquement)
 
 function sauvegarderIngs() {
   localStorage.setItem('bs_salade_ings', JSON.stringify(ingredientsListe));
@@ -1443,6 +1640,7 @@ function ouvrirSalade() {
   saladeBases = new Set();
   saladeIngredients = new Set();
   saladeSauce = null;
+  supplementsBoltSet = new Set();
   renderSaladeModal();
   document.getElementById('salade-modal').classList.add('open');
 }
@@ -1515,6 +1713,39 @@ function renderSaladeModal() {
     vBtn.style.opacity = ok ? '1' : '0.4';
   }
 
+  // ── SECTION BOLT SUPPLÉMENTS (visible uniquement si lieu === 'Bolt') ──
+  const boltSection = document.getElementById('bolt-suppl-section');
+  const boltGrid    = document.getElementById('bolt-suppl-grid');
+  const boltTotal   = document.getElementById('bolt-suppl-total');
+  if (boltSection && lieu === 'Bolt') {
+    boltSection.style.display = 'block';
+    if (boltGrid) {
+      boltGrid.innerHTML = SUPPLEMENTS_BOLT.map(s => {
+        const sel = supplementsBoltSet.has(s.nom);
+        return `<button class="ing-btn ${sel ? 'selected' : ''}"
+          onclick="toggleSupplementBolt('${s.nom.replace(/'/g, "\\'")}')"
+          style="${sel ? 'border-color:#34D186;background:rgba(52,209,134,0.15)' : ''}">
+          <span class="ing-icon">${s.icon}</span>
+          <span class="ing-name">${s.nom}<br><b style="color:#34D186;font-size:10px">+${s.prix.toFixed(2)}€</b></span>
+        </button>`;
+      }).join('');
+    }
+    const suppTotal = getSupplementsBoltTotal();
+    if (boltTotal) boltTotal.textContent = `+${suppTotal.toFixed(2).replace('.', ',')} €`;
+  } else if (boltSection) {
+    boltSection.style.display = 'none';
+  }
+
+  // ── MAJ DU BOUTON VALIDER : afficher le prix total (base + suppléments) ──
+  if (vBtn) {
+    // Prix de base : 10€ boutique, 12,90€ Uber, 12,90€ Bolt (priceUber)
+    let prixBase = 10;
+    if (lieu === 'Uber' || lieu === 'Bolt') prixBase = 12.90;
+    const supp = lieu === 'Bolt' ? getSupplementsBoltTotal() : 0;
+    const prixTotal = prixBase + supp;
+    vBtn.textContent = `✅ Ajouter la salade — ${prixTotal.toFixed(2).replace('.', ',')} €`;
+  }
+
   // Afficher coût matière + marge
   const cout = calculerCoutSalade();
   const marge = 10 - cout;
@@ -1542,6 +1773,20 @@ function toggleSauce(sauce) {
   renderSaladeModal();
 }
 
+// ── BOLT : toggle d'un supplément payant ─────────────────────────────────────
+function toggleSupplementBolt(nom) {
+  if (supplementsBoltSet.has(nom)) {
+    supplementsBoltSet.delete(nom);
+  } else {
+    supplementsBoltSet.add(nom);
+  }
+  renderSaladeModal();
+  // si la modal de suppléments seule est ouverte, on la rafraîchit aussi
+  if (typeof renderSuppModal === 'function' && document.getElementById('supp-modal').classList.contains('open')) {
+    renderSuppModal();
+  }
+}
+
 function validerSalade() {
   if (!saladeBases || saladeBases.size === 0) { showToast('⚠️ Choisis une base'); return; }
 
@@ -1561,11 +1806,27 @@ function validerSalade() {
   if (!window.saladeCouts) window.saladeCouts = [];
   window.saladeCouts.push(coutReel);
 
+  // ── BOLT : stocker les suppléments payants de cette salade ──
+  // Chaque entrée correspond à une salade ajoutée au panier (dans l'ordre).
+  // Au moment du paiement, on les ajoute comme des lignes supplémentaires
+  // dans la commande envoyée à V10.
+  if (!window.saladeSupplementsBolt) window.saladeSupplementsBolt = [];
+  const suppCopy = [...supplementsBoltSet]
+    .map(nom => SUPPLEMENTS_BOLT.find(s => s.nom === nom))
+    .filter(Boolean);
+  window.saladeSupplementsBolt.push(lieu === 'Bolt' ? suppCopy : []);
+
   updateCountBadge(nomProduit);
   updateTotal();
   renderPanier();
   fermerSalade();
-  showToast(`🥗 Salada a Compor ajoutée — coût ${coutReel.toFixed(2)}€`);
+
+  const suppTotal = (lieu === 'Bolt') ? getSupplementsBoltTotal() : 0;
+  if (suppTotal > 0) {
+    showToast(`🥗 Salada a Compor ajoutée — coût ${coutReel.toFixed(2)}€ — +${suppTotal.toFixed(2)}€ suppl.`);
+  } else {
+    showToast(`🥗 Salada a Compor ajoutée — coût ${coutReel.toFixed(2)}€`);
+  }
 
   // Envoyer détails + coût vers V10
   envoyerDetailsSalade(baseLabel, ings, saladeSauce, coutReel);
@@ -1636,6 +1897,7 @@ function ajouterIngredient() {
 document.addEventListener('click', function(e) {
   if (e.target === document.getElementById('salade-modal')) fermerSalade();
   if (e.target === document.getElementById('gestion-modal')) fermerGestion();
+  if (e.target === document.getElementById('supp-modal')) fermerSuppModal();
 });
 
 // ── UTILS ────────────────────────────────────────────────────────────
