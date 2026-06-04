@@ -668,9 +668,10 @@
 
     <!-- SUPPLÉMENTS BOLT (visible uniquement en mode Bolt) -->
     <div id="bolt-suppl-section" style="display:none">
-      <div class="modal-section-title" style="color:#34D186">
-        🛴 Suppléments Bolt
+      <div class="modal-section-title" style="color:#34D186;display:flex;align-items:center;gap:8px">
+        <span>🛴 Suppléments Bolt</span>
         <span id="bolt-suppl-total" style="font-size:10px;opacity:0.85;font-weight:600">+0,00 €</span>
+        <button onclick="ouvrirGestionSupp()" style="margin-left:auto;background:transparent;border:1px solid var(--border);color:var(--muted);padding:3px 8px;border-radius:14px;font-size:10px;cursor:pointer">⚙️ Prix</button>
       </div>
       <div class="ingredients-grid" id="bolt-suppl-grid"></div>
     </div>
@@ -719,7 +720,10 @@
     <div class="modal-handle"></div>
     <div class="modal-header">
       <div class="modal-title" id="supp-modal-title">🛴 Suppléments Bolt</div>
-      <button class="modal-close" onclick="fermerSuppModal()">✕</button>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button onclick="ouvrirGestionSupp()" style="background:var(--surface2);border:1px solid var(--border);color:var(--muted);padding:5px 10px;border-radius:20px;font-size:11px;cursor:pointer">⚙️ Gérer prix</button>
+        <button class="modal-close" onclick="fermerSuppModal()">✕</button>
+      </div>
     </div>
     <div style="font-size:12px;color:var(--muted);margin-bottom:8px;padding:0 4px" id="supp-modal-product">—</div>
     <div class="modal-section-title" style="color:#34D186">
@@ -731,6 +735,33 @@
       <button class="modal-validate" id="supp-validate-btn" onclick="validerSuppModal()">
         ✅ Ajouter — X,XX €
       </button>
+    </div>
+  </div>
+</div>
+
+<!-- MODALE GESTION DES PRIX SUPPLÉMENTS BOLT -->
+<div class="modal-overlay" id="gestion-supp-modal">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <div class="modal-title">⚙️ Gérer prix suppléments Bolt</div>
+      <button class="modal-close" onclick="fermerGestionSupp()">✕</button>
+    </div>
+    <div style="font-size:11px;color:var(--muted);padding:4px 4px 10px">
+      Modifie un prix → la modification est sauvegardée automatiquement sur ce téléphone. Pour synchroniser entre plusieurs téléphones, garde une seule app comme "référence" et ré-applique les prix sur les autres.
+    </div>
+    <div class="modal-section-title" style="color:#34D186">Liste actuelle</div>
+    <div id="gestion-supp-list" style="display:flex;flex-direction:column;gap:6px"></div>
+    <div class="modal-section-title">Ajouter un supplément</div>
+    <div style="display:flex;gap:6px;padding:0 4px">
+      <input id="new-supp-icon" placeholder="🍃" maxlength="2" style="width:42px;text-align:center;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:16px;padding:8px;outline:none">
+      <input id="new-supp-nom" placeholder="Nom" style="flex:1;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:monospace;font-size:13px;padding:8px;outline:none">
+      <input id="new-supp-prix" placeholder="€" type="number" step="0.10" style="width:70px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:monospace;font-size:13px;padding:8px;outline:none">
+      <button onclick="ajouterSupp()" style="background:#34D186;color:#0f0f0f;border:none;border-radius:8px;padding:8px 14px;font-size:13px;font-weight:700;cursor:pointer">+</button>
+    </div>
+    <div class="modal-footer">
+      <button onclick="reinitialiserSupplementsBolt()" style="width:100%;background:transparent;border:1px solid var(--red);color:var(--red);border-radius:var(--radius);padding:10px;font-size:12px;cursor:pointer;margin-bottom:8px">↩ Réinitialiser aux prix par défaut</button>
+      <button onclick="fermerGestionSupp()" style="width:100%;background:var(--accent);color:#0f0f0f;border:none;border-radius:var(--radius);padding:14px;font-size:15px;font-weight:700;cursor:pointer">✅ Terminé</button>
     </div>
   </div>
 </div>
@@ -1020,6 +1051,73 @@ function validerSuppModal() {
   } else {
     showToast(`${p.icon} ${p.name} ajouté`);
   }
+}
+
+// ── BOLT : GESTION DES PRIX DES SUPPLÉMENTS ──────────────────────────────────
+function ouvrirGestionSupp() {
+  renderGestionSupp();
+  document.getElementById('gestion-supp-modal').classList.add('open');
+}
+
+function fermerGestionSupp() {
+  document.getElementById('gestion-supp-modal').classList.remove('open');
+  // Rafraîchir les modales ouvertes pour refléter les changements
+  if (document.getElementById('salade-modal').classList.contains('open')) renderSaladeModal();
+  if (document.getElementById('supp-modal').classList.contains('open')) renderSuppModal();
+}
+
+function renderGestionSupp() {
+  const list = document.getElementById('gestion-supp-list');
+  if (!list) return;
+  list.innerHTML = SUPPLEMENTS_BOLT.map((s, i) => `
+    <div style="display:flex;gap:6px;align-items:center;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:6px 8px">
+      <span style="font-size:18px">${s.icon}</span>
+      <span style="flex:1;font-size:13px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${s.nom}</span>
+      <input type="number" step="0.10" min="0" value="${s.prix.toFixed(2)}"
+        onchange="editSuppPrix(${i}, this.value)"
+        style="width:70px;text-align:right;background:var(--surface);border:1px solid var(--border);border-radius:6px;color:#34D186;font-family:monospace;font-size:13px;font-weight:700;padding:6px 8px;outline:none">
+      <span style="color:#34D186;font-size:12px">€</span>
+      <button onclick="supprimerSupp(${i})" style="background:transparent;border:1px solid var(--red);color:var(--red);border-radius:6px;width:28px;height:28px;font-size:13px;cursor:pointer">×</button>
+    </div>
+  `).join('');
+}
+
+function editSuppPrix(index, newVal) {
+  const v = parseFloat(newVal);
+  if (isNaN(v) || v < 0) { showToast('Prix invalide', true); renderGestionSupp(); return; }
+  SUPPLEMENTS_BOLT[index].prix = Math.round(v * 100) / 100;
+  sauvegarderSupplementsBolt();
+  showToast(`✅ ${SUPPLEMENTS_BOLT[index].nom} → ${v.toFixed(2)} €`);
+}
+
+function supprimerSupp(index) {
+  const nom = SUPPLEMENTS_BOLT[index].nom;
+  if (!confirm(`Supprimer "${nom}" ?`)) return;
+  SUPPLEMENTS_BOLT.splice(index, 1);
+  // Aussi retirer du set des suppléments cochés s'il y était
+  supplementsBoltSet.delete(nom);
+  sauvegarderSupplementsBolt();
+  renderGestionSupp();
+  showToast(`🗑️ ${nom} supprimé`);
+}
+
+function ajouterSupp() {
+  const icon = document.getElementById('new-supp-icon').value.trim() || '🍃';
+  const nom  = document.getElementById('new-supp-nom').value.trim();
+  const prix = parseFloat(document.getElementById('new-supp-prix').value);
+  if (!nom) { showToast('Nom manquant', true); return; }
+  if (isNaN(prix) || prix < 0) { showToast('Prix invalide', true); return; }
+  if (SUPPLEMENTS_BOLT.find(s => s.nom.toLowerCase() === nom.toLowerCase())) {
+    showToast('Déjà dans la liste', true);
+    return;
+  }
+  SUPPLEMENTS_BOLT.push({ nom, prix: Math.round(prix * 100) / 100, icon });
+  sauvegarderSupplementsBolt();
+  document.getElementById('new-supp-icon').value = '';
+  document.getElementById('new-supp-nom').value = '';
+  document.getElementById('new-supp-prix').value = '';
+  renderGestionSupp();
+  showToast(`➕ ${nom} ajouté`);
 }
 
 function updateCountBadge(name) {
@@ -1561,7 +1659,8 @@ const ING_DEFAULT = [
 // Affichés uniquement quand lieu === 'Bolt' dans la modal de salade.
 // Tarifs reflétant la configuration foodpartner.bolt.eu (menu-editor/modifiers).
 // Chaque supplément coché AJOUTE son prix au prix de base de la salade.
-const SUPPLEMENTS_BOLT = [
+// MODIFIABLE DIRECTEMENT DEPUIS L'APP via le bouton ⚙️ Gérer prix.
+const SUPPLEMENTS_BOLT_DEFAULT = [
   { nom: 'Frango',                prix: 3.00, icon: '🍗' },
   { nom: 'Ovos',                  prix: 2.10, icon: '🥚' },
   { nom: 'Grão-de-bico',          prix: 2.50, icon: '🫘' },
@@ -1585,6 +1684,24 @@ const SUPPLEMENTS_BOLT = [
   { nom: 'Palmito',               prix: 1.00, icon: '🌴' },
   { nom: 'Salmão',                prix: 3.00, icon: '🐠' },
 ];
+
+// Liste effective : chargée depuis localStorage si modifiée par l'user, sinon par défaut
+let SUPPLEMENTS_BOLT = JSON.parse(localStorage.getItem('bs_supplements_bolt') || 'null') || SUPPLEMENTS_BOLT_DEFAULT;
+
+function sauvegarderSupplementsBolt() {
+  localStorage.setItem('bs_supplements_bolt', JSON.stringify(SUPPLEMENTS_BOLT));
+}
+
+function reinitialiserSupplementsBolt() {
+  if (!confirm('Réinitialiser les prix des suppléments aux valeurs par défaut ?')) return;
+  SUPPLEMENTS_BOLT = JSON.parse(JSON.stringify(SUPPLEMENTS_BOLT_DEFAULT));
+  sauvegarderSupplementsBolt();
+  renderGestionSupp();
+  // Rafraîchir les modales ouvertes
+  if (document.getElementById('salade-modal').classList.contains('open')) renderSaladeModal();
+  if (document.getElementById('supp-modal').classList.contains('open')) renderSuppModal();
+  showToast('✅ Prix par défaut restaurés');
+}
 
 // Calcule la somme des prix des suppléments cochés
 function getSupplementsBoltTotal() {
@@ -1898,6 +2015,7 @@ document.addEventListener('click', function(e) {
   if (e.target === document.getElementById('salade-modal')) fermerSalade();
   if (e.target === document.getElementById('gestion-modal')) fermerGestion();
   if (e.target === document.getElementById('supp-modal')) fermerSuppModal();
+  if (e.target === document.getElementById('gestion-supp-modal')) fermerGestionSupp();
 });
 
 // ── UTILS ────────────────────────────────────────────────────────────
