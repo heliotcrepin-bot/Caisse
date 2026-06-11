@@ -896,6 +896,10 @@ function isProductAvailable(p) {
 const PLATEFORME_NET_FACTOR = 0.631;
 const UBER_NET_FACTOR = PLATEFORME_NET_FACTOR; // alias rétrocompatibilité
 
+// Taxa d'embalagem Bolt : 0,37 € automatique par commande
+// (couvre les gobelets/contenants jetables fournis avec chaque commande Bolt)
+const TAXA_EMBALAGEM_BOLT = 0.37;
+
 const CAT_LABELS = {
   salade:   '🥗 Salade',
   batido:   '🥤 Batidos',
@@ -1165,7 +1169,12 @@ function getTotal() {
     const p = PRODUCTS.find(x => x.name === name);
     return sum + (p ? getPrice(p) * qty : 0);
   }, 0);
-  return baseTotal + getAllSupplementsBoltTotal();
+  let total = baseTotal + getAllSupplementsBoltTotal();
+  // Taxa d'embalagem Bolt : ajoutée automatiquement à toute commande Bolt non vide
+  if (lieu === 'Bolt' && Object.keys(panier).length > 0) {
+    total += TAXA_EMBALAGEM_BOLT;
+  }
+  return total;
 }
 
 // Somme de tous les suppléments Bolt cochés sur toutes les salades du panier
@@ -1291,6 +1300,14 @@ async function envoyerVersSheets(vente) {
       prixItems.push(s.prix);
       qtyItems.push(1);
     });
+
+    // ── BOLT : ajouter la taxa d'embalagem (0,37€) comme ligne séparée ──
+    // Une seule fois par commande, quel que soit le nombre d'items.
+    if (isBolt && items.length > 0) {
+      nomsItems.push('Taxa Embalagem Bolt');
+      prixItems.push(TAXA_EMBALAGEM_BOLT);
+      qtyItems.push(1);
+    }
 
     const params = new URLSearchParams({
       date:    `${date} ${heure}`,
