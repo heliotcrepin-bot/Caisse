@@ -350,6 +350,17 @@
     background: rgba(52, 209, 134, 0.15);
     color: #34D186;
   }
+  /* ─── GLOVO : style distinctif (jaune Glovo) ─── */
+  #lieu-Glovo.selected {
+    border-color: #FFC244;
+    background: rgba(255, 194, 68, 0.15);
+    color: #FFC244;
+  }
+  #mode-Glovo.selected {
+    border-color: #FFC244;
+    background: rgba(255, 194, 68, 0.15);
+    color: #FFC244;
+  }
   .mode-btn.disabled-mode {
     opacity: 0.35;
     pointer-events: none;
@@ -790,6 +801,7 @@
     <button class="lieu-btn" onclick="selectLieu('Emporter')" id="lieu-Emporter">🥡 Emporter</button>
     <button class="lieu-btn" onclick="selectLieu('Uber')" id="lieu-Uber">🚚 Uber</button>
     <button class="lieu-btn" onclick="selectLieu('Bolt')" id="lieu-Bolt">🛴 Bolt</button>
+    <button class="lieu-btn" onclick="selectLieu('Glovo')" id="lieu-Glovo">🛵 Glovo</button>
   </div>
   <button class="valider-btn" id="valider-btn" onclick="validerVente()" disabled>
     Valider la vente — <span id="valider-total">0,00 €</span>
@@ -877,8 +889,8 @@ const PRODUCTS = [
 // - Si lieu = Uber/Bolt et priceUber est null  → produit non disponible sur plateforme (ex: cafés)
 // - Si lieu = Boutique et price est null  → produit non disponible en boutique (ex: Brigadeiro Fit Duo)
 // - Sinon → applique le prix du canal courant
-// Bolt utilise les mêmes tarifs qu'Uber (commission 30% + IVA 23% identique)
-function isPlateforme(l) { return l === 'Uber' || l === 'Bolt'; }
+// Bolt et Glovo utilisent les mêmes tarifs qu'Uber (commission 30% + IVA 23% identique)
+function isPlateforme(l) { return l === 'Uber' || l === 'Bolt' || l === 'Glovo'; }
 function getPrice(p) {
   if (isPlateforme(lieu)) {
     return p.priceUber != null ? p.priceUber : p.price; // fallback prix boutique si pas de priceUber (sera grisé)
@@ -892,7 +904,7 @@ function isProductAvailable(p) {
   return p.price != null;
 }
 
-// Commission plateformes (Uber/Bolt) : 30% + IVA 23% sur la commission = 36,9% de prélèvement
+// Commission plateformes (Uber/Bolt/Glovo) : 30% + IVA 23% sur la commission = 36,9% de prélèvement
 // Net encaissé = total × 0,631
 const PLATEFORME_NET_FACTOR = 0.631;
 const UBER_NET_FACTOR = PLATEFORME_NET_FACTOR; // alias rétrocompatibilité
@@ -961,7 +973,7 @@ function renderProducts() {
       `;
       if (indispo) {
         btn.disabled = true;
-        btn.title = isPlateforme(lieu) ? `Non disponible sur ${lieu}` : 'Disponible uniquement sur Uber/Bolt';
+        btn.title = isPlateforme(lieu) ? `Non disponible sur ${lieu}` : 'Disponible uniquement sur Uber/Bolt/Glovo';
       } else {
         btn.onclick = () => addProduct(p);
       }
@@ -1266,8 +1278,9 @@ async function envoyerVersSheets(vente) {
     const items = Object.entries(vente.items);
     const isUber = vente.lieu === 'Uber';
     const isBolt = vente.lieu === 'Bolt';
-    const isPF = isUber || isBolt; // plateforme livraison
-    const suffixe = isUber ? ' Uber' : (isBolt ? ' Bolt' : '');
+    const isGlovo = vente.lieu === 'Glovo';
+    const isPF = isUber || isBolt || isGlovo; // plateforme livraison
+    const suffixe = isUber ? ' Uber' : (isBolt ? ' Bolt' : (isGlovo ? ' Glovo' : ''));
 
     // ── Collecter les suppléments Bolt (uniquement en mode Bolt) ──
     const supplementsLignes = []; // [{nom, prix}]
@@ -1498,8 +1511,9 @@ async function annulerDerniereVente() {
   const items = Object.entries(lastVente.items);
   const isUber = lastVente.lieu === 'Uber';
   const isBolt = lastVente.lieu === 'Bolt';
-  const isPF = isUber || isBolt;
-  const suffixe = isUber ? ' Uber' : (isBolt ? ' Bolt' : '');
+  const isGlovo = lastVente.lieu === 'Glovo';
+  const isPF = isUber || isBolt || isGlovo;
+  const suffixe = isUber ? ' Uber' : (isBolt ? ' Bolt' : (isGlovo ? ' Glovo' : ''));
 
   // Annulation : même format que la vente (suffixe + prix plateforme), juste avec prix négatif
   const produits  = items.map(([name]) => isPF ? `${name}${suffixe}` : name).join('|');
@@ -1564,7 +1578,7 @@ function selectMode(mode) {
     return;
   }
   modePaiement = mode;
-  ['Espèces','SumUp','MB Way','Uber','Bolt'].forEach(m => {
+  ['Espèces','SumUp','MB Way','Uber','Bolt','Glovo'].forEach(m => {
     const el = document.getElementById(`mode-${m}`);
     if (el) el.classList.toggle('selected', m === mode);
   });
@@ -1572,7 +1586,7 @@ function selectMode(mode) {
 
 function selectLieu(l) {
   lieu = l;
-  ['Sur place','Emporter','Uber','Bolt'].forEach(x => {
+  ['Sur place','Emporter','Uber','Bolt','Glovo'].forEach(x => {
     const el = document.getElementById(`lieu-${x}`);
     if (el) el.classList.toggle('selected', x === l);
   });
@@ -1582,8 +1596,9 @@ function selectLieu(l) {
     // Crée le bouton plateforme correspondant dans la barre paiement
     if (l === 'Uber') ensureUberPaymentButton();
     if (l === 'Bolt') ensureBoltPaymentButton();
+    if (l === 'Glovo') ensureGlovoPaymentButton();
     modePaiement = l;
-    ['Espèces','SumUp','MB Way','Uber','Bolt'].forEach(m => {
+    ['Espèces','SumUp','MB Way','Uber','Bolt','Glovo'].forEach(m => {
       const el = document.getElementById(`mode-${m}`);
       if (el) {
         el.classList.toggle('selected', m === l);
@@ -1598,7 +1613,7 @@ function selectLieu(l) {
   } else {
     // Retour aux modes normaux
     if (isPlateforme(modePaiement)) modePaiement = 'Espèces';
-    ['Espèces','SumUp','MB Way','Uber','Bolt'].forEach(m => {
+    ['Espèces','SumUp','MB Way','Uber','Bolt','Glovo'].forEach(m => {
       const el = document.getElementById(`mode-${m}`);
       if (el) {
         el.classList.toggle('selected', m === modePaiement);
@@ -1638,6 +1653,19 @@ function ensureBoltPaymentButton() {
   btn.id = 'mode-Bolt';
   btn.onclick = () => selectMode('Bolt');
   btn.innerHTML = '<span class="mode-icon">🛴</span>Bolt';
+  bar.appendChild(btn);
+}
+
+// Crée dynamiquement le bouton "Glovo" dans la barre paiement (1 seule fois)
+function ensureGlovoPaymentButton() {
+  if (document.getElementById('mode-Glovo')) return;
+  const bar = document.querySelector('.paiement-modes');
+  if (!bar) return;
+  const btn = document.createElement('button');
+  btn.className = 'mode-btn';
+  btn.id = 'mode-Glovo';
+  btn.onclick = () => selectMode('Glovo');
+  btn.innerHTML = '<span class="mode-icon">🛵</span>Glovo';
   bar.appendChild(btn);
 }
 
@@ -1879,9 +1907,9 @@ function renderSaladeModal() {
 
   // ── MAJ DU BOUTON VALIDER : afficher le prix total (base + suppléments) ──
   if (vBtn) {
-    // Prix de base : 10€ boutique, 12,90€ Uber, 12,90€ Bolt (priceUber)
+    // Prix de base : 10€ boutique, 12,90€ Uber/Bolt/Glovo (priceUber)
     let prixBase = 10;
-    if (lieu === 'Uber' || lieu === 'Bolt') prixBase = 12.90;
+    if (isPlateforme(lieu)) prixBase = 12.90;
     const supp = lieu === 'Bolt' ? getSupplementsBoltTotal() : 0;
     const prixTotal = prixBase + supp;
     vBtn.textContent = `✅ Ajouter la salade — ${prixTotal.toFixed(2).replace('.', ',')} €`;
