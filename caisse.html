@@ -913,6 +913,10 @@ const UBER_NET_FACTOR = PLATEFORME_NET_FACTOR; // alias rétrocompatibilité
 // (couvre les gobelets/contenants jetables fournis avec chaque commande Bolt)
 const TAXA_EMBALAGEM_BOLT = 0.37;
 
+// Frais sac/gobelet Uber : 0,30 € automatique par commande
+// (couvre les sacs/gobelets jetables fournis avec chaque commande Uber)
+const FRAIS_SAC_UBER = 0.30;
+
 const CAT_LABELS = {
   salade:   '🥗 Salade',
   batido:   '🥤 Batidos',
@@ -1187,6 +1191,10 @@ function getTotal() {
   if (lieu === 'Bolt' && Object.keys(panier).length > 0) {
     total += TAXA_EMBALAGEM_BOLT;
   }
+  // Frais sac/gobelet Uber : ajouté automatiquement à toute commande Uber non vide
+  if (lieu === 'Uber' && Object.keys(panier).length > 0) {
+    total += FRAIS_SAC_UBER;
+  }
   return total;
 }
 
@@ -1320,6 +1328,14 @@ async function envoyerVersSheets(vente) {
     if (isBolt && items.length > 0) {
       nomsItems.push('Taxa Embalagem Bolt');
       prixItems.push(TAXA_EMBALAGEM_BOLT);
+      qtyItems.push(1);
+    }
+
+    // ── UBER : ajouter les frais sac/gobelet (0,30€) comme ligne séparée ──
+    // Une seule fois par commande, quel que soit le nombre d'items.
+    if (isUber && items.length > 0) {
+      nomsItems.push('Frais Sac Uber');
+      prixItems.push(FRAIS_SAC_UBER);
       qtyItems.push(1);
     }
 
