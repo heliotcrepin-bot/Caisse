@@ -680,7 +680,7 @@
     <!-- SUPPLÉMENTS BOLT (visible uniquement en mode Bolt) -->
     <div id="bolt-suppl-section" style="display:none">
       <div class="modal-section-title" style="color:#34D186;display:flex;align-items:center;gap:8px">
-        <span>🛴 Suppléments Bolt</span>
+        <span>🛴 Suppléments</span>
         <span id="bolt-suppl-total" style="font-size:10px;opacity:0.85;font-weight:600">+0,00 €</span>
         <button onclick="ouvrirGestionSupp()" style="margin-left:auto;background:transparent;border:1px solid var(--border);color:var(--muted);padding:3px 8px;border-radius:14px;font-size:10px;cursor:pointer">⚙️ Prix</button>
       </div>
@@ -730,7 +730,7 @@
   <div class="modal-sheet">
     <div class="modal-handle"></div>
     <div class="modal-header">
-      <div class="modal-title" id="supp-modal-title">🛴 Suppléments Bolt</div>
+      <div class="modal-title" id="supp-modal-title">🛴 Suppléments</div>
       <div style="display:flex;gap:8px;align-items:center">
         <button onclick="ouvrirGestionSupp()" style="background:var(--surface2);border:1px solid var(--border);color:var(--muted);padding:5px 10px;border-radius:20px;font-size:11px;cursor:pointer">⚙️ Gérer prix</button>
         <button class="modal-close" onclick="fermerSuppModal()">✕</button>
@@ -998,7 +998,7 @@ function addProduct(p) {
     return;
   }
   // ── BOLT : pour les salades fixes (Mediterranica/Proteina), proposer les suppléments avant d'ajouter ──
-  if (lieu === 'Bolt' && (p.name === 'Salada Mediterranica' || p.name === 'Salada Proteina')) {
+  if (isPlateforme(lieu) && (p.name === 'Salada Mediterranica' || p.name === 'Salada Proteina')) {
     ouvrirSuppModal(p);
     return;
   }
@@ -1290,9 +1290,9 @@ async function envoyerVersSheets(vente) {
     const isPF = isUber || isBolt || isGlovo; // plateforme livraison
     const suffixe = isUber ? ' Uber' : (isBolt ? ' Bolt' : (isGlovo ? ' Glovo' : ''));
 
-    // ── Collecter les suppléments Bolt (uniquement en mode Bolt) ──
+    // ── Collecter les suppléments payants (sur toute plateforme : Uber/Bolt/Glovo) ──
     const supplementsLignes = []; // [{nom, prix}]
-    if (isBolt) {
+    if (isPF) {
       if (window.saladeSupplementsBolt) {
         window.saladeSupplementsBolt.forEach(supps => {
           supps.forEach(s => supplementsLignes.push(s));
@@ -1316,9 +1316,9 @@ async function envoyerVersSheets(vente) {
     });
     const qtyItems   = items.map(([, qty]) => qty);
 
-    // Ajouter chaque supplément comme ligne unitaire avec suffixe " Bolt"
+    // Ajouter chaque supplément comme ligne unitaire avec le suffixe de la plateforme
     supplementsLignes.forEach(s => {
-      nomsItems.push(`${s.nom} Bolt`);
+      nomsItems.push(`${s.nom}${suffixe}`);
       prixItems.push(s.prix);
       qtyItems.push(1);
     });
@@ -1724,7 +1724,7 @@ const ING_DEFAULT = [
 ];
 
 // ── SUPPLÉMENTS PAYANTS BOLT ─────────────────────────────────────────────────
-// Affichés uniquement quand lieu === 'Bolt' dans la modal de salade.
+// Affichés sur toute plateforme (Uber/Bolt/Glovo) dans la modal de salade.
 // Tarifs reflétant la configuration foodpartner.bolt.eu (menu-editor/modifiers).
 // Chaque supplément coché AJOUTE son prix au prix de base de la salade.
 // MODIFIABLE DIRECTEMENT DEPUIS L'APP via le bouton ⚙️ Gérer prix.
@@ -1898,11 +1898,11 @@ function renderSaladeModal() {
     vBtn.style.opacity = ok ? '1' : '0.4';
   }
 
-  // ── SECTION BOLT SUPPLÉMENTS (visible uniquement si lieu === 'Bolt') ──
+  // ── SECTION SUPPLÉMENTS (visible sur toute plateforme : Uber/Bolt/Glovo) ──
   const boltSection = document.getElementById('bolt-suppl-section');
   const boltGrid    = document.getElementById('bolt-suppl-grid');
   const boltTotal   = document.getElementById('bolt-suppl-total');
-  if (boltSection && lieu === 'Bolt') {
+  if (boltSection && isPlateforme(lieu)) {
     boltSection.style.display = 'block';
     if (boltGrid) {
       boltGrid.innerHTML = SUPPLEMENTS_BOLT.map(s => {
@@ -1926,7 +1926,7 @@ function renderSaladeModal() {
     // Prix de base : 10€ boutique, 12,90€ Uber/Bolt/Glovo (priceUber)
     let prixBase = 10;
     if (isPlateforme(lieu)) prixBase = 12.90;
-    const supp = lieu === 'Bolt' ? getSupplementsBoltTotal() : 0;
+    const supp = isPlateforme(lieu) ? getSupplementsBoltTotal() : 0;
     const prixTotal = prixBase + supp;
     vBtn.textContent = `✅ Ajouter la salade — ${prixTotal.toFixed(2).replace('.', ',')} €`;
   }
@@ -1999,14 +1999,14 @@ function validerSalade() {
   const suppCopy = [...supplementsBoltSet]
     .map(nom => SUPPLEMENTS_BOLT.find(s => s.nom === nom))
     .filter(Boolean);
-  window.saladeSupplementsBolt.push(lieu === 'Bolt' ? suppCopy : []);
+  window.saladeSupplementsBolt.push(isPlateforme(lieu) ? suppCopy : []);
 
   updateCountBadge(nomProduit);
   updateTotal();
   renderPanier();
   fermerSalade();
 
-  const suppTotal = (lieu === 'Bolt') ? getSupplementsBoltTotal() : 0;
+  const suppTotal = isPlateforme(lieu) ? getSupplementsBoltTotal() : 0;
   if (suppTotal > 0) {
     showToast(`🥗 Salada a Compor ajoutée — coût ${coutReel.toFixed(2)}€ — +${suppTotal.toFixed(2)}€ suppl.`);
   } else {
