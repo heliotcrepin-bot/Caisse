@@ -498,7 +498,8 @@
   }
 
   /* ── SECTIONS VISIBILITY ── */
-  #section-caisse { display: block; }
+  /* La visibilité des sections est gérée par .main-section / .active (plus bas).
+     Les règles ci-dessous ne stylent que les conteneurs internes. */
   #section-panier .panier-section { display: flex; }
   #section-histo .histo-section { display: flex; }
 
@@ -614,6 +615,7 @@
 <div class="tabs">
   <button class="tab active" onclick="showSection('caisse')">🛍 Produits</button>
   <button class="tab" onclick="showSection('panier')" id="tab-panier">🧺 Panier</button>
+  <button class="tab" onclick="showSection('commandes')" id="tab-commandes">🧾 Commandes</button>
   <button class="tab" onclick="showSection('histo')">📋 Historique</button>
 </div>
 
@@ -628,6 +630,30 @@
 <!-- ═══════════════ SECTION PANIER ═══════════════ -->
 <div class="main-section" id="section-panier">
   <div class="panier-section active" id="panier-list"></div>
+</div>
+
+<!-- ═══════════════ SECTION COMMANDES ═══════════════ -->
+<div class="main-section" id="section-commandes">
+  <div style="padding:12px 14px 0">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <h3 style="margin:0;font-size:15px">Commandes en attente</h3>
+      <span style="font-size:11px;color:var(--muted)">Sur place / à emporter</span>
+    </div>
+    <div id="cmd-list"></div>
+    <div style="height:200px"></div>
+  </div>
+  <!-- BARRE ENCAISSEMENT (sticky bas) -->
+  <div id="encaissement-bar" style="display:none;position:fixed;left:0;right:0;bottom:0;background:var(--bg);border-top:1px solid var(--border);padding:12px 16px calc(12px + env(safe-area-inset-bottom));z-index:50">
+    <div style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">Règlement</div>
+    <div class="paiement-modes">
+      <button class="mode-btn selected" id="enc-mode-Espèces" onclick="selectEncaissementMode('Espèces')"><span class="mode-icon">💵</span>Espèces</button>
+      <button class="mode-btn" id="enc-mode-SumUp" onclick="selectEncaissementMode('SumUp')"><span class="mode-icon">💳</span>SumUp</button>
+      <button class="mode-btn" id="enc-mode-MB Way" onclick="selectEncaissementMode('MB Way')"><span class="mode-icon">📱</span>MB Way</button>
+    </div>
+    <button class="valider-btn" id="enc-btn" onclick="encaisserSelection()" style="margin-top:8px">
+      💰 Encaisser <span id="enc-count">0</span> cde — <span id="enc-total">0,00 €</span>
+    </button>
+  </div>
 </div>
 
 <!-- ═══════════════ SECTION HISTO ═══════════════ -->
@@ -779,6 +805,7 @@
 
 <!-- PAIEMENT BAR (sticky bottom) -->
 <div class="paiement-bar" id="paiement-bar">
+  <div id="reglement-block">
   <div style="display:flex; gap:6px; align-items:center; margin-bottom:2px;">
     <span style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Règlement</span>
   </div>
@@ -793,6 +820,7 @@
       <span class="mode-icon">📱</span>MB Way
     </button>
   </div>
+  </div>
   <div style="display:flex; gap:6px; align-items:center; margin-top:4px; margin-bottom:2px;">
     <span style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Lieu</span>
   </div>
@@ -803,7 +831,7 @@
     <button class="lieu-btn" onclick="selectLieu('Bolt')" id="lieu-Bolt">🛴 Bolt</button>
     <button class="lieu-btn" onclick="selectLieu('Glovo')" id="lieu-Glovo">🛵 Glovo</button>
   </div>
-  <button class="valider-btn" id="valider-btn" onclick="validerVente()" disabled>
+  <button class="valider-btn" id="valider-btn" onclick="validerOuAttente()" disabled>
     Valider la vente — <span id="valider-total">0,00 €</span>
   </button>
 </div>
@@ -933,12 +961,22 @@ let modePaiement = 'Espèces';
 let lieu = 'Sur place';
 let ventes = JSON.parse(localStorage.getItem('ventes') || '[]');
 
+// ── COMMANDES EN ATTENTE (boutique : sur place / à emporter uniquement) ──
+let commandes = JSON.parse(localStorage.getItem('bs_commandes') || '[]');
+let selectionEncaissement = new Set();   // ids des commandes cochées pour l'encaissement
+let encaissementMode = 'Espèces';        // mode choisi au moment de payer
+function saveCommandes() { localStorage.setItem('bs_commandes', JSON.stringify(commandes)); }
+
 // ── INIT ─────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
   updateDate();
   renderProducts();
   renderPanier();
   renderHisto();
+  renderCommandes();
+  updateCommandesBadge();
+  syncReglementBlock();
+  updateTotal();
   chargerCoutsSalade(); // charger les coûts depuis V10
 });
 
@@ -1174,11 +1212,13 @@ function updateTotal() {
   const total = getTotal();
   const fmt = formatPrice(total);
   const td = document.getElementById('total-display');
-  const vt = document.getElementById('valider-total');
   const btn = document.getElementById('valider-btn');
   if (td) td.textContent = fmt;
-  if (vt) vt.textContent = fmt;
-  if (btn) btn.disabled = total === 0;
+  if (btn) {
+    btn.disabled = total === 0;
+    const label = isPlateforme(lieu) ? 'Valider la vente' : '➕ Mettre en attente';
+    btn.innerHTML = `${label} — <span id="valider-total">${fmt}</span>`;
+  }
 }
 
 function getTotal() {
@@ -1644,6 +1684,14 @@ function selectLieu(l) {
   Object.keys(panier).forEach(name => updateCountBadge(name));
   renderPanier();
   updateTotal();
+  syncReglementBlock();
+}
+
+// En boutique (sur place / emporter) le mode de règlement est choisi à l'encaissement :
+// on masque donc le bloc Règlement du panier. En plateforme, on le garde (mode auto).
+function syncReglementBlock() {
+  const bloc = document.getElementById('reglement-block');
+  if (bloc) bloc.style.display = isPlateforme(lieu) ? 'block' : 'none';
 }
 
 // Crée dynamiquement le bouton "Uber" dans la barre paiement (1 seule fois)
@@ -1687,17 +1735,188 @@ function ensureGlovoPaymentButton() {
 
 // ── SECTIONS ─────────────────────────────────────────────────────────
 function showSection(name) {
-  ['caisse','panier','histo'].forEach(s => {
-    document.getElementById(`section-${s}`).classList.toggle('active', s === name);
+  ['caisse','panier','commandes','histo'].forEach(s => {
+    const el = document.getElementById(`section-${s}`);
+    if (el) el.classList.toggle('active', s === name);
   });
   document.querySelectorAll('.tab').forEach((t, i) => {
-    t.classList.toggle('active', ['caisse','panier','histo'][i] === name);
+    t.classList.toggle('active', ['caisse','panier','commandes','histo'][i] === name);
   });
-  if (name !== 'caisse') {
-    document.getElementById('paiement-bar').style.display = name === 'panier' ? 'flex' : 'none';
-  } else {
-    document.getElementById('paiement-bar').style.display = 'flex';
+  const pb = document.getElementById('paiement-bar');
+  if (pb) pb.style.display = (name === 'caisse' || name === 'panier') ? 'flex' : 'none';
+  const eb = document.getElementById('encaissement-bar');
+  if (eb && name !== 'commandes') eb.style.display = 'none';
+  if (name === 'commandes') renderCommandes();
+  if (name === 'histo') renderHisto();
+}
+
+// ════════════════ COMMANDES EN ATTENTE & ENCAISSEMENT ════════════════
+
+// Le bouton du panier : plateforme = vente directe ; boutique = mise en attente.
+function validerOuAttente() {
+  if (isPlateforme(lieu)) { validerVente(); }
+  else { mettreEnAttente(); }
+}
+
+// Numéro auto Cde 1, 2, 3… remis à zéro chaque jour.
+function getNextCommandeNum() {
+  const today = new Date().toDateString();
+  let c = JSON.parse(localStorage.getItem('bs_cde_counter') || 'null');
+  if (!c || c.date !== today) c = { date: today, n: 0 };
+  c.n += 1;
+  localStorage.setItem('bs_cde_counter', JSON.stringify(c));
+  return c.n;
+}
+
+// Fige une photo de la commande boutique et vide le panier pour la suivante.
+function mettreEnAttente() {
+  if (getTotal() === 0) return;
+  if (isPlateforme(lieu)) { validerVente(); return; } // sécurité : jamais de plateforme en attente
+
+  const num = getNextCommandeNum();
+  const cde = {
+    id: String(Date.now()) + '-' + Math.floor(Math.random() * 1000),
+    num: num,
+    items: { ...panier },
+    lieu: lieu,
+    total: getTotal(),
+    heure: new Date().toISOString(),
+  };
+  commandes.push(cde);
+  saveCommandes();
+
+  // Vider le panier + les globales salade (hygiène, pas de report sur la commande suivante)
+  Object.keys(panier).forEach(name => { panier[name] = 0; updateCountBadge(name); });
+  panier = {};
+  window.saladeSupplementsBolt = [];
+  window.supplementsParProduit = {};
+  window.saladeCouts = [];
+
+  updateTotal();
+  renderPanier();
+  renderCommandes();
+  updateCommandesBadge();
+  showToast(`📝 Cde ${num} en attente — ${formatPrice(cde.total)}`);
+  showSection('caisse'); // retour aux produits pour enchaîner la commande suivante
+}
+
+function updateCommandesBadge() {
+  const t = document.getElementById('tab-commandes');
+  if (t) t.textContent = commandes.length > 0 ? `🧾 Commandes (${commandes.length})` : '🧾 Commandes';
+}
+
+function renderCommandes() {
+  const list = document.getElementById('cmd-list');
+  if (!list) return;
+  if (commandes.length === 0) {
+    list.innerHTML = '<div class="histo-empty" style="text-align:center;color:var(--muted);padding:40px 0">Aucune commande en attente<br><span style="font-size:28px;margin-top:10px;display:block">🧾</span></div>';
+    updateEncaissementBar();
+    return;
   }
+  list.innerHTML = commandes.map(c => {
+    const produits = Object.entries(c.items).map(([n, q]) => q > 1 ? `${n} ×${q}` : n).join(', ');
+    const checked = selectionEncaissement.has(c.id);
+    const lieuIcon = c.lieu === 'Sur place' ? '🪑' : '🥡';
+    return `
+      <div onclick="toggleCommandeSelection('${c.id}')"
+           style="background:${checked ? 'var(--accent-dim)' : 'var(--surface)'};border:1px solid ${checked ? 'var(--accent)' : 'var(--border)'};border-radius:14px;padding:12px;margin-bottom:8px;cursor:pointer;display:flex;align-items:center;gap:10px;transition:all .15s">
+        <div style="font-size:18px">${checked ? '✅' : '⬜'}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:700;font-size:14px">Cde ${c.num} <span style="font-size:11px;color:var(--muted);font-weight:500">· ${lieuIcon} ${c.lieu}</span></div>
+          <div style="font-size:12px;color:var(--muted);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${produits}</div>
+        </div>
+        <div style="text-align:right;flex:none">
+          <div style="font-weight:700;font-size:14px">${formatPrice(c.total)}</div>
+          <button onclick="event.stopPropagation();supprimerCommande('${c.id}')"
+            style="background:#3d1010;border:1px solid #f87171;color:#f87171;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700;cursor:pointer;margin-top:4px">🗑</button>
+        </div>
+      </div>`;
+  }).join('');
+  updateEncaissementBar();
+}
+
+function toggleCommandeSelection(id) {
+  if (selectionEncaissement.has(id)) selectionEncaissement.delete(id);
+  else selectionEncaissement.add(id);
+  renderCommandes();
+}
+
+function selectEncaissementMode(m) {
+  encaissementMode = m;
+  ['Espèces', 'SumUp', 'MB Way'].forEach(x => {
+    const el = document.getElementById(`enc-mode-${x}`);
+    if (el) el.classList.toggle('selected', x === m);
+  });
+}
+
+function updateEncaissementBar() {
+  const bar = document.getElementById('encaissement-bar');
+  if (!bar) return;
+  const ids = [...selectionEncaissement].filter(id => commandes.find(c => c.id === id));
+  if (ids.length === 0) { bar.style.display = 'none'; return; }
+  bar.style.display = 'block';
+  const total = ids.reduce((s, id) => s + (commandes.find(c => c.id === id)?.total || 0), 0);
+  document.getElementById('enc-count').textContent = ids.length;
+  document.getElementById('enc-total').textContent = formatPrice(total);
+}
+
+function supprimerCommande(id) {
+  const c = commandes.find(x => x.id === id);
+  if (!c) return;
+  if (!confirm(`Supprimer la Cde ${c.num} (${formatPrice(c.total)}) ?`)) return;
+  commandes = commandes.filter(x => x.id !== id);
+  selectionEncaissement.delete(id);
+  saveCommandes();
+  renderCommandes();
+  updateCommandesBadge();
+  showToast(`🗑 Cde ${c.num} supprimée`);
+}
+
+// Encaisse toutes les commandes cochées avec le mode choisi → envoi V10, une vente par commande.
+async function encaisserSelection() {
+  const ids = [...selectionEncaissement].filter(id => commandes.find(c => c.id === id));
+  if (ids.length === 0) return;
+
+  const btn = document.getElementById('enc-btn');
+  const old = btn.innerHTML;
+  btn.disabled = true;
+  btn.textContent = '⏳ Encaissement...';
+
+  let okAll = true;
+  for (const id of ids) {
+    const c = commandes.find(x => x.id === id);
+    if (!c) continue;
+    const vente = {
+      id: Date.now() + Math.floor(Math.random() * 10000),
+      date: new Date().toISOString(),
+      items: { ...c.items },
+      total: c.total,
+      mode: encaissementMode,   // mode choisi à l'encaissement
+      lieu: c.lieu,             // Sur place / Emporter
+      synced: false,
+    };
+    ventes.push(vente);
+    localStorage.setItem('ventes', JSON.stringify(ventes));
+    localStorage.setItem('bs_last_vente', JSON.stringify(vente));
+    const ok = await envoyerVersSheets(vente);
+    vente.synced = ok;
+    if (!ok) okAll = false;
+    localStorage.setItem('ventes', JSON.stringify(ventes));
+  }
+
+  // Retirer les commandes encaissées de la file
+  commandes = commandes.filter(c => !ids.includes(c.id));
+  selectionEncaissement.clear();
+  saveCommandes();
+
+  renderCommandes();
+  updateCommandesBadge();
+  renderHisto();
+
+  btn.disabled = false;
+  btn.innerHTML = old;
+  showToast(okAll ? '✅ Encaissé + envoyé en V10 !' : '⚠️ Encaissé (sync partielle, hors ligne)');
+  if (commandes.length === 0) showSection('histo');
 }
 
 
