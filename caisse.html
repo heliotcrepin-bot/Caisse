@@ -966,6 +966,7 @@ let ventes = JSON.parse(localStorage.getItem('ventes') || '[]');
 let commandes = JSON.parse(localStorage.getItem('bs_commandes') || '[]');
 let selectionEncaissement = new Set();   // ids des commandes cochées pour l'encaissement
 let encaissementMode = 'Espèces';        // mode choisi au moment de payer
+let editingCommandeId = null;            // id de la commande ouverte pour modification (null = nouvelle)
 function saveCommandes() { localStorage.setItem('bs_commandes', JSON.stringify(commandes)); }
 
 // ── INIT ─────────────────────────────────────────────────────────────
@@ -1217,7 +1218,15 @@ function updateTotal() {
   if (td) td.textContent = fmt;
   if (btn) {
     btn.disabled = total === 0;
-    const label = isPlateforme(lieu) ? 'Valider la vente' : '➕ Mettre en attente';
+    let label;
+    if (isPlateforme(lieu)) {
+      label = 'Valider la vente';
+    } else if (editingCommandeId != null) {
+      const c = commandes.find(x => x.id === editingCommandeId);
+      label = c ? `💾 Mettre à jour Cde ${c.num}` : '💾 Mettre à jour';
+    } else {
+      label = '➕ Mettre en attente';
+    }
     btn.innerHTML = `${label} — <span id="valider-total">${fmt}</span>`;
   }
 }
@@ -1423,6 +1432,8 @@ async function envoyerVersSheets(vente) {
 // ── VALIDER ──────────────────────────────────────────────────────────
 async function validerVente() {
   if (getTotal() === 0) return;
+
+  editingCommandeId = null; // une vente directe annule toute édition de commande en attente
 
   const btn = document.getElementById('valider-btn');
   btn.disabled = true;
@@ -1774,16 +1785,35 @@ function mettreEnAttente() {
   if (getTotal() === 0) return;
   if (isPlateforme(lieu)) { validerVente(); return; } // sécurité : jamais de plateforme en attente
 
-  const num = getNextCommandeNum();
-  const cde = {
-    id: String(Date.now()) + '-' + Math.floor(Math.random() * 1000),
-    num: num,
-    items: { ...panier },
-    lieu: lieu,
-    total: getTotal(),
-    heure: new Date().toISOString(),
-  };
-  commandes.push(cde);
+  const total = getTotal();
+  let num, maj = false;
+
+  // Mise à jour d'une commande ouverte (on conserve son numéro)
+  if (editingCommandeId != null) {
+    const c = commandes.find(x => x.id === editingCommandeId);
+    if (c) {
+      c.items = { ...panier };
+      c.lieu = lieu;
+      c.total = total;
+      c.heure = new Date().toISOString();
+      num = c.num;
+      maj = true;
+    }
+    editingCommandeId = null;
+  }
+
+  // Sinon, nouvelle commande
+  if (!maj) {
+    num = getNextCommandeNum();
+    commandes.push({
+      id: String(Date.now()) + '-' + Math.floor(Math.random() * 1000),
+      num: num,
+      items: { ...panier },
+      lieu: lieu,
+      total: total,
+      heure: new Date().toISOString(),
+    });
+  }
   saveCommandes();
 
   // Vider le panier + les globales salade (hygiène, pas de report sur la commande suivante)
@@ -1797,8 +1827,28 @@ function mettreEnAttente() {
   renderPanier();
   renderCommandes();
   updateCommandesBadge();
-  showToast(`📝 Cde ${num} en attente — ${formatPrice(cde.total)}`);
-  showSection('caisse'); // retour aux produits pour enchaîner la commande suivante
+  showToast(maj
+    ? `💾 Cde ${num} mise à jour — ${formatPrice(total)}`
+    : `📝 Cde ${num} en attente — ${formatPrice(total)}`);
+  showSection(maj ? 'commandes' : 'caisse'); // après MAJ : voir la liste ; sinon enchaîner
+}
+
+// Ouvre une commande en attente dans le panier pour y ajouter/retirer des produits.
+function ouvrirCommande(id) {
+  const c = commandes.find(x => x.id === id);
+  if (!c) return;
+  if (getTotal() > 0 && !confirm(`Le panier en cours sera remplacé par la Cde ${c.num}. Continuer ?`)) return;
+
+  // Vider les badges du panier courant avant de charger la commande
+  Object.keys(panier).forEach(name => { panier[name] = 0; updateCountBadge(name); });
+  panier = { ...c.items };
+  editingCommandeId = c.id;
+  selectionEncaissement.delete(c.id);
+
+  selectLieu(c.lieu); // gère lieu + prix + re-render produits/panier + badges + updateTotal + syncReglementBlock
+  updateCommandesBadge();
+  showToast(`✏️ Cde ${c.num} ouverte — ajoute, puis « Mettre à jour »`);
+  showSection('caisse');
 }
 
 function updateCommandesBadge() {
@@ -1828,8 +1878,12 @@ function renderCommandes() {
         </div>
         <div style="text-align:right;flex:none">
           <div style="font-weight:700;font-size:14px">${formatPrice(c.total)}</div>
-          <button onclick="event.stopPropagation();supprimerCommande('${c.id}')"
-            style="background:#3d1010;border:1px solid #f87171;color:#f87171;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700;cursor:pointer;margin-top:4px">🗑</button>
+          <div style="display:flex;gap:4px;margin-top:4px;justify-content:flex-end">
+            <button onclick="event.stopPropagation();ouvrirCommande('${c.id}')"
+              style="background:var(--surface2);border:1px solid var(--accent);color:var(--accent);padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700;cursor:pointer">✏️ Modifier</button>
+            <button onclick="event.stopPropagation();supprimerCommande('${c.id}')"
+              style="background:#3d1010;border:1px solid #f87171;color:#f87171;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700;cursor:pointer">🗑</button>
+          </div>
         </div>
       </div>`;
   }).join('');
