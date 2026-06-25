@@ -498,7 +498,8 @@
   }
 
   /* ── SECTIONS VISIBILITY ── */
-  #section-caisse { display: block; }
+  /* La visibilité des sections est gérée par .main-section / .active (plus bas).
+     Les règles ci-dessous ne stylent que les conteneurs internes. */
   #section-panier .panier-section { display: flex; }
   #section-histo .histo-section { display: flex; }
 
@@ -614,6 +615,7 @@
 <div class="tabs">
   <button class="tab active" onclick="showSection('caisse')">🛍 Produits</button>
   <button class="tab" onclick="showSection('panier')" id="tab-panier">🧺 Panier</button>
+  <button class="tab" onclick="showSection('commandes')" id="tab-commandes">🧾 Commandes</button>
   <button class="tab" onclick="showSection('histo')">📋 Historique</button>
 </div>
 
@@ -628,6 +630,30 @@
 <!-- ═══════════════ SECTION PANIER ═══════════════ -->
 <div class="main-section" id="section-panier">
   <div class="panier-section active" id="panier-list"></div>
+</div>
+
+<!-- ═══════════════ SECTION COMMANDES ═══════════════ -->
+<div class="main-section" id="section-commandes">
+  <div style="padding:12px 14px 0">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <h3 style="margin:0;font-size:15px">Commandes en attente</h3>
+      <span style="font-size:11px;color:var(--muted)">Sur place / à emporter</span>
+    </div>
+    <div id="cmd-list"></div>
+    <div style="height:200px"></div>
+  </div>
+  <!-- BARRE ENCAISSEMENT (sticky bas) -->
+  <div id="encaissement-bar" style="display:none;position:fixed;left:0;right:0;bottom:0;background:var(--bg);border-top:1px solid var(--border);padding:12px 16px calc(12px + env(safe-area-inset-bottom));z-index:50">
+    <div style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">Règlement</div>
+    <div class="paiement-modes">
+      <button class="mode-btn selected" id="enc-mode-Espèces" onclick="selectEncaissementMode('Espèces')"><span class="mode-icon">💵</span>Espèces</button>
+      <button class="mode-btn" id="enc-mode-SumUp" onclick="selectEncaissementMode('SumUp')"><span class="mode-icon">💳</span>SumUp</button>
+      <button class="mode-btn" id="enc-mode-MB Way" onclick="selectEncaissementMode('MB Way')"><span class="mode-icon">📱</span>MB Way</button>
+    </div>
+    <button class="valider-btn" id="enc-btn" onclick="encaisserSelection()" style="margin-top:8px">
+      💰 Encaisser <span id="enc-count">0</span> cde — <span id="enc-total">0,00 €</span>
+    </button>
+  </div>
 </div>
 
 <!-- ═══════════════ SECTION HISTO ═══════════════ -->
@@ -680,7 +706,7 @@
     <!-- SUPPLÉMENTS BOLT (visible uniquement en mode Bolt) -->
     <div id="bolt-suppl-section" style="display:none">
       <div class="modal-section-title" style="color:#34D186;display:flex;align-items:center;gap:8px">
-        <span>🛴 Suppléments Bolt</span>
+        <span>🛴 Suppléments</span>
         <span id="bolt-suppl-total" style="font-size:10px;opacity:0.85;font-weight:600">+0,00 €</span>
         <button onclick="ouvrirGestionSupp()" style="margin-left:auto;background:transparent;border:1px solid var(--border);color:var(--muted);padding:3px 8px;border-radius:14px;font-size:10px;cursor:pointer">⚙️ Prix</button>
       </div>
@@ -730,7 +756,7 @@
   <div class="modal-sheet">
     <div class="modal-handle"></div>
     <div class="modal-header">
-      <div class="modal-title" id="supp-modal-title">🛴 Suppléments Bolt</div>
+      <div class="modal-title" id="supp-modal-title">🛴 Suppléments</div>
       <div style="display:flex;gap:8px;align-items:center">
         <button onclick="ouvrirGestionSupp()" style="background:var(--surface2);border:1px solid var(--border);color:var(--muted);padding:5px 10px;border-radius:20px;font-size:11px;cursor:pointer">⚙️ Gérer prix</button>
         <button class="modal-close" onclick="fermerSuppModal()">✕</button>
@@ -779,6 +805,7 @@
 
 <!-- PAIEMENT BAR (sticky bottom) -->
 <div class="paiement-bar" id="paiement-bar">
+  <div id="reglement-block">
   <div style="display:flex; gap:6px; align-items:center; margin-bottom:2px;">
     <span style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Règlement</span>
   </div>
@@ -793,6 +820,7 @@
       <span class="mode-icon">📱</span>MB Way
     </button>
   </div>
+  </div>
   <div style="display:flex; gap:6px; align-items:center; margin-top:4px; margin-bottom:2px;">
     <span style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Lieu</span>
   </div>
@@ -803,7 +831,19 @@
     <button class="lieu-btn" onclick="selectLieu('Bolt')" id="lieu-Bolt">🛴 Bolt</button>
     <button class="lieu-btn" onclick="selectLieu('Glovo')" id="lieu-Glovo">🛵 Glovo</button>
   </div>
-  <button class="valider-btn" id="valider-btn" onclick="validerVente()" disabled>
+  <!-- GLOVO CASH : champ "cash réclamé par Glovo" (visible uniquement en Glovo + Espèces) -->
+  <div id="glovo-cash-block" style="display:none;margin-top:6px;background:rgba(255,194,68,0.10);border:1px solid #FFC244;border-radius:var(--radius-sm);padding:10px 12px">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+      <div style="display:flex;flex-direction:column;gap:2px">
+        <span style="font-size:11px;color:#FFC244;font-weight:700">🛵 Cash réclamé par Glovo</span>
+        <span style="font-size:10px;color:var(--muted)">Total menu : <span id="glovo-menu-total">0,00 €</span> · Promo : <span id="glovo-promo">0,00 €</span></span>
+      </div>
+      <input id="glovo-cash-input" type="number" step="0.01" inputmode="decimal" placeholder="0,00"
+        oninput="onGlovoCashInput()"
+        style="width:90px;text-align:right;background:var(--surface2);border:1px solid #FFC244;border-radius:8px;color:#FFC244;font-family:'DM Mono',monospace;font-size:16px;font-weight:700;padding:8px 10px;outline:none">
+    </div>
+  </div>
+  <button class="valider-btn" id="valider-btn" onclick="validerOuAttente()" disabled>
     Valider la vente — <span id="valider-total">0,00 €</span>
   </button>
 </div>
@@ -853,6 +893,7 @@ const PRODUCTS = [
   { name: 'Ginger Zinga',      price: 4, priceUber: 4.90, cat: 'jus', icon: '🫚', destock: true  },
   { name: 'Jus du Jour',       price: 4, priceUber: 4.90, cat: 'jus', icon: '🥤', destock: false },
   { name: 'Jus Orange',         price: 3, priceUber: 3.90, cat: 'jus', icon: '🍊', destock: true  },
+  { name: 'Jus Natural',        price: null, priceUber: 3.50, cat: 'jus', icon: '🍊', destock: true  },
   // ★★★ Nouveau Jus saisonnier v12 ★★★
   { name: 'Suco Praia',         price: 4, priceUber: 4.90, cat: 'jus', icon: '🌊', destock: true  },
   { name: 'Suco Mamao',         price: 4, priceUber: 4.90, cat: 'jus', icon: '🥭', destock: true  },
@@ -934,12 +975,33 @@ let modePaiement = 'Espèces';
 let lieu = 'Sur place';
 let ventes = JSON.parse(localStorage.getItem('ventes') || '[]');
 
+// ── COMMANDES EN ATTENTE (boutique : sur place / à emporter uniquement) ──
+let commandes = JSON.parse(localStorage.getItem('bs_commandes') || '[]');
+let selectionEncaissement = new Set();   // ids des commandes cochées pour l'encaissement
+let encaissementMode = 'Espèces';        // mode choisi au moment de payer
+let editingCommandeId = null;            // id de la commande ouverte pour modification (null = nouvelle)
+function saveCommandes() { localStorage.setItem('bs_commandes', JSON.stringify(commandes)); }
+
+// ── GLOVO CASH (paiement à la livraison en espèces) ──────────────────
+// Quand une commande Glovo est réglée en espèces, le client remet le montant
+// que Glovo indique (ex: 12,82 €), qui peut être < au total menu à cause d'une
+// promo Glovo. On enregistre alors une ligne "Promo Glovo" négative pour que :
+//   - la somme des produits = brut Glovo (réconciliation relevé mensuel)
+//   - la somme totale = cash réellement encaissé (réconciliation tiroir-caisse)
+// La commission Glovo n'est PAS calculée ici : elle est prélevée au mois sur le relevé.
+let glovoCashMontant = null; // montant cash réclamé saisi (null = pas encore saisi / non applicable)
+function isGlovoCash() { return lieu === 'Glovo' && modePaiement === 'Espèces'; }
+
 // ── INIT ─────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
   updateDate();
   renderProducts();
   renderPanier();
   renderHisto();
+  renderCommandes();
+  updateCommandesBadge();
+  syncReglementBlock();
+  updateTotal();
   chargerCoutsSalade(); // charger les coûts depuis V10
 });
 
@@ -999,7 +1061,7 @@ function addProduct(p) {
     return;
   }
   // ── BOLT : pour les salades fixes (Mediterranica/Proteina), proposer les suppléments avant d'ajouter ──
-  if (lieu === 'Bolt' && (p.name === 'Salada Mediterranica' || p.name === 'Salada Proteina')) {
+  if (isPlateforme(lieu) && (p.name === 'Salada Mediterranica' || p.name === 'Salada Proteina')) {
     ouvrirSuppModal(p);
     return;
   }
@@ -1175,14 +1237,36 @@ function updateTotal() {
   const total = getTotal();
   const fmt = formatPrice(total);
   const td = document.getElementById('total-display');
-  const vt = document.getElementById('valider-total');
   const btn = document.getElementById('valider-btn');
   if (td) td.textContent = fmt;
-  if (vt) vt.textContent = fmt;
-  if (btn) btn.disabled = total === 0;
+  // Glovo cash : tenir à jour le total menu + la promo affichés (sans toucher la saisie)
+  if (isGlovoCash()) {
+    const menuEl = document.getElementById('glovo-menu-total');
+    if (menuEl) menuEl.textContent = formatPrice(getBrutMenu());
+    updateGlovoPromoLabel();
+  }
+  if (btn) {
+    btn.disabled = total === 0;
+    let label;
+    if (isPlateforme(lieu)) {
+      label = 'Valider la vente';
+    } else if (editingCommandeId != null) {
+      const c = commandes.find(x => x.id === editingCommandeId);
+      label = c ? `💾 Mettre à jour Cde ${c.num}` : '💾 Mettre à jour';
+    } else {
+      label = '➕ Mettre en attente';
+    }
+    btn.innerHTML = `${label} — <span id="valider-total">${fmt}</span>`;
+  }
 }
 
 function getTotal() {
+  // ── GLOVO CASH : le total encaissé = le cash réclamé par Glovo (déjà net de la promo) ──
+  if (isGlovoCash()) {
+    const brut = getBrutMenu();
+    if (Object.keys(panier).length === 0) return 0;
+    return (glovoCashMontant != null) ? glovoCashMontant : brut;
+  }
   const baseTotal = Object.entries(panier).reduce((sum, [name, qty]) => {
     const p = PRODUCTS.find(x => x.name === name);
     return sum + (p ? getPrice(p) * qty : 0);
@@ -1215,6 +1299,61 @@ function getAllSupplementsBoltTotal() {
     });
   }
   return total;
+}
+
+// ── GLOVO CASH : helpers ─────────────────────────────────────────────
+// Brut menu = somme des produits + suppléments (le "vrai" total Glovo, avant promo).
+function getBrutMenu() {
+  const baseTotal = Object.entries(panier).reduce((sum, [name, qty]) => {
+    const p = PRODUCTS.find(x => x.name === name);
+    return sum + (p ? getPrice(p) * qty : 0);
+  }, 0);
+  return baseTotal + getAllSupplementsBoltTotal();
+}
+
+// Affiche/masque le bloc "cash réclamé" et le pré-remplit avec le brut menu.
+function syncGlovoCashField() {
+  const block = document.getElementById('glovo-cash-block');
+  if (!block) return;
+  if (isGlovoCash()) {
+    block.style.display = 'block';
+    const brut = getBrutMenu();
+    const menuEl = document.getElementById('glovo-menu-total');
+    if (menuEl) menuEl.textContent = formatPrice(brut);
+    const input = document.getElementById('glovo-cash-input');
+    // Pré-remplir avec le brut au premier affichage (si pas déjà saisi)
+    if (input && (glovoCashMontant == null)) {
+      glovoCashMontant = Math.round(brut * 100) / 100;
+      input.value = glovoCashMontant.toFixed(2);
+    }
+    updateGlovoPromoLabel();
+  } else {
+    block.style.display = 'none';
+    glovoCashMontant = null;
+    const input = document.getElementById('glovo-cash-input');
+    if (input) input.value = '';
+  }
+}
+
+// Recalcule la promo affichée = brut menu − cash réclamé.
+function updateGlovoPromoLabel() {
+  const promoEl = document.getElementById('glovo-promo');
+  if (!promoEl) return;
+  const brut = getBrutMenu();
+  const cash = (glovoCashMontant != null) ? glovoCashMontant : brut;
+  const promo = Math.round((brut - cash) * 100) / 100;
+  promoEl.textContent = (promo > 0 ? '−' : '') + formatPrice(Math.abs(promo));
+  promoEl.style.color = promo > 0 ? '#FFC244' : 'var(--muted)';
+}
+
+// Saisie manuelle du cash réclamé par Glovo.
+function onGlovoCashInput() {
+  const input = document.getElementById('glovo-cash-input');
+  if (!input) return;
+  const v = parseFloat(String(input.value).replace(',', '.'));
+  glovoCashMontant = (isNaN(v) || v < 0) ? null : Math.round(v * 100) / 100;
+  updateGlovoPromoLabel();
+  updateTotal();
 }
 
 function renderPanier() {
@@ -1291,9 +1430,9 @@ async function envoyerVersSheets(vente) {
     const isPF = isUber || isBolt || isGlovo; // plateforme livraison
     const suffixe = isUber ? ' Uber' : (isBolt ? ' Bolt' : (isGlovo ? ' Glovo' : ''));
 
-    // ── Collecter les suppléments Bolt (uniquement en mode Bolt) ──
+    // ── Collecter les suppléments payants (sur toute plateforme : Uber/Bolt/Glovo) ──
     const supplementsLignes = []; // [{nom, prix}]
-    if (isBolt) {
+    if (isPF) {
       if (window.saladeSupplementsBolt) {
         window.saladeSupplementsBolt.forEach(supps => {
           supps.forEach(s => supplementsLignes.push(s));
@@ -1317,9 +1456,9 @@ async function envoyerVersSheets(vente) {
     });
     const qtyItems   = items.map(([, qty]) => qty);
 
-    // Ajouter chaque supplément comme ligne unitaire avec suffixe " Bolt"
+    // Ajouter chaque supplément comme ligne unitaire avec le suffixe de la plateforme
     supplementsLignes.forEach(s => {
-      nomsItems.push(`${s.nom} Bolt`);
+      nomsItems.push(`${s.nom}${suffixe}`);
       prixItems.push(s.prix);
       qtyItems.push(1);
     });
@@ -1340,6 +1479,21 @@ async function envoyerVersSheets(vente) {
       qtyItems.push(1);
     }
 
+    // ── GLOVO CASH : ligne "Promo Glovo" négative ──
+    // Les produits sont envoyés au prix menu (brut). On ajoute une ligne négative
+    // = -(brut - cash) pour que le total tombe sur le cash réellement encaissé.
+    // Ex : produits 15,30 + Promo Glovo -2,48 = 12,82.
+    if (vente.glovoCash && items.length > 0) {
+      const brut = (vente.brutMenu != null) ? vente.brutMenu : prixItems.reduce((s, p, i) => s + p * qtyItems[i], 0);
+      const cash = (vente.cashRecu != null) ? vente.cashRecu : brut;
+      const promo = Math.round((brut - cash) * 100) / 100;
+      if (Math.abs(promo) >= 0.01) {
+        nomsItems.push('Promo Glovo');
+        prixItems.push(-promo); // négatif
+        qtyItems.push(1);
+      }
+    }
+
     const params = new URLSearchParams({
       date:    `${date} ${heure}`,
       produit: nomsItems.join('|'),
@@ -1349,8 +1503,9 @@ async function envoyerVersSheets(vente) {
       lieu:    vente.lieu,
     });
 
-    // Pour Uber/Bolt : ajouter le brut, le net encaissé (×0,631) et la commission (incluant IVA)
-    if (isPF) {
+    // Pour Uber/Bolt (et Glovo réglé VIA la plateforme) : ajouter brut, net (×0,631) et commission.
+    // ── EXCEPTION GLOVO CASH : pas de commission ici → elle est prélevée au mois sur le relevé.
+    if (isPF && !vente.glovoCash) {
       const brut = vente.total;
       const net = +(brut * PLATEFORME_NET_FACTOR).toFixed(2);
       const commission = +(brut - net).toFixed(2);
@@ -1384,11 +1539,15 @@ async function envoyerVersSheets(vente) {
 async function validerVente() {
   if (getTotal() === 0) return;
 
+  editingCommandeId = null; // une vente directe annule toute édition de commande en attente
+
   const btn = document.getElementById('valider-btn');
   btn.disabled = true;
   btn.textContent = '⏳ Envoi en cours...';
 
   const now = new Date();
+  const _isGlovoCash = isGlovoCash();
+  const _brutMenu = Math.round(getBrutMenu() * 100) / 100;
   const vente = {
     id: Date.now(),
     date: now.toISOString(),
@@ -1397,6 +1556,10 @@ async function validerVente() {
     mode: modePaiement,
     lieu: lieu,
     synced: false,
+    // ── Contexte Glovo cash (pour la ligne Promo + pas de commission) ──
+    glovoCash: _isGlovoCash,
+    brutMenu: _isGlovoCash ? _brutMenu : null,        // 15,30 (brut Glovo réel)
+    cashRecu: _isGlovoCash ? getTotal() : null,       // 12,82 (cash encaissé)
   };
 
   // Sauvegarde locale d'abord
@@ -1415,6 +1578,8 @@ async function validerVente() {
     updateCountBadge(name);
   });
   panier = {};
+  glovoCashMontant = null;        // réinitialiser le cash Glovo saisi
+  syncGlovoCashField();
   updateTotal();
   renderPanier();
   renderHisto();
@@ -1533,14 +1698,29 @@ async function annulerDerniereVente() {
   const suffixe = isUber ? ' Uber' : (isBolt ? ' Bolt' : (isGlovo ? ' Glovo' : ''));
 
   // Annulation : même format que la vente (suffixe + prix plateforme), juste avec prix négatif
-  const produits  = items.map(([name]) => isPF ? `${name}${suffixe}` : name).join('|');
-  const prix_list = items.map(([name]) => {
+  const nomsList = items.map(([name]) => isPF ? `${name}${suffixe}` : name);
+  const prixList = items.map(([name]) => {
     const p = PRODUCTS.find(x => x.name === name);
     if (!p) return 0;
     const prix = isPF && p.priceUber != null ? p.priceUber : p.price;
     return -prix; // prix négatif = annulation
-  }).join('|');
-  const qty_list  = items.map(([,qty]) => qty).join('|');
+  });
+  const qtyList  = items.map(([,qty]) => qty);
+
+  // ── GLOVO CASH : reverser aussi la ligne Promo Glovo (signe inversé : +promo) ──
+  // pour que l'annulation nette = -(cash encaissé), pas -(brut menu).
+  if (lastVente.glovoCash && lastVente.brutMenu != null && lastVente.cashRecu != null) {
+    const promo = Math.round((lastVente.brutMenu - lastVente.cashRecu) * 100) / 100;
+    if (Math.abs(promo) >= 0.01) {
+      nomsList.push('Promo Glovo');
+      prixList.push(promo); // +promo (annule la ligne -promo de la vente)
+      qtyList.push(1);
+    }
+  }
+
+  const produits  = nomsList.join('|');
+  const prix_list = prixList.join('|');
+  const qty_list  = qtyList.join('|');
 
   try {
     const params = new URLSearchParams({
@@ -1589,8 +1769,9 @@ function exportCSV() {
 
 // ── MODES ────────────────────────────────────────────────────────────
 function selectMode(mode) {
-  // Quand lieu = Uber/Bolt, le mode est verrouillé sur la plateforme correspondante
-  if (isPlateforme(lieu) && mode !== lieu) {
+  // Uber/Bolt : mode verrouillé sur la plateforme.
+  // Glovo : on AUTORISE les modes boutique (Espèces/SumUp/MB Way) → paiement à la livraison.
+  if (isPlateforme(lieu) && lieu !== 'Glovo' && mode !== lieu) {
     showToast(`Mode paiement verrouillé sur ${lieu}`);
     return;
   }
@@ -1599,6 +1780,11 @@ function selectMode(mode) {
     const el = document.getElementById(`mode-${m}`);
     if (el) el.classList.toggle('selected', m === mode);
   });
+  // Glovo : afficher/masquer le champ "cash réclamé" selon le mode choisi
+  if (lieu === 'Glovo') {
+    syncGlovoCashField();
+    updateTotal();
+  }
 }
 
 function selectLieu(l) {
@@ -1615,13 +1801,20 @@ function selectLieu(l) {
     if (l === 'Bolt') ensureBoltPaymentButton();
     if (l === 'Glovo') ensureGlovoPaymentButton();
     modePaiement = l;
+    // Glovo : on autorise aussi les modes boutique (Espèces/SumUp/MB Way) pour le cash livraison
+    const glovoOuvert = (l === 'Glovo');
+    const modesBoutique = ['Espèces','SumUp','MB Way'];
     ['Espèces','SumUp','MB Way','Uber','Bolt','Glovo'].forEach(m => {
       const el = document.getElementById(`mode-${m}`);
       if (el) {
         el.classList.toggle('selected', m === l);
-        // Désactive visuellement les autres modes
         if (m !== l) {
-          el.classList.add('disabled-mode');
+          // Pour Glovo : laisser les modes boutique cliquables ; pour Uber/Bolt : tout griser
+          if (glovoOuvert && modesBoutique.indexOf(m) > -1) {
+            el.classList.remove('disabled-mode');
+          } else {
+            el.classList.add('disabled-mode');
+          }
         } else {
           el.classList.remove('disabled-mode');
         }
@@ -1644,7 +1837,16 @@ function selectLieu(l) {
   // Restaurer les badges de quantité après le re-render
   Object.keys(panier).forEach(name => updateCountBadge(name));
   renderPanier();
+  syncGlovoCashField();
   updateTotal();
+  syncReglementBlock();
+}
+
+// En boutique (sur place / emporter) le mode de règlement est choisi à l'encaissement :
+// on masque donc le bloc Règlement du panier. En plateforme, on le garde (mode auto).
+function syncReglementBlock() {
+  const bloc = document.getElementById('reglement-block');
+  if (bloc) bloc.style.display = isPlateforme(lieu) ? 'block' : 'none';
 }
 
 // Crée dynamiquement le bouton "Uber" dans la barre paiement (1 seule fois)
@@ -1688,17 +1890,231 @@ function ensureGlovoPaymentButton() {
 
 // ── SECTIONS ─────────────────────────────────────────────────────────
 function showSection(name) {
-  ['caisse','panier','histo'].forEach(s => {
-    document.getElementById(`section-${s}`).classList.toggle('active', s === name);
+  ['caisse','panier','commandes','histo'].forEach(s => {
+    const el = document.getElementById(`section-${s}`);
+    if (el) el.classList.toggle('active', s === name);
   });
   document.querySelectorAll('.tab').forEach((t, i) => {
-    t.classList.toggle('active', ['caisse','panier','histo'][i] === name);
+    t.classList.toggle('active', ['caisse','panier','commandes','histo'][i] === name);
   });
-  if (name !== 'caisse') {
-    document.getElementById('paiement-bar').style.display = name === 'panier' ? 'flex' : 'none';
-  } else {
-    document.getElementById('paiement-bar').style.display = 'flex';
+  const pb = document.getElementById('paiement-bar');
+  if (pb) pb.style.display = (name === 'caisse' || name === 'panier') ? 'flex' : 'none';
+  const eb = document.getElementById('encaissement-bar');
+  if (eb && name !== 'commandes') eb.style.display = 'none';
+  if (name === 'commandes') renderCommandes();
+  if (name === 'histo') renderHisto();
+}
+
+// ════════════════ COMMANDES EN ATTENTE & ENCAISSEMENT ════════════════
+
+// Le bouton du panier : plateforme = vente directe ; boutique = mise en attente.
+function validerOuAttente() {
+  if (isPlateforme(lieu)) { validerVente(); }
+  else { mettreEnAttente(); }
+}
+
+// Numéro auto Cde 1, 2, 3… remis à zéro chaque jour.
+function getNextCommandeNum() {
+  const today = new Date().toDateString();
+  let c = JSON.parse(localStorage.getItem('bs_cde_counter') || 'null');
+  if (!c || c.date !== today) c = { date: today, n: 0 };
+  c.n += 1;
+  localStorage.setItem('bs_cde_counter', JSON.stringify(c));
+  return c.n;
+}
+
+// Fige une photo de la commande boutique et vide le panier pour la suivante.
+function mettreEnAttente() {
+  if (getTotal() === 0) return;
+  if (isPlateforme(lieu)) { validerVente(); return; } // sécurité : jamais de plateforme en attente
+
+  const total = getTotal();
+  let num, maj = false;
+
+  // Mise à jour d'une commande ouverte (on conserve son numéro)
+  if (editingCommandeId != null) {
+    const c = commandes.find(x => x.id === editingCommandeId);
+    if (c) {
+      c.items = { ...panier };
+      c.lieu = lieu;
+      c.total = total;
+      c.heure = new Date().toISOString();
+      num = c.num;
+      maj = true;
+    }
+    editingCommandeId = null;
   }
+
+  // Sinon, nouvelle commande
+  if (!maj) {
+    num = getNextCommandeNum();
+    commandes.push({
+      id: String(Date.now()) + '-' + Math.floor(Math.random() * 1000),
+      num: num,
+      items: { ...panier },
+      lieu: lieu,
+      total: total,
+      heure: new Date().toISOString(),
+    });
+  }
+  saveCommandes();
+
+  // Vider le panier + les globales salade (hygiène, pas de report sur la commande suivante)
+  Object.keys(panier).forEach(name => { panier[name] = 0; updateCountBadge(name); });
+  panier = {};
+  window.saladeSupplementsBolt = [];
+  window.supplementsParProduit = {};
+  window.saladeCouts = [];
+
+  updateTotal();
+  renderPanier();
+  renderCommandes();
+  updateCommandesBadge();
+  showToast(maj
+    ? `💾 Cde ${num} mise à jour — ${formatPrice(total)}`
+    : `📝 Cde ${num} en attente — ${formatPrice(total)}`);
+  showSection(maj ? 'commandes' : 'caisse'); // après MAJ : voir la liste ; sinon enchaîner
+}
+
+// Ouvre une commande en attente dans le panier pour y ajouter/retirer des produits.
+function ouvrirCommande(id) {
+  const c = commandes.find(x => x.id === id);
+  if (!c) return;
+  if (getTotal() > 0 && !confirm(`Le panier en cours sera remplacé par la Cde ${c.num}. Continuer ?`)) return;
+
+  // Vider les badges du panier courant avant de charger la commande
+  Object.keys(panier).forEach(name => { panier[name] = 0; updateCountBadge(name); });
+  panier = { ...c.items };
+  editingCommandeId = c.id;
+  selectionEncaissement.delete(c.id);
+
+  selectLieu(c.lieu); // gère lieu + prix + re-render produits/panier + badges + updateTotal + syncReglementBlock
+  updateCommandesBadge();
+  showToast(`✏️ Cde ${c.num} ouverte — ajoute, puis « Mettre à jour »`);
+  showSection('caisse');
+}
+
+function updateCommandesBadge() {
+  const t = document.getElementById('tab-commandes');
+  if (t) t.textContent = commandes.length > 0 ? `🧾 Commandes (${commandes.length})` : '🧾 Commandes';
+}
+
+function renderCommandes() {
+  const list = document.getElementById('cmd-list');
+  if (!list) return;
+  if (commandes.length === 0) {
+    list.innerHTML = '<div class="histo-empty" style="text-align:center;color:var(--muted);padding:40px 0">Aucune commande en attente<br><span style="font-size:28px;margin-top:10px;display:block">🧾</span></div>';
+    updateEncaissementBar();
+    return;
+  }
+  list.innerHTML = commandes.map(c => {
+    const produits = Object.entries(c.items).map(([n, q]) => q > 1 ? `${n} ×${q}` : n).join(', ');
+    const checked = selectionEncaissement.has(c.id);
+    const lieuIcon = c.lieu === 'Sur place' ? '🪑' : '🥡';
+    return `
+      <div onclick="toggleCommandeSelection('${c.id}')"
+           style="background:${checked ? 'var(--accent-dim)' : 'var(--surface)'};border:1px solid ${checked ? 'var(--accent)' : 'var(--border)'};border-radius:14px;padding:12px;margin-bottom:8px;cursor:pointer;display:flex;align-items:center;gap:10px;transition:all .15s">
+        <div style="font-size:18px">${checked ? '✅' : '⬜'}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:700;font-size:14px">Cde ${c.num} <span style="font-size:11px;color:var(--muted);font-weight:500">· ${lieuIcon} ${c.lieu}</span></div>
+          <div style="font-size:12px;color:var(--muted);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${produits}</div>
+        </div>
+        <div style="text-align:right;flex:none">
+          <div style="font-weight:700;font-size:14px">${formatPrice(c.total)}</div>
+          <div style="display:flex;gap:4px;margin-top:4px;justify-content:flex-end">
+            <button onclick="event.stopPropagation();ouvrirCommande('${c.id}')"
+              style="background:var(--surface2);border:1px solid var(--accent);color:var(--accent);padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700;cursor:pointer">✏️ Modifier</button>
+            <button onclick="event.stopPropagation();supprimerCommande('${c.id}')"
+              style="background:#3d1010;border:1px solid #f87171;color:#f87171;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700;cursor:pointer">🗑</button>
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+  updateEncaissementBar();
+}
+
+function toggleCommandeSelection(id) {
+  if (selectionEncaissement.has(id)) selectionEncaissement.delete(id);
+  else selectionEncaissement.add(id);
+  renderCommandes();
+}
+
+function selectEncaissementMode(m) {
+  encaissementMode = m;
+  ['Espèces', 'SumUp', 'MB Way'].forEach(x => {
+    const el = document.getElementById(`enc-mode-${x}`);
+    if (el) el.classList.toggle('selected', x === m);
+  });
+}
+
+function updateEncaissementBar() {
+  const bar = document.getElementById('encaissement-bar');
+  if (!bar) return;
+  const ids = [...selectionEncaissement].filter(id => commandes.find(c => c.id === id));
+  if (ids.length === 0) { bar.style.display = 'none'; return; }
+  bar.style.display = 'block';
+  const total = ids.reduce((s, id) => s + (commandes.find(c => c.id === id)?.total || 0), 0);
+  document.getElementById('enc-count').textContent = ids.length;
+  document.getElementById('enc-total').textContent = formatPrice(total);
+}
+
+function supprimerCommande(id) {
+  const c = commandes.find(x => x.id === id);
+  if (!c) return;
+  if (!confirm(`Supprimer la Cde ${c.num} (${formatPrice(c.total)}) ?`)) return;
+  commandes = commandes.filter(x => x.id !== id);
+  selectionEncaissement.delete(id);
+  saveCommandes();
+  renderCommandes();
+  updateCommandesBadge();
+  showToast(`🗑 Cde ${c.num} supprimée`);
+}
+
+// Encaisse toutes les commandes cochées avec le mode choisi → envoi V10, une vente par commande.
+async function encaisserSelection() {
+  const ids = [...selectionEncaissement].filter(id => commandes.find(c => c.id === id));
+  if (ids.length === 0) return;
+
+  const btn = document.getElementById('enc-btn');
+  const old = btn.innerHTML;
+  btn.disabled = true;
+  btn.textContent = '⏳ Encaissement...';
+
+  let okAll = true;
+  for (const id of ids) {
+    const c = commandes.find(x => x.id === id);
+    if (!c) continue;
+    const vente = {
+      id: Date.now() + Math.floor(Math.random() * 10000),
+      date: new Date().toISOString(),
+      items: { ...c.items },
+      total: c.total,
+      mode: encaissementMode,   // mode choisi à l'encaissement
+      lieu: c.lieu,             // Sur place / Emporter
+      synced: false,
+    };
+    ventes.push(vente);
+    localStorage.setItem('ventes', JSON.stringify(ventes));
+    localStorage.setItem('bs_last_vente', JSON.stringify(vente));
+    const ok = await envoyerVersSheets(vente);
+    vente.synced = ok;
+    if (!ok) okAll = false;
+    localStorage.setItem('ventes', JSON.stringify(ventes));
+  }
+
+  // Retirer les commandes encaissées de la file
+  commandes = commandes.filter(c => !ids.includes(c.id));
+  selectionEncaissement.clear();
+  saveCommandes();
+
+  renderCommandes();
+  updateCommandesBadge();
+  renderHisto();
+
+  btn.disabled = false;
+  btn.innerHTML = old;
+  showToast(okAll ? '✅ Encaissé + envoyé en V10 !' : '⚠️ Encaissé (sync partielle, hors ligne)');
+  if (commandes.length === 0) showSection('histo');
 }
 
 
@@ -1725,7 +2141,7 @@ const ING_DEFAULT = [
 ];
 
 // ── SUPPLÉMENTS PAYANTS BOLT ─────────────────────────────────────────────────
-// Affichés uniquement quand lieu === 'Bolt' dans la modal de salade.
+// Affichés sur toute plateforme (Uber/Bolt/Glovo) dans la modal de salade.
 // Tarifs reflétant la configuration foodpartner.bolt.eu (menu-editor/modifiers).
 // Chaque supplément coché AJOUTE son prix au prix de base de la salade.
 // MODIFIABLE DIRECTEMENT DEPUIS L'APP via le bouton ⚙️ Gérer prix.
@@ -1899,11 +2315,11 @@ function renderSaladeModal() {
     vBtn.style.opacity = ok ? '1' : '0.4';
   }
 
-  // ── SECTION BOLT SUPPLÉMENTS (visible uniquement si lieu === 'Bolt') ──
+  // ── SECTION SUPPLÉMENTS (visible sur toute plateforme : Uber/Bolt/Glovo) ──
   const boltSection = document.getElementById('bolt-suppl-section');
   const boltGrid    = document.getElementById('bolt-suppl-grid');
   const boltTotal   = document.getElementById('bolt-suppl-total');
-  if (boltSection && lieu === 'Bolt') {
+  if (boltSection && isPlateforme(lieu)) {
     boltSection.style.display = 'block';
     if (boltGrid) {
       boltGrid.innerHTML = SUPPLEMENTS_BOLT.map(s => {
@@ -1927,7 +2343,7 @@ function renderSaladeModal() {
     // Prix de base : 10€ boutique, 12,90€ Uber/Bolt/Glovo (priceUber)
     let prixBase = 10;
     if (isPlateforme(lieu)) prixBase = 12.90;
-    const supp = lieu === 'Bolt' ? getSupplementsBoltTotal() : 0;
+    const supp = isPlateforme(lieu) ? getSupplementsBoltTotal() : 0;
     const prixTotal = prixBase + supp;
     vBtn.textContent = `✅ Ajouter la salade — ${prixTotal.toFixed(2).replace('.', ',')} €`;
   }
@@ -2000,14 +2416,14 @@ function validerSalade() {
   const suppCopy = [...supplementsBoltSet]
     .map(nom => SUPPLEMENTS_BOLT.find(s => s.nom === nom))
     .filter(Boolean);
-  window.saladeSupplementsBolt.push(lieu === 'Bolt' ? suppCopy : []);
+  window.saladeSupplementsBolt.push(isPlateforme(lieu) ? suppCopy : []);
 
   updateCountBadge(nomProduit);
   updateTotal();
   renderPanier();
   fermerSalade();
 
-  const suppTotal = (lieu === 'Bolt') ? getSupplementsBoltTotal() : 0;
+  const suppTotal = isPlateforme(lieu) ? getSupplementsBoltTotal() : 0;
   if (suppTotal > 0) {
     showToast(`🥗 Salada a Compor ajoutée — coût ${coutReel.toFixed(2)}€ — +${suppTotal.toFixed(2)}€ suppl.`);
   } else {
