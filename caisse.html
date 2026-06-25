@@ -498,8 +498,7 @@
   }
 
   /* ── SECTIONS VISIBILITY ── */
-  /* La visibilité des sections est gérée par .main-section / .active (plus bas).
-     Les règles ci-dessous ne stylent que les conteneurs internes. */
+  #section-caisse { display: block; }
   #section-panier .panier-section { display: flex; }
   #section-histo .histo-section { display: flex; }
 
@@ -615,7 +614,6 @@
 <div class="tabs">
   <button class="tab active" onclick="showSection('caisse')">🛍 Produits</button>
   <button class="tab" onclick="showSection('panier')" id="tab-panier">🧺 Panier</button>
-  <button class="tab" onclick="showSection('commandes')" id="tab-commandes">🧾 Commandes</button>
   <button class="tab" onclick="showSection('histo')">📋 Historique</button>
 </div>
 
@@ -630,30 +628,6 @@
 <!-- ═══════════════ SECTION PANIER ═══════════════ -->
 <div class="main-section" id="section-panier">
   <div class="panier-section active" id="panier-list"></div>
-</div>
-
-<!-- ═══════════════ SECTION COMMANDES ═══════════════ -->
-<div class="main-section" id="section-commandes">
-  <div style="padding:12px 14px 0">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-      <h3 style="margin:0;font-size:15px">Commandes en attente</h3>
-      <span style="font-size:11px;color:var(--muted)">Sur place / à emporter</span>
-    </div>
-    <div id="cmd-list"></div>
-    <div style="height:200px"></div>
-  </div>
-  <!-- BARRE ENCAISSEMENT (sticky bas) -->
-  <div id="encaissement-bar" style="display:none;position:fixed;left:0;right:0;bottom:0;background:var(--bg);border-top:1px solid var(--border);padding:12px 16px calc(12px + env(safe-area-inset-bottom));z-index:50">
-    <div style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">Règlement</div>
-    <div class="paiement-modes">
-      <button class="mode-btn selected" id="enc-mode-Espèces" onclick="selectEncaissementMode('Espèces')"><span class="mode-icon">💵</span>Espèces</button>
-      <button class="mode-btn" id="enc-mode-SumUp" onclick="selectEncaissementMode('SumUp')"><span class="mode-icon">💳</span>SumUp</button>
-      <button class="mode-btn" id="enc-mode-MB Way" onclick="selectEncaissementMode('MB Way')"><span class="mode-icon">📱</span>MB Way</button>
-    </div>
-    <button class="valider-btn" id="enc-btn" onclick="encaisserSelection()" style="margin-top:8px">
-      💰 Encaisser <span id="enc-count">0</span> cde — <span id="enc-total">0,00 €</span>
-    </button>
-  </div>
 </div>
 
 <!-- ═══════════════ SECTION HISTO ═══════════════ -->
@@ -706,7 +680,7 @@
     <!-- SUPPLÉMENTS BOLT (visible uniquement en mode Bolt) -->
     <div id="bolt-suppl-section" style="display:none">
       <div class="modal-section-title" style="color:#34D186;display:flex;align-items:center;gap:8px">
-        <span>🛴 Suppléments</span>
+        <span>🛴 Suppléments Bolt</span>
         <span id="bolt-suppl-total" style="font-size:10px;opacity:0.85;font-weight:600">+0,00 €</span>
         <button onclick="ouvrirGestionSupp()" style="margin-left:auto;background:transparent;border:1px solid var(--border);color:var(--muted);padding:3px 8px;border-radius:14px;font-size:10px;cursor:pointer">⚙️ Prix</button>
       </div>
@@ -756,7 +730,7 @@
   <div class="modal-sheet">
     <div class="modal-handle"></div>
     <div class="modal-header">
-      <div class="modal-title" id="supp-modal-title">🛴 Suppléments</div>
+      <div class="modal-title" id="supp-modal-title">🛴 Suppléments Bolt</div>
       <div style="display:flex;gap:8px;align-items:center">
         <button onclick="ouvrirGestionSupp()" style="background:var(--surface2);border:1px solid var(--border);color:var(--muted);padding:5px 10px;border-radius:20px;font-size:11px;cursor:pointer">⚙️ Gérer prix</button>
         <button class="modal-close" onclick="fermerSuppModal()">✕</button>
@@ -805,7 +779,6 @@
 
 <!-- PAIEMENT BAR (sticky bottom) -->
 <div class="paiement-bar" id="paiement-bar">
-  <div id="reglement-block">
   <div style="display:flex; gap:6px; align-items:center; margin-bottom:2px;">
     <span style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Règlement</span>
   </div>
@@ -820,7 +793,6 @@
       <span class="mode-icon">📱</span>MB Way
     </button>
   </div>
-  </div>
   <div style="display:flex; gap:6px; align-items:center; margin-top:4px; margin-bottom:2px;">
     <span style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Lieu</span>
   </div>
@@ -831,7 +803,7 @@
     <button class="lieu-btn" onclick="selectLieu('Bolt')" id="lieu-Bolt">🛴 Bolt</button>
     <button class="lieu-btn" onclick="selectLieu('Glovo')" id="lieu-Glovo">🛵 Glovo</button>
   </div>
-  <button class="valider-btn" id="valider-btn" onclick="validerOuAttente()" disabled>
+  <button class="valider-btn" id="valider-btn" onclick="validerVente()" disabled>
     Valider la vente — <span id="valider-total">0,00 €</span>
   </button>
 </div>
@@ -906,7 +878,7 @@ const PRODUCTS = [
   { name: 'Overgnith Fraise', price: 4, priceUber: 6.00, cat: 'gateau', icon: '🍓', destock: false },
   { name: 'Brownie',   price: 2.5, priceUber: 3.40, cat: 'gateau',   icon: '🍫' },
   { name: 'Muffins',   price: 3,   priceUber: 4.00, cat: 'gateau',   icon: '🧁' },
-  { name: 'Gâteau du jour', price: 3, priceUber: 4.00, cat: 'gateau', icon: '🍰' },
+  { name: 'Gâteau du jour', price: 3.5, priceUber: 4.90, cat: 'gateau', icon: '🍰' },
   // ★ Brigadeiro Fit : deux SKU selon le canal ★
   // Boutique : vente à l'unité 2,50 € · Uber : duo uniquement 6,50 €
   { name: 'Brigadeiro Fit',     price: 2.5, priceUber: null, cat: 'gateau', icon: '🍬', destock: true },
@@ -962,23 +934,12 @@ let modePaiement = 'Espèces';
 let lieu = 'Sur place';
 let ventes = JSON.parse(localStorage.getItem('ventes') || '[]');
 
-// ── COMMANDES EN ATTENTE (boutique : sur place / à emporter uniquement) ──
-let commandes = JSON.parse(localStorage.getItem('bs_commandes') || '[]');
-let selectionEncaissement = new Set();   // ids des commandes cochées pour l'encaissement
-let encaissementMode = 'Espèces';        // mode choisi au moment de payer
-let editingCommandeId = null;            // id de la commande ouverte pour modification (null = nouvelle)
-function saveCommandes() { localStorage.setItem('bs_commandes', JSON.stringify(commandes)); }
-
 // ── INIT ─────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
   updateDate();
   renderProducts();
   renderPanier();
   renderHisto();
-  renderCommandes();
-  updateCommandesBadge();
-  syncReglementBlock();
-  updateTotal();
   chargerCoutsSalade(); // charger les coûts depuis V10
 });
 
@@ -1038,7 +999,7 @@ function addProduct(p) {
     return;
   }
   // ── BOLT : pour les salades fixes (Mediterranica/Proteina), proposer les suppléments avant d'ajouter ──
-  if (isPlateforme(lieu) && (p.name === 'Salada Mediterranica' || p.name === 'Salada Proteina')) {
+  if (lieu === 'Bolt' && (p.name === 'Salada Mediterranica' || p.name === 'Salada Proteina')) {
     ouvrirSuppModal(p);
     return;
   }
@@ -1214,21 +1175,11 @@ function updateTotal() {
   const total = getTotal();
   const fmt = formatPrice(total);
   const td = document.getElementById('total-display');
+  const vt = document.getElementById('valider-total');
   const btn = document.getElementById('valider-btn');
   if (td) td.textContent = fmt;
-  if (btn) {
-    btn.disabled = total === 0;
-    let label;
-    if (isPlateforme(lieu)) {
-      label = 'Valider la vente';
-    } else if (editingCommandeId != null) {
-      const c = commandes.find(x => x.id === editingCommandeId);
-      label = c ? `💾 Mettre à jour Cde ${c.num}` : '💾 Mettre à jour';
-    } else {
-      label = '➕ Mettre en attente';
-    }
-    btn.innerHTML = `${label} — <span id="valider-total">${fmt}</span>`;
-  }
+  if (vt) vt.textContent = fmt;
+  if (btn) btn.disabled = total === 0;
 }
 
 function getTotal() {
@@ -1340,9 +1291,9 @@ async function envoyerVersSheets(vente) {
     const isPF = isUber || isBolt || isGlovo; // plateforme livraison
     const suffixe = isUber ? ' Uber' : (isBolt ? ' Bolt' : (isGlovo ? ' Glovo' : ''));
 
-    // ── Collecter les suppléments payants (sur toute plateforme : Uber/Bolt/Glovo) ──
+    // ── Collecter les suppléments Bolt (uniquement en mode Bolt) ──
     const supplementsLignes = []; // [{nom, prix}]
-    if (isPF) {
+    if (isBolt) {
       if (window.saladeSupplementsBolt) {
         window.saladeSupplementsBolt.forEach(supps => {
           supps.forEach(s => supplementsLignes.push(s));
@@ -1366,9 +1317,9 @@ async function envoyerVersSheets(vente) {
     });
     const qtyItems   = items.map(([, qty]) => qty);
 
-    // Ajouter chaque supplément comme ligne unitaire avec le suffixe de la plateforme
+    // Ajouter chaque supplément comme ligne unitaire avec suffixe " Bolt"
     supplementsLignes.forEach(s => {
-      nomsItems.push(`${s.nom}${suffixe}`);
+      nomsItems.push(`${s.nom} Bolt`);
       prixItems.push(s.prix);
       qtyItems.push(1);
     });
@@ -1432,8 +1383,6 @@ async function envoyerVersSheets(vente) {
 // ── VALIDER ──────────────────────────────────────────────────────────
 async function validerVente() {
   if (getTotal() === 0) return;
-
-  editingCommandeId = null; // une vente directe annule toute édition de commande en attente
 
   const btn = document.getElementById('valider-btn');
   btn.disabled = true;
@@ -1696,14 +1645,6 @@ function selectLieu(l) {
   Object.keys(panier).forEach(name => updateCountBadge(name));
   renderPanier();
   updateTotal();
-  syncReglementBlock();
-}
-
-// En boutique (sur place / emporter) le mode de règlement est choisi à l'encaissement :
-// on masque donc le bloc Règlement du panier. En plateforme, on le garde (mode auto).
-function syncReglementBlock() {
-  const bloc = document.getElementById('reglement-block');
-  if (bloc) bloc.style.display = isPlateforme(lieu) ? 'block' : 'none';
 }
 
 // Crée dynamiquement le bouton "Uber" dans la barre paiement (1 seule fois)
@@ -1747,231 +1688,17 @@ function ensureGlovoPaymentButton() {
 
 // ── SECTIONS ─────────────────────────────────────────────────────────
 function showSection(name) {
-  ['caisse','panier','commandes','histo'].forEach(s => {
-    const el = document.getElementById(`section-${s}`);
-    if (el) el.classList.toggle('active', s === name);
+  ['caisse','panier','histo'].forEach(s => {
+    document.getElementById(`section-${s}`).classList.toggle('active', s === name);
   });
   document.querySelectorAll('.tab').forEach((t, i) => {
-    t.classList.toggle('active', ['caisse','panier','commandes','histo'][i] === name);
+    t.classList.toggle('active', ['caisse','panier','histo'][i] === name);
   });
-  const pb = document.getElementById('paiement-bar');
-  if (pb) pb.style.display = (name === 'caisse' || name === 'panier') ? 'flex' : 'none';
-  const eb = document.getElementById('encaissement-bar');
-  if (eb && name !== 'commandes') eb.style.display = 'none';
-  if (name === 'commandes') renderCommandes();
-  if (name === 'histo') renderHisto();
-}
-
-// ════════════════ COMMANDES EN ATTENTE & ENCAISSEMENT ════════════════
-
-// Le bouton du panier : plateforme = vente directe ; boutique = mise en attente.
-function validerOuAttente() {
-  if (isPlateforme(lieu)) { validerVente(); }
-  else { mettreEnAttente(); }
-}
-
-// Numéro auto Cde 1, 2, 3… remis à zéro chaque jour.
-function getNextCommandeNum() {
-  const today = new Date().toDateString();
-  let c = JSON.parse(localStorage.getItem('bs_cde_counter') || 'null');
-  if (!c || c.date !== today) c = { date: today, n: 0 };
-  c.n += 1;
-  localStorage.setItem('bs_cde_counter', JSON.stringify(c));
-  return c.n;
-}
-
-// Fige une photo de la commande boutique et vide le panier pour la suivante.
-function mettreEnAttente() {
-  if (getTotal() === 0) return;
-  if (isPlateforme(lieu)) { validerVente(); return; } // sécurité : jamais de plateforme en attente
-
-  const total = getTotal();
-  let num, maj = false;
-
-  // Mise à jour d'une commande ouverte (on conserve son numéro)
-  if (editingCommandeId != null) {
-    const c = commandes.find(x => x.id === editingCommandeId);
-    if (c) {
-      c.items = { ...panier };
-      c.lieu = lieu;
-      c.total = total;
-      c.heure = new Date().toISOString();
-      num = c.num;
-      maj = true;
-    }
-    editingCommandeId = null;
+  if (name !== 'caisse') {
+    document.getElementById('paiement-bar').style.display = name === 'panier' ? 'flex' : 'none';
+  } else {
+    document.getElementById('paiement-bar').style.display = 'flex';
   }
-
-  // Sinon, nouvelle commande
-  if (!maj) {
-    num = getNextCommandeNum();
-    commandes.push({
-      id: String(Date.now()) + '-' + Math.floor(Math.random() * 1000),
-      num: num,
-      items: { ...panier },
-      lieu: lieu,
-      total: total,
-      heure: new Date().toISOString(),
-    });
-  }
-  saveCommandes();
-
-  // Vider le panier + les globales salade (hygiène, pas de report sur la commande suivante)
-  Object.keys(panier).forEach(name => { panier[name] = 0; updateCountBadge(name); });
-  panier = {};
-  window.saladeSupplementsBolt = [];
-  window.supplementsParProduit = {};
-  window.saladeCouts = [];
-
-  updateTotal();
-  renderPanier();
-  renderCommandes();
-  updateCommandesBadge();
-  showToast(maj
-    ? `💾 Cde ${num} mise à jour — ${formatPrice(total)}`
-    : `📝 Cde ${num} en attente — ${formatPrice(total)}`);
-  showSection(maj ? 'commandes' : 'caisse'); // après MAJ : voir la liste ; sinon enchaîner
-}
-
-// Ouvre une commande en attente dans le panier pour y ajouter/retirer des produits.
-function ouvrirCommande(id) {
-  const c = commandes.find(x => x.id === id);
-  if (!c) return;
-  if (getTotal() > 0 && !confirm(`Le panier en cours sera remplacé par la Cde ${c.num}. Continuer ?`)) return;
-
-  // Vider les badges du panier courant avant de charger la commande
-  Object.keys(panier).forEach(name => { panier[name] = 0; updateCountBadge(name); });
-  panier = { ...c.items };
-  editingCommandeId = c.id;
-  selectionEncaissement.delete(c.id);
-
-  selectLieu(c.lieu); // gère lieu + prix + re-render produits/panier + badges + updateTotal + syncReglementBlock
-  updateCommandesBadge();
-  showToast(`✏️ Cde ${c.num} ouverte — ajoute, puis « Mettre à jour »`);
-  showSection('caisse');
-}
-
-function updateCommandesBadge() {
-  const t = document.getElementById('tab-commandes');
-  if (t) t.textContent = commandes.length > 0 ? `🧾 Commandes (${commandes.length})` : '🧾 Commandes';
-}
-
-function renderCommandes() {
-  const list = document.getElementById('cmd-list');
-  if (!list) return;
-  if (commandes.length === 0) {
-    list.innerHTML = '<div class="histo-empty" style="text-align:center;color:var(--muted);padding:40px 0">Aucune commande en attente<br><span style="font-size:28px;margin-top:10px;display:block">🧾</span></div>';
-    updateEncaissementBar();
-    return;
-  }
-  list.innerHTML = commandes.map(c => {
-    const produits = Object.entries(c.items).map(([n, q]) => q > 1 ? `${n} ×${q}` : n).join(', ');
-    const checked = selectionEncaissement.has(c.id);
-    const lieuIcon = c.lieu === 'Sur place' ? '🪑' : '🥡';
-    return `
-      <div onclick="toggleCommandeSelection('${c.id}')"
-           style="background:${checked ? 'var(--accent-dim)' : 'var(--surface)'};border:1px solid ${checked ? 'var(--accent)' : 'var(--border)'};border-radius:14px;padding:12px;margin-bottom:8px;cursor:pointer;display:flex;align-items:center;gap:10px;transition:all .15s">
-        <div style="font-size:18px">${checked ? '✅' : '⬜'}</div>
-        <div style="flex:1;min-width:0">
-          <div style="font-weight:700;font-size:14px">Cde ${c.num} <span style="font-size:11px;color:var(--muted);font-weight:500">· ${lieuIcon} ${c.lieu}</span></div>
-          <div style="font-size:12px;color:var(--muted);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${produits}</div>
-        </div>
-        <div style="text-align:right;flex:none">
-          <div style="font-weight:700;font-size:14px">${formatPrice(c.total)}</div>
-          <div style="display:flex;gap:4px;margin-top:4px;justify-content:flex-end">
-            <button onclick="event.stopPropagation();ouvrirCommande('${c.id}')"
-              style="background:var(--surface2);border:1px solid var(--accent);color:var(--accent);padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700;cursor:pointer">✏️ Modifier</button>
-            <button onclick="event.stopPropagation();supprimerCommande('${c.id}')"
-              style="background:#3d1010;border:1px solid #f87171;color:#f87171;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700;cursor:pointer">🗑</button>
-          </div>
-        </div>
-      </div>`;
-  }).join('');
-  updateEncaissementBar();
-}
-
-function toggleCommandeSelection(id) {
-  if (selectionEncaissement.has(id)) selectionEncaissement.delete(id);
-  else selectionEncaissement.add(id);
-  renderCommandes();
-}
-
-function selectEncaissementMode(m) {
-  encaissementMode = m;
-  ['Espèces', 'SumUp', 'MB Way'].forEach(x => {
-    const el = document.getElementById(`enc-mode-${x}`);
-    if (el) el.classList.toggle('selected', x === m);
-  });
-}
-
-function updateEncaissementBar() {
-  const bar = document.getElementById('encaissement-bar');
-  if (!bar) return;
-  const ids = [...selectionEncaissement].filter(id => commandes.find(c => c.id === id));
-  if (ids.length === 0) { bar.style.display = 'none'; return; }
-  bar.style.display = 'block';
-  const total = ids.reduce((s, id) => s + (commandes.find(c => c.id === id)?.total || 0), 0);
-  document.getElementById('enc-count').textContent = ids.length;
-  document.getElementById('enc-total').textContent = formatPrice(total);
-}
-
-function supprimerCommande(id) {
-  const c = commandes.find(x => x.id === id);
-  if (!c) return;
-  if (!confirm(`Supprimer la Cde ${c.num} (${formatPrice(c.total)}) ?`)) return;
-  commandes = commandes.filter(x => x.id !== id);
-  selectionEncaissement.delete(id);
-  saveCommandes();
-  renderCommandes();
-  updateCommandesBadge();
-  showToast(`🗑 Cde ${c.num} supprimée`);
-}
-
-// Encaisse toutes les commandes cochées avec le mode choisi → envoi V10, une vente par commande.
-async function encaisserSelection() {
-  const ids = [...selectionEncaissement].filter(id => commandes.find(c => c.id === id));
-  if (ids.length === 0) return;
-
-  const btn = document.getElementById('enc-btn');
-  const old = btn.innerHTML;
-  btn.disabled = true;
-  btn.textContent = '⏳ Encaissement...';
-
-  let okAll = true;
-  for (const id of ids) {
-    const c = commandes.find(x => x.id === id);
-    if (!c) continue;
-    const vente = {
-      id: Date.now() + Math.floor(Math.random() * 10000),
-      date: new Date().toISOString(),
-      items: { ...c.items },
-      total: c.total,
-      mode: encaissementMode,   // mode choisi à l'encaissement
-      lieu: c.lieu,             // Sur place / Emporter
-      synced: false,
-    };
-    ventes.push(vente);
-    localStorage.setItem('ventes', JSON.stringify(ventes));
-    localStorage.setItem('bs_last_vente', JSON.stringify(vente));
-    const ok = await envoyerVersSheets(vente);
-    vente.synced = ok;
-    if (!ok) okAll = false;
-    localStorage.setItem('ventes', JSON.stringify(ventes));
-  }
-
-  // Retirer les commandes encaissées de la file
-  commandes = commandes.filter(c => !ids.includes(c.id));
-  selectionEncaissement.clear();
-  saveCommandes();
-
-  renderCommandes();
-  updateCommandesBadge();
-  renderHisto();
-
-  btn.disabled = false;
-  btn.innerHTML = old;
-  showToast(okAll ? '✅ Encaissé + envoyé en V10 !' : '⚠️ Encaissé (sync partielle, hors ligne)');
-  if (commandes.length === 0) showSection('histo');
 }
 
 
@@ -1998,7 +1725,7 @@ const ING_DEFAULT = [
 ];
 
 // ── SUPPLÉMENTS PAYANTS BOLT ─────────────────────────────────────────────────
-// Affichés sur toute plateforme (Uber/Bolt/Glovo) dans la modal de salade.
+// Affichés uniquement quand lieu === 'Bolt' dans la modal de salade.
 // Tarifs reflétant la configuration foodpartner.bolt.eu (menu-editor/modifiers).
 // Chaque supplément coché AJOUTE son prix au prix de base de la salade.
 // MODIFIABLE DIRECTEMENT DEPUIS L'APP via le bouton ⚙️ Gérer prix.
@@ -2172,11 +1899,11 @@ function renderSaladeModal() {
     vBtn.style.opacity = ok ? '1' : '0.4';
   }
 
-  // ── SECTION SUPPLÉMENTS (visible sur toute plateforme : Uber/Bolt/Glovo) ──
+  // ── SECTION BOLT SUPPLÉMENTS (visible uniquement si lieu === 'Bolt') ──
   const boltSection = document.getElementById('bolt-suppl-section');
   const boltGrid    = document.getElementById('bolt-suppl-grid');
   const boltTotal   = document.getElementById('bolt-suppl-total');
-  if (boltSection && isPlateforme(lieu)) {
+  if (boltSection && lieu === 'Bolt') {
     boltSection.style.display = 'block';
     if (boltGrid) {
       boltGrid.innerHTML = SUPPLEMENTS_BOLT.map(s => {
@@ -2200,7 +1927,7 @@ function renderSaladeModal() {
     // Prix de base : 10€ boutique, 12,90€ Uber/Bolt/Glovo (priceUber)
     let prixBase = 10;
     if (isPlateforme(lieu)) prixBase = 12.90;
-    const supp = isPlateforme(lieu) ? getSupplementsBoltTotal() : 0;
+    const supp = lieu === 'Bolt' ? getSupplementsBoltTotal() : 0;
     const prixTotal = prixBase + supp;
     vBtn.textContent = `✅ Ajouter la salade — ${prixTotal.toFixed(2).replace('.', ',')} €`;
   }
@@ -2273,14 +2000,14 @@ function validerSalade() {
   const suppCopy = [...supplementsBoltSet]
     .map(nom => SUPPLEMENTS_BOLT.find(s => s.nom === nom))
     .filter(Boolean);
-  window.saladeSupplementsBolt.push(isPlateforme(lieu) ? suppCopy : []);
+  window.saladeSupplementsBolt.push(lieu === 'Bolt' ? suppCopy : []);
 
   updateCountBadge(nomProduit);
   updateTotal();
   renderPanier();
   fermerSalade();
 
-  const suppTotal = isPlateforme(lieu) ? getSupplementsBoltTotal() : 0;
+  const suppTotal = (lieu === 'Bolt') ? getSupplementsBoltTotal() : 0;
   if (suppTotal > 0) {
     showToast(`🥗 Salada a Compor ajoutée — coût ${coutReel.toFixed(2)}€ — +${suppTotal.toFixed(2)}€ suppl.`);
   } else {
