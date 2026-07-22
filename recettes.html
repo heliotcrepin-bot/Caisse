@@ -792,23 +792,24 @@ const RECIPES = [
     tip:'🆕 Cremoso sans lactose. Ómega-9 + fibras. Idéal matin.'
   },
   {
-    id:'batido_acai_power', type:'batido', caisse:'Açaí Power', baseVol:300, price:5.90,
+    id:'batido_acai_power', type:'batido', caisse:'Açaí Power', baseVol:250, price:5.90,
     emoji:'🟣', title:'Batido Açaí Power', sub:'Açaí · Myrtille · Banane',
-    time:'3 min', kcal:'230 kcal', tags:['sante','nouveau'],
+    time:'3 min', kcal:'210 kcal', tags:['sante','nouveau'],
     ings:[
-      {nom:'Acai poudre',  qty_per_base:6,   unite:'g', note:'1 c. à café'},
-      {nom:'Banane',       qty_per_base:100, unite:'g', note:'mûre'},
-      {nom:'Myrtilles',    qty_per_base:60,  unite:'g', note:'congelées'},
-      {nom:'Lait amandes', qty_per_base:180, unite:'ml'},
+      {nom:'Glace acai',   qty_per_base:60,  unite:'g', note:'pulpe Native açaí+guarana, décongelée 30 sec'},
+      {nom:'Banane',       qty_per_base:80,  unite:'g', note:'mûre (taches noires)'},
+      {nom:'Myrtilles',    qty_per_base:20,  unite:'g', note:'fraîches ou congelées'},
+      {nom:'Lait amandes', qty_per_base:220, unite:'ml'},
       {nom:'Mel',          qty_per_base:5,   unite:'g'},
     ],
     steps:[
-      {action:'Lait', detail:'Lait amandes au blender.'},
-      {action:'Ajouter', detail:'Banane + myrtilles congelées + açaí em pó.'},
+      {action:'Décongeler', detail:'Glace açaí 30 sec micro-ondes pour texture crémeuse.'},
+      {action:'Lait', detail:'220ml lait amandes au blender.'},
+      {action:'Ajouter', detail:'Banane + myrtilles + glace açaí.'},
       {action:'Mel', detail:'Ajouter le mel.'},
-      {action:'Mixer', detail:'60 sec.'},
+      {action:'Mixer', detail:'45-60 sec — texture fluide onctueuse.'},
     ],
-    tip:'🆕 Version poudre. Myrtille = couleur violet. Banane mûre = crémeux.'
+    tip:'✅ Recette validée 06/2026. Coût matière 1,26€/portion. Marge 72% boutique / 42% Uber-Bolt.'
   },
   {
     id:'batido_mamao_carioca', type:'batido', caisse:'Mamão Carioca', baseVol:300, price:5.90,
@@ -850,6 +851,28 @@ const RECIPES = [
       {action:'Mixer', detail:'60 sec.'},
     ],
     tip:'🆕 Vegan ~22g protéines complètes. Post-training sem lactose.'
+  },
+  {
+    id:'batido_azul', type:'batido', caisse:'Batido Azul', baseVol:300, price:5.90,
+    emoji:'💙', title:'Batido Azul', sub:'Pomme verte · Citron · Whey · Spiruline (Wellness Premium)',
+    time:'3 min', kcal:'240 kcal', tags:['sport','sante'],
+    ings:[
+      {nom:'Lait amandes', qty_per_base:200, unite:'ml', note:'caseiro'},
+      {nom:'Banane',       qty_per_base:80,  unite:'g', note:'mûre'},
+      {nom:'Pomme',        qty_per_base:60,  unite:'g', note:'verte, avec peau'},
+      {nom:'Citron jaune', qty_per_base:10,  unite:'g', note:'jus'},
+      {nom:'Whey vanille', qty_per_base:15,  unite:'g', note:'½ scoop'},
+      {nom:'Espirulina',   qty_per_base:2,   unite:'g', note:'bleue (phycocyanine) = couleur azul'},
+      {nom:'Sirop agave',  qty_per_base:5,   unite:'ml'},
+    ],
+    steps:[
+      {action:'Lait', detail:'Lait d\'amandes caseiro au blender.'},
+      {action:'Fruits', detail:'Banane + pomme verte en cubes (avec peau) + jus de citron.'},
+      {action:'Compléter', detail:'Whey vanille + spiruline + agave.'},
+      {action:'Mixer', detail:'60 sec — spiruline bien dissoute, couleur azul vibrante.'},
+      {action:'Servir', detail:'Immédiatement, verre 300 ml.'},
+    ],
+    tip:'Wellness Premium carte officielle. Spiruline BLEUE = azul vibrante (la verte donne un vert-gris). ⚠ Pas pendant grossesse, autoimmune ou anticoagulant.'
   },
 
   /* ════════ SMOOTHIES BOWLS — 500 ml (7,90 €) ════════ */
@@ -1166,43 +1189,43 @@ const RECIPES = [
 
   /* ════════ SOUPES — 4,90 € ════════ */
   {
-    id:'soupe_carotte', type:'soupe', caisse:'Soupe Carotte', baseVol:300, price:4.90,
+    id:'soupe_carotte', type:'soupe', caisse:'Soupe Carotte Coco', baseVol:300, price:4.90,
     emoji:'🥕', title:'Soupe Carotte Coco', sub:'Carotte · Lait coco · Gingembre',
     time:'35 min', kcal:'180 kcal', tags:['sante'],
     ings:[
-      {nom:'Carotte',     qty_per_base:900, unite:'g'},
-      {nom:'Echalotte',   qty_per_base:110, unite:'g'},
-      {nom:'Lait coco',   qty_per_base:300, unite:'ml'},
-      {nom:'Huile olive', qty_per_base:30,  unite:'ml'},
-      {nom:'Gingembre',   qty_per_base:5,   unite:'g'},
-      {nom:'Thym',        qty_per_base:2,   unite:'g'},
-      {nom:'Poivre',      qty_per_base:3,   unite:'g'},
-      {nom:'Sel',         qty_per_base:5,   unite:'g'},
-      {nom:'Eau',         qty_per_base:850, unite:'ml'},
-      {nom:'Persil',      qty_per_base:5,   unite:'g'},
+      {nom:'Carotte',          qty_per_base:900, unite:'g'},
+      {nom:'Échalote',         qty_per_base:110, unite:'g'},
+      {nom:'Lait coco',        qty_per_base:300, unite:'ml'},
+      {nom:'Huile olive',      qty_per_base:30,  unite:'ml'},
+      {nom:'Gingembre poudre', qty_per_base:5,   unite:'g'},
+      {nom:'Thym',             qty_per_base:2,   unite:'g'},
+      {nom:'Poivre',           qty_per_base:3,   unite:'g'},
+      {nom:'Sel',              qty_per_base:5,   unite:'g'},
+      {nom:'Eau',              qty_per_base:850, unite:'ml'},
+      {nom:'Persil',           qty_per_base:5,   unite:'g'},
     ],
     steps:[
-      {action:'Revenir', detail:'Échalotte huile olive 3-4 min.'},
+      {action:'Revenir', detail:'Échalote huile olive 3-4 min.'},
       {action:'Carottes', detail:'En rondelles, 2 min.'},
       {action:'Assaisonner', detail:'Gingembre + thym + sel + poivre.'},
       {action:'Cuire', detail:'850ml eau, 20 min feu doux.'},
-      {action:'Mixer', detail:'Veluté lisse.'},
+      {action:'Mixer', detail:'Velouté lisse.'},
       {action:'Lait coco', detail:'Hors du feu, ajouter.'},
       {action:'Servir', detail:'Persil en déco.'},
     ],
-    tip:'5 portions. Conservation 3j frigo.'
+    tip:'🥕 4 portions de 450ml. Coût matière 0,71€/portion. Conservation 3j frigo.'
   },
   {
     id:'soupe_butternut', type:'soupe', caisse:'Soupe Butternut', baseVol:300, price:4.90,
     emoji:'🍲', title:'Soupe Butternut', sub:'Réconfortant · Crémeux · Automne',
     time:'35 min', kcal:'280 kcal', tags:['sante'],
     ings:[
-      {nom:'Butternut',         qty_per_base:1,    unite:'u'},
-      {nom:'Oignon',            qty_per_base:1,    unite:'u'},
-      {nom:'Lard',              qty_per_base:150,  unite:'g'},
-      {nom:'Bouillon legumes',  qty_per_base:2,    unite:'u'},
-      {nom:'Tête de moine',     qty_per_base:60,   unite:'g'},
-      {nom:'Beurre',            qty_per_base:25,   unite:'g'},
+      {nom:'Butternut',        qty_per_base:1000, unite:'g'},
+      {nom:'Oignon',           qty_per_base:150,  unite:'g'},
+      {nom:'Lard',             qty_per_base:150,  unite:'g'},
+      {nom:'Bouillon légumes', qty_per_base:2,    unite:'u'},
+      {nom:'Tête de moine',    qty_per_base:60,   unite:'g'},
+      {nom:'Beurre',           qty_per_base:25,   unite:'g'},
     ],
     steps:[
       {action:'Préparer', detail:'Butternut en cubes, oignon émincé.'},
@@ -1213,20 +1236,20 @@ const RECIPES = [
       {action:'Mixer', detail:'Crémeux.'},
       {action:'Servir', detail:'Tête de moine râpée dessus.'},
     ],
-    tip:'5 portions. Tête de moine = rosettes à la girolle.'
+    tip:'🍲 4 portions de 450ml. Coût matière 1,39€/portion. Tête de moine = rosettes à la girolle.'
   },
   {
     id:'soupe_tomate', type:'soupe', caisse:'Soupe Tomate', baseVol:300, price:4.90,
     emoji:'🍅', title:'Soupe Tomate', sub:'Maison · Veloutée · Facile',
     time:'30 min', kcal:'220 kcal', tags:['sante'],
     ings:[
-      {nom:'Tomate',             qty_per_base:1000, unite:'g'},
-      {nom:'Oignon',             qty_per_base:1,    unite:'u'},
-      {nom:'Ail',                qty_per_base:1,    unite:'u'},
-      {nom:'Bouillon legumes',   qty_per_base:2,    unite:'u'},
-      {nom:'Creme fraiche',      qty_per_base:150,  unite:'g'},
-      {nom:'Beurre',             qty_per_base:45,   unite:'g'},
-      {nom:'Concentré tomate',   qty_per_base:130,  unite:'g'},
+      {nom:'Tomate',           qty_per_base:1000, unite:'g'},
+      {nom:'Oignon',           qty_per_base:150,  unite:'g'},
+      {nom:'Ail',              qty_per_base:5,    unite:'g'},
+      {nom:'Bouillon légumes', qty_per_base:2,    unite:'u'},
+      {nom:'Crème fraîche',    qty_per_base:150,  unite:'g'},
+      {nom:'Beurre',           qty_per_base:45,   unite:'g'},
+      {nom:'Concentré tomate', qty_per_base:130,  unite:'g'},
     ],
     steps:[
       {action:'Préparer', detail:'Oignon + ail émincés, tomates en quartiers.'},
@@ -1238,7 +1261,7 @@ const RECIPES = [
       {action:'Crème', detail:'Hors feu, incorporer.'},
       {action:'Servir', detail:'Quelques gouttes crème + basilic.'},
     ],
-    tip:'5 portions. Crème coco pour version vegan.'
+    tip:'🍅 4 portions de 450ml. Coût matière 1,73€/portion. Crème coco pour version vegan.'
   },
 
 ];
