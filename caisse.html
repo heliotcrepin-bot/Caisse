@@ -1408,6 +1408,47 @@ const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwenbhjtHVc1ifb2_y63
 // Identifiant de l'appareil — change "Tel1" en "Tel2" sur le deuxième téléphone
 const DEVICE_ID = 'Tel1';
 
+// ══════════════ ANTI-DOUBLON ══════════════════════════════════════════
+// 3 verrous complémentaires :
+//  1. envoiEnCours   → verrou synchrone : une seule vente en vol à la fois
+//  2. uid            → identifiant unique par vente, transmis au Apps Script
+//                      (active le dédoublonnage serveur — voir PATCH_APPS_SCRIPT.gs)
+//  3. registre local → empreinte des ventes envoyées, fenêtre de 3 min
+let envoiEnCours = false;
+let dernierTapValider = 0;
+const DEDUP_WINDOW_MS = 180000; // 3 min
+
+function nouvelUid() {
+  return DEVICE_ID + '-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8);
+}
+
+// Empreinte = contenu exact de la vente (indépendant de l'horodatage)
+function empreinteVente(vente) {
+  const items = Object.entries(vente.items || {})
+    .map(([n, q]) => n + 'x' + q)
+    .sort()
+    .join(',');
+  return [items, vente.total, vente.mode, vente.lieu].join('|');
+}
+
+function dejaEnvoyee(emp) {
+  try {
+    const reg = JSON.parse(localStorage.getItem('bs_envois') || '{}');
+    const t = reg[emp];
+    return !!t && (Date.now() - t) < DEDUP_WINDOW_MS;
+  } catch (e) { return false; }
+}
+
+function marquerEnvoyee(emp) {
+  try {
+    const reg = JSON.parse(localStorage.getItem('bs_envois') || '{}');
+    const now = Date.now();
+    Object.keys(reg).forEach(k => { if (now - reg[k] > DEDUP_WINDOW_MS) delete reg[k]; });
+    reg[emp] = now;
+    localStorage.setItem('bs_envois', JSON.stringify(reg));
+  } catch (e) {}
+}
+
 function envoyerLigne(date, heure, name, qty, prix, mode, lieu) {
   const params = new URLSearchParams({
     date:    `${date} ${heure}`,
@@ -1417,6 +1458,7 @@ function envoyerLigne(date, heure, name, qty, prix, mode, lieu) {
     mode:    mode,
     lieu:    lieu,
     device:  DEVICE_ID,
+    uid:     nouvelUid(),
   });
   return fetch(`${SCRIPT_URL}?${params.toString()}`, {
     method: 'GET',
@@ -1500,6 +1542,10 @@ async function envoyerVersSheets(vente) {
       }
     }
 
+    // uid : identique pour tous les renvois de CETTE vente → le serveur
+    // peut ignorer les doublons (retransmission réseau, bouton "Renvoyer").
+    if (!vente.uid) vente.uid = nouvelUid();
+
     const params = new URLSearchParams({
       date:    `${date} ${heure}`,
       produit: nomsItems.join('|'),
@@ -1507,6 +1553,8 @@ async function envoyerVersSheets(vente) {
       qty:     qtyItems.join('|'),
       mode:    vente.mode,
       lieu:    vente.lieu,
+      device:  DEVICE_ID,
+      uid:     vente.uid,
     });
 
     // Pour Uber/Bolt (et Glovo réglé VIA la plateforme) : ajouter brut, net (×0,631) et commission.
@@ -1543,19 +1591,16 @@ async function envoyerVersSheets(vente) {
 
 // ── VALIDER ──────────────────────────────────────────────────────────
 async function validerVente() {
+  // ── VERROU 1 : un seul envoi en vol. Test SYNCHRONE, avant tout await. ──
+  if (envoiEnCours) { showToast('⏳ Envoi déjà en cours…'); return; }
   if (getTotal() === 0) return;
-
-  editingCommandeId = null; // une vente directe annule toute édition de commande en attente
-
-  const btn = document.getElementById('valider-btn');
-  btn.disabled = true;
-  btn.textContent = '⏳ Envoi en cours...';
 
   const now = new Date();
   const _isGlovoCash = isGlovoCash();
   const _brutMenu = Math.round(getBrutMenu() * 100) / 100;
   const vente = {
     id: Date.now(),
+    uid: nouvelUid(),
     date: now.toISOString(),
     items: { ...panier },
     total: getTotal(),
@@ -1568,17 +1613,29 @@ async function validerVente() {
     cashRecu: _isGlovoCash ? getTotal() : null,       // 12,82 (cash encaissé)
   };
 
-  // Sauvegarde locale d'abord
-  ventes.push(vente);
-  localStorage.setItem('ventes', JSON.stringify(ventes));
-  localStorage.setItem('bs_last_vente', JSON.stringify(vente)); // pour annulation
+  // ── VERROU 3 : vente identique déjà partie il y a moins de 3 min ? ──
+  const emp = empreinteVente(vente);
+  if (dejaEnvoyee(emp)) {
+    if (!confirm(
+      'ATTENTION — une vente identique a déjà été envoyée il y a moins de 3 minutes :\n\n' +
+      Object.entries(vente.items).map(([n, q]) => `• ${n} ×${q}`).join('\n') +
+      `\n\nTotal ${formatPrice(vente.total)} · ${vente.mode} · ${vente.lieu}\n\n` +
+      'Envoyer quand même ? (OK = doublon volontaire, Annuler = ne rien envoyer)'
+    )) {
+      showToast('🛑 Envoi annulé — doublon évité');
+      return;
+    }
+  }
 
-  // Envoi Google Sheets
-  const ok = await envoyerVersSheets(vente);
-  vente.synced = ok;
-  localStorage.setItem('ventes', JSON.stringify(ventes));
+  envoiEnCours = true;
+  editingCommandeId = null; // une vente directe annule toute édition de commande en attente
 
-  // reset panier
+  const btn = document.getElementById('valider-btn');
+  btn.disabled = true;
+  btn.textContent = '⏳ Envoi en cours...';
+
+  // ── VERROU 2 : le panier est vidé AVANT l'envoi. ──
+  // Un 2e appel, quelle qu'en soit l'origine, trouve donc un panier vide.
   Object.keys(panier).forEach(name => {
     panier[name] = 0;
     updateCountBadge(name);
@@ -1588,11 +1645,30 @@ async function validerVente() {
   syncGlovoCashField();
   updateTotal();
   renderPanier();
-  renderHisto();
 
-  // reset bouton
-  btn.disabled = false;
-  btn.innerHTML = 'Valider la vente — <span id="valider-total">0,00 €</span>';
+  // Sauvegarde locale d'abord
+  ventes.push(vente);
+  localStorage.setItem('ventes', JSON.stringify(ventes));
+  localStorage.setItem('bs_last_vente', JSON.stringify(vente)); // pour annulation
+  marquerEnvoyee(emp);
+
+  let ok = false;
+  try {
+    // Envoi Google Sheets
+    ok = await envoyerVersSheets(vente);
+  } catch (e) {
+    console.error('Erreur envoi vente:', e);
+    ok = false;
+  } finally {
+    vente.synced = ok;
+    localStorage.setItem('ventes', JSON.stringify(ventes));
+    renderHisto();
+
+    // reset bouton
+    btn.disabled = false;
+    btn.innerHTML = 'Valider la vente — <span id="valider-total">0,00 €</span>';
+    envoiEnCours = false;
+  }
 
   showToast(ok ? '✅ Vente enregistrée + envoyée !' : '⚠️ Sauvegardé (hors ligne)');
   showSection('histo');
@@ -1664,10 +1740,29 @@ function renderHisto() {
 
 // ── RESYNC ───────────────────────────────────────────────────────────
 async function resyncer(id) {
+  if (envoiEnCours) { showToast('⏳ Envoi déjà en cours…'); return; }
   const vente = ventes.find(v => v.id === id);
   if (!vente) return;
+
+  // Le renvoi réutilise le MÊME uid : si le 1er envoi était en fait passé,
+  // le Apps Script (une fois patché) ignore le second → zéro doublon.
+  if (!vente.uid) vente.uid = nouvelUid();
+
+  if (!confirm(
+    'Renvoyer cette vente vers V10 ?\n\n' +
+    Object.entries(vente.items).map(([n, q]) => `• ${n} ×${q}`).join('\n') +
+    `\n\nTotal ${formatPrice(vente.total)}\n\n` +
+    'À ne faire que si la ligne est VRAIMENT absente de V10.'
+  )) return;
+
+  envoiEnCours = true;
   showToast('⏳ Renvoi en cours...');
-  const ok = await envoyerVersSheets(vente);
+  let ok = false;
+  try {
+    ok = await envoyerVersSheets(vente);
+  } finally {
+    envoiEnCours = false;
+  }
   if (ok) {
     vente.synced = true;
     localStorage.setItem('ventes', JSON.stringify(ventes));
@@ -1738,6 +1833,9 @@ async function annulerDerniereVente() {
       lieu:    lastVente.lieu,
       device:  DEVICE_ID,
       annulation: 'true',
+      // uid dérivé de la vente annulée → une annulation renvoyée deux fois
+      // ne crée qu'une seule contre-passation côté serveur.
+      uid:     'annul-' + (lastVente.uid || lastVente.id),
     });
     await fetch(`${SCRIPT_URL}?${params.toString()}`, {
       method: 'GET', mode: 'no-cors'
@@ -1915,6 +2013,11 @@ function showSection(name) {
 
 // Le bouton du panier : plateforme = vente directe ; boutique = mise en attente.
 function validerOuAttente() {
+  // Garde anti double-tap mobile : 2 taps en moins de 1,2 s = 1 seule action.
+  const t = Date.now();
+  if (t - dernierTapValider < 1200) return;
+  dernierTapValider = t;
+
   if (isPlateforme(lieu)) { validerVente(); }
   else { mettreEnAttente(); }
 }
@@ -2078,47 +2181,59 @@ function supprimerCommande(id) {
 
 // Encaisse toutes les commandes cochées avec le mode choisi → envoi V10, une vente par commande.
 async function encaisserSelection() {
+  // ── VERROU 1 : test synchrone, avant tout await ──
+  if (envoiEnCours) { showToast('⏳ Envoi déjà en cours…'); return; }
+
   const ids = [...selectionEncaissement].filter(id => commandes.find(c => c.id === id));
   if (ids.length === 0) return;
+
+  envoiEnCours = true;
 
   const btn = document.getElementById('enc-btn');
   const old = btn.innerHTML;
   btn.disabled = true;
   btn.textContent = '⏳ Encaissement...';
 
-  let okAll = true;
-  for (const id of ids) {
-    const c = commandes.find(x => x.id === id);
-    if (!c) continue;
-    const vente = {
-      id: Date.now() + Math.floor(Math.random() * 10000),
-      date: new Date().toISOString(),
-      items: { ...c.items },
-      total: c.total,
-      mode: encaissementMode,   // mode choisi à l'encaissement
-      lieu: c.lieu,             // Sur place / Emporter
-      synced: false,
-    };
-    ventes.push(vente);
-    localStorage.setItem('ventes', JSON.stringify(ventes));
-    localStorage.setItem('bs_last_vente', JSON.stringify(vente));
-    const ok = await envoyerVersSheets(vente);
-    vente.synced = ok;
-    if (!ok) okAll = false;
-    localStorage.setItem('ventes', JSON.stringify(ventes));
-  }
-
-  // Retirer les commandes encaissées de la file
+  // ── VERROU 2 : les commandes sortent de la file AVANT l'envoi ──
+  // Un 2e appel ne peut donc plus retrouver les mêmes commandes à encaisser.
+  const aEncaisser = ids.map(id => commandes.find(x => x.id === id)).filter(Boolean)
+                        .map(c => ({ items: { ...c.items }, total: c.total, lieu: c.lieu }));
   commandes = commandes.filter(c => !ids.includes(c.id));
   selectionEncaissement.clear();
   saveCommandes();
-
   renderCommandes();
   updateCommandesBadge();
+
+  let okAll = true;
+  try {
+    for (const c of aEncaisser) {
+      const vente = {
+        id: Date.now() + Math.floor(Math.random() * 10000),
+        uid: nouvelUid(),
+        date: new Date().toISOString(),
+        items: { ...c.items },
+        total: c.total,
+        mode: encaissementMode,   // mode choisi à l'encaissement
+        lieu: c.lieu,             // Sur place / Emporter
+        synced: false,
+      };
+      ventes.push(vente);
+      localStorage.setItem('ventes', JSON.stringify(ventes));
+      localStorage.setItem('bs_last_vente', JSON.stringify(vente));
+      marquerEnvoyee(empreinteVente(vente));
+      const ok = await envoyerVersSheets(vente);
+      vente.synced = ok;
+      if (!ok) okAll = false;
+      localStorage.setItem('ventes', JSON.stringify(ventes));
+    }
+  } finally {
+    envoiEnCours = false;
+    btn.disabled = false;
+    btn.innerHTML = old;
+  }
+
   renderHisto();
 
-  btn.disabled = false;
-  btn.innerHTML = old;
   showToast(okAll ? '✅ Encaissé + envoyé en V10 !' : '⚠️ Encaissé (sync partielle, hors ligne)');
   if (commandes.length === 0) showSection('histo');
 }
