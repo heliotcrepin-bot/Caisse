@@ -605,7 +605,7 @@
 <!-- TOP BAR -->
 <div class="topbar">
   <div class="topbar-left">
-    <h1>🥗 Caisse <span style="font-size:11px;font-weight:700;background:#0f766e;color:#fff;padding:2px 7px;border-radius:100px;vertical-align:middle;">ANTIDOUBLON v2</span></h1>
+    <h1>🥗 Caisse <span style="font-size:11px;font-weight:700;background:#0f766e;color:#fff;padding:2px 7px;border-radius:100px;vertical-align:middle;">v3 · COMPO</span></h1>
     <span id="date-display"></span>
   </div>
   <div class="total-badge" id="total-display">0,00 €</div>
@@ -1235,6 +1235,7 @@ function changeQty(name, delta) {
   panier[name] = (panier[name] || 0) + delta;
   if (panier[name] <= 0) delete panier[name];
   updateCountBadge(name);
+  if (name === SALADE_SKU) syncComposQty();   // garde les compositions alignées
   updateTotal();
   renderPanier();
 }
@@ -1382,10 +1383,12 @@ function renderPanier() {
     if (!p) return;
     const div = document.createElement('div');
     div.className = 'panier-item';
+    const compo = (name === SALADE_SKU) ? blocCompos(window.saladeCompos) : '';
     div.innerHTML = `
       <div class="item-info">
         <div class="item-name">${p.icon} ${p.name}</div>
         <div class="item-prix">${formatPrice(getPrice(p))} / unité</div>
+        ${compo}
       </div>
       <div class="qty-controls">
         <button class="qty-btn" onclick="changeQty('${name}', -1)">−</button>
@@ -2048,6 +2051,8 @@ function mettreEnAttente() {
       c.lieu = lieu;
       c.total = total;
       c.heure = new Date().toISOString();
+      c.compos = (window.saladeCompos || []).slice();   // composition des salades
+      c.couts  = (window.saladeCouts  || []).slice();
       num = c.num;
       maj = true;
     }
@@ -2064,6 +2069,8 @@ function mettreEnAttente() {
       lieu: lieu,
       total: total,
       heure: new Date().toISOString(),
+      compos: (window.saladeCompos || []).slice(),      // composition des salades
+      couts:  (window.saladeCouts  || []).slice(),
     });
   }
   saveCommandes();
@@ -2074,6 +2081,7 @@ function mettreEnAttente() {
   window.saladeSupplementsBolt = [];
   window.supplementsParProduit = {};
   window.saladeCouts = [];
+  window.saladeCompos = [];
 
   updateTotal();
   renderPanier();
@@ -2094,6 +2102,10 @@ function ouvrirCommande(id) {
   // Vider les badges du panier courant avant de charger la commande
   Object.keys(panier).forEach(name => { panier[name] = 0; updateCountBadge(name); });
   panier = { ...c.items };
+  // Recharger la composition des salades enregistrée avec la commande
+  window.saladeCompos = (c.compos || []).slice();
+  window.saladeCouts  = (c.couts  || []).slice();
+  syncComposQty();
   editingCommandeId = c.id;
   selectionEncaissement.delete(c.id);
 
@@ -2127,6 +2139,7 @@ function renderCommandes() {
         <div style="flex:1;min-width:0">
           <div style="font-weight:700;font-size:14px">Cde ${c.num} <span style="font-size:11px;color:var(--muted);font-weight:500">· ${lieuIcon} ${c.lieu}</span></div>
           <div style="font-size:12px;color:var(--muted);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${produits}</div>
+          ${blocCompos(c.compos, true)}
         </div>
         <div style="text-align:right;flex:none">
           <div style="font-weight:700;font-size:14px">${formatPrice(c.total)}</div>
@@ -2510,6 +2523,40 @@ function toggleSupplementBolt(nom) {
   }
 }
 
+// ══════════════ COMPOSITION DES SALADES ══════════════════════════════
+// Une entrée par « Salada a Compor » présente dans le panier, dans l'ordre d'ajout.
+// { base, ings[], sauce, cout }  —  ou null si la salade a été ajoutée sans passer
+// par la modale (bouton + du panier), auquel cas on l'affiche comme non renseignée.
+const SALADE_SKU = 'Salada a Compor';
+window.saladeCompos = window.saladeCompos || [];
+
+// Garde le tableau des compositions aligné sur la quantité du panier.
+function syncComposQty() {
+  const n = panier[SALADE_SKU] || 0;
+  const a = window.saladeCompos;
+  while (a.length > n) a.pop();
+  while (a.length < n) a.push(null);
+}
+
+// Rend une composition en texte court, pour le panier et les commandes en attente.
+function libelleCompo(c) {
+  if (!c) return '⚠️ composition non renseignée';
+  const p = [];
+  if (c.base) p.push(c.base);
+  if (c.ings && c.ings.length) p.push(c.ings.join(', '));
+  if (c.sauce) p.push('sauce ' + c.sauce);
+  return p.join(' · ');
+}
+
+// Bloc HTML listant les compositions (numérotées si plusieurs salades).
+function blocCompos(compos, petit) {
+  if (!compos || !compos.length) return '';
+  const taille = petit ? '11px' : '12px';
+  return `<div style="margin-top:4px;padding-left:8px;border-left:2px solid var(--accent);font-size:${taille};color:var(--muted);line-height:1.45">` +
+    compos.map((c, i) => `<div>${compos.length > 1 ? `<b>#${i + 1}</b> ` : ''}${libelleCompo(c)}</div>`).join('') +
+    `</div>`;
+}
+
 function validerSalade() {
   if (!saladeBases || saladeBases.size === 0) { showToast('⚠️ Choisis une base'); return; }
 
@@ -2528,6 +2575,10 @@ function validerSalade() {
   // Stocker le coût pour l'envoi à V10 lors du paiement
   if (!window.saladeCouts) window.saladeCouts = [];
   window.saladeCouts.push(coutReel);
+
+  // Mémoriser la composition, pour la revoir dans le panier et les commandes en attente
+  if (!window.saladeCompos) window.saladeCompos = [];
+  window.saladeCompos.push({ base: baseLabel, ings: ings, sauce: saladeSauce, cout: coutReel });
 
   // ── BOLT : stocker les suppléments payants de cette salade ──
   // Chaque entrée correspond à une salade ajoutée au panier (dans l'ordre).
